@@ -28,23 +28,43 @@ class RegisteredUserController extends Controller
      * @throws \Illuminate\Validation\ValidationException
      */
     public function store(Request $request): RedirectResponse
-    {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
+{
+    // 1. Validasi Input
+    $request->validate([
+        'name' => ['required', 'string', 'max:255'],
+        'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+        'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        'no_hp' => ['required', 'numeric'],
+        'alamat_lengkap' => ['required', 'string'],
+        'provinsi' => ['required', 'string'],
+        'kota' => ['required', 'string'],
+        'ktp_image' => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:2048'], // Max 2MB
+    ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
-
-        event(new Registered($user));
-
-        Auth::login($user);
-
-        return redirect(route('dashboard', absolute: false));
+    // 2. Proses Upload KTP
+    $ktpPath = null;
+    if ($request->hasFile('ktp_image')) {
+        // Simpan ke folder: storage/app/public/ktp
+        $ktpPath = $request->file('ktp_image')->store('ktp', 'public');
     }
+
+    // 3. Simpan ke Database
+    $user = User::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'password' => Hash::make($request->password),
+        'role' => 'mitra',           // Default jadi Mitra
+        'status' => 'pending',       // Default Pending (tunggu admin)
+        'no_hp' => $request->no_hp,
+        'alamat_lengkap' => $request->alamat_lengkap,
+        'provinsi' => $request->provinsi, // Kita simpan nama provinsinya
+        'kota' => $request->kota,         // Kita simpan nama kotanya
+        'ktp_image' => $ktpPath,
+        'catatan' => $request->catatan,
+    ]);
+
+    event(new Registered($user));
+
+    return redirect()->route('approval.notice');
+}
 }
