@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ShopController; // <--- PENTING: Tambahkan ini biar ga error
 use Illuminate\Support\Facades\Route;
 
 // 1. Halaman Utama
@@ -20,29 +21,39 @@ Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
 
     // A. ROUTE DASHBOARD (PINTU GERBANG UTAMA)
     Route::get('/dashboard', function () {
+        
+        // 1. Cek: Apakah dia Admin?
         if (auth()->user()->role === 'admin') {
+            // Jika Admin, lempar ke Dashboard Khusus Admin
             return redirect()->route('admin.dashboard');
         }
-        return view('dashboard');
+
+        // 2. Jika Mitra:
+        // Panggil ShopController untuk ambil data Produk & Keranjang
+        // Lalu tampilkan halaman belanja
+        return app(ShopController::class)->index();
+
     })->name('dashboard');
 
-    // B. ROUTE KHUSUS ADMIN
-    // (Bagian yang bikin error sudah saya hapus, diganti dengan prefix biasa)
+
+    // B. ROUTE KERANJANG BELANJA (CART) - BARU DITAMBAHKAN
+    // Ini jalur untuk tombol (+) dan (-)
+    Route::post('/cart/add/{id}', [ShopController::class, 'addToCart'])->name('cart.add');
+    Route::post('/cart/decrease/{id}', [ShopController::class, 'decreaseCart'])->name('cart.decrease');
+
+
+    // C. ROUTE KHUSUS ADMIN
     Route::prefix('admin')->name('admin.')->group(function () {
-        
         // Dashboard Admin
         Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
-        
-        // Logika Approval
+        // Approval Mitra
         Route::patch('/mitra/{id}/approve', [AdminController::class, 'approve'])->name('mitra.approve');
         Route::patch('/mitra/{id}/reject', [AdminController::class, 'reject'])->name('mitra.reject');
-        
-        // Manajemen Produk (CRUD)
+        // Manajemen Produk
         Route::resource('products', ProductController::class);
-        
     });
 
-    // C. ROUTE PROFILE
+    // D. ROUTE PROFILE
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

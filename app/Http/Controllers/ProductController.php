@@ -21,11 +21,11 @@ class ProductController extends Controller
         return view('admin.products.create');
     }
 
-    // 3. Simpan Produk ke Database
+    // 3. Simpan Produk Baru (Store)
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required',
+            'name' => 'required|string|max:255',
             'price' => 'required|numeric',
             'stock' => 'required|numeric',
             'image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
@@ -48,19 +48,56 @@ class ProductController extends Controller
         return redirect()->route('admin.products.index')->with('success', 'Produk berhasil ditambahkan!');
     }
 
-    // 4. Hapus Produk
+    // 4. Tampilkan Form Edit (BARU)
+    public function edit($id)
+    {
+        $product = Product::findOrFail($id);
+        return view('admin.products.edit', compact('product'));
+    }
+
+    // 5. Proses Update Produk (BARU)
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric',
+            'stock' => 'required|numeric',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048', // Image jadi nullable (opsional)
+        ]);
+
+        $product = Product::findOrFail($id);
+
+        // Cek apakah user upload gambar baru?
+        if ($request->hasFile('image')) {
+            // Hapus gambar lama dulu
+            if ($product->image) {
+                Storage::disk('public')->delete($product->image);
+            }
+            // Simpan gambar baru
+            $imagePath = $request->file('image')->store('products', 'public');
+            $product->image = $imagePath;
+        }
+
+        // Update data lainnya
+        $product->name = $request->name;
+        $product->description = $request->description;
+        $product->price = $request->price;
+        $product->stock = $request->stock;
+        $product->save();
+
+        return redirect()->route('admin.products.index')->with('success', 'Produk berhasil diperbarui!');
+    }
+
+    // 6. Hapus Produk
     public function destroy($id)
     {
         $product = Product::findOrFail($id);
         
-        // Hapus gambar lama biar hemat server
         if ($product->image) {
             Storage::disk('public')->delete($product->image);
         }
         
         $product->delete();
-        return redirect()->back()->with('success', 'Produk dihapus.');
+        return redirect()->back()->with('success', 'Produk berhasil dihapus.');
     }
-    
-    // Nanti kita tambah fitur Edit kalau diperlukan
 }
