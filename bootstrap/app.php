@@ -11,6 +11,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+
+        // --- TAMBAHKAN BAGIAN INI ---
+        $middleware->validateCsrfTokens(except: [
+            'midtrans-callback', // Izinkan route ini diakses tanpa token
+        ]);
+        // ----------------------------
+
         // Tambahkan alias middleware custom kamu di sini
         $middleware->alias([
             'is_active' => \App\Http\Middleware\EnsureUserIsActive::class,

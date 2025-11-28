@@ -9,15 +9,12 @@ use Illuminate\Support\Facades\Auth;
 
 class ShopController extends Controller
 {
-    // 1. Tampilkan Katalog & Keranjang
+    // 1. Tampilkan Katalog (Sama seperti sebelumnya)
     public function index()
     {
         $products = Product::where('is_available', true)->get();
-
-        // Ambil keranjang milik user yang sedang login
         $cartItems = Cart::with('product')->where('user_id', Auth::id())->get();
 
-        // Hitung Total Belanja
         $totalPrice = 0;
         foreach($cartItems as $item) {
             $totalPrice += $item->product->price * $item->quantity;
@@ -26,39 +23,63 @@ class ShopController extends Controller
         return view('dashboard', compact('products', 'cartItems', 'totalPrice'));
     }
 
-    // 2. Tambah ke Keranjang
+    // 2. Tambah Item (Versi AJAX / Tanpa Refresh)
     public function addToCart(Request $request, $productId)
     {
-        $cart = Cart::where('user_id', Auth::id())
-                    ->where('product_id', $productId)
-                    ->first();
+        $userId = Auth::id();
+        
+        $cart = Cart::where('user_id', $userId)->where('product_id', $productId)->first();
 
         if ($cart) {
-            // Jika sudah ada, tambah jumlahnya
             $cart->increment('quantity');
         } else {
-            // Jika belum ada, buat baru
             Cart::create([
-                'user_id' => Auth::id(),
+                'user_id' => $userId,
                 'product_id' => $productId,
                 'quantity' => 1
             ]);
         }
 
-        return redirect()->back()->with('success', 'Masuk keranjang!');
+        // Hitung ulang total untuk update Footer
+        return $this->getCartSummary($userId);
     }
 
-    // 3. Kurangi / Hapus Item
-    public function decreaseCart($cartId)
+    // 3. Kurangi Item (Versi AJAX / Tanpa Refresh)
+    public function decreaseCart($productId)
     {
-        $cart = Cart::where('id', $cartId)->where('user_id', Auth::id())->firstOrFail();
+        $userId = Auth::id();
+        $cart = Cart::where('user_id', $userId)->where('product_id', $productId)->first();
 
-        if ($cart->quantity > 1) {
-            $cart->decrement('quantity');
-        } else {
-            $cart->delete(); // Kalau sisa 1 dikurangi, jadi hapus
+        if ($cart) {
+            if ($cart->quantity > 1) {
+                $cart->decrement('quantity');
+            } else {
+                $cart->delete();
+            }
         }
 
-        return redirect()->back();
+        // Hitung ulang total untuk update Footer
+        return $this->getCartSummary($userId);
+    }
+
+    // Fungsi Pembantu untuk menghitung total belanjaan user
+    private function getCartSummary($userId)
+    {
+        $carts = Cart::with('product')->where('user_id', $userId)->get();
+        $totalPrice = 0;
+        $totalQty = 0;
+
+        foreach($carts as $c) {
+            $totalPrice += $c->product->price * $c->quantity;
+            $totalQty += $c->quantity;
+        }
+
+        // Cari qty produk spesifik yg baru diupdate tadi (opsional, tapi bagus buat UI)
+        return response()->json([
+            'status' => 'success',
+            'total_price' => number_format($totalPrice, 0, ',', '.'),
+            'total_qty' => $totalQty,
+            'cart_items' => $carts->pluck('quantity', 'product_id') // Kirim list qty per produk
+        ]);
     }
 }
