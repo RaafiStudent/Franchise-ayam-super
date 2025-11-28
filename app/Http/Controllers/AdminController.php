@@ -3,29 +3,48 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Order;   // <--- Tambahan
+use App\Models\Product; // <--- Tambahan
 use Illuminate\Http\Request;
+use Carbon\Carbon;      // <--- Tambahan untuk tanggal
 
 class AdminController extends Controller
 {
-    // 1. Menampilkan Daftar Mitra (Yang Pending & Active)
+    // 1. Dashboard Utama (Statistik & Approval Mitra)
     public function index()
     {
-        // Ambil user yang role-nya 'mitra', urutkan yang pending paling atas
+        // A. Logika Approval Mitra (Yang lama)
         $mitras = User::where('role', 'mitra')
             ->orderByRaw("FIELD(status, 'pending', 'active', 'banned')")
             ->latest()
             ->get();
 
-        return view('admin.dashboard', compact('mitras'));
+        // B. Logika Statistik (BARU)
+        $today = Carbon::today();
+
+        // 1. Total Omset Hari Ini (Hanya yang sudah PAID)
+        $omsetHariIni = Order::whereDate('created_at', $today)
+            ->where('payment_status', 'paid')
+            ->sum('total_price');
+
+        // 2. Jumlah Order Masuk Hari Ini
+        $orderHariIni = Order::whereDate('created_at', $today)->count();
+
+        // 3. Order Belum Dibayar (Total Pending)
+        $belumDibayar = Order::where('payment_status', 'unpaid')->count();
+
+        // 4. Stok Alert (Cari produk yang stoknya < 10)
+        $stokMenipis = Product::where('stock', '<', 10)->get();
+
+        return view('admin.dashboard', compact('mitras', 'omsetHariIni', 'orderHariIni', 'belumDibayar', 'stokMenipis'));
     }
 
     // 2. Proses ACC / Aktivasi Akun
     public function approve($id)
     {
         $mitra = User::findOrFail($id);
-        $mitra->status = 'active'; // Ubah jadi Active
+        $mitra->status = 'active'; 
         $mitra->save();
-
         return redirect()->back()->with('success', 'Akun Mitra berhasil diaktifkan!');
     }
     
@@ -33,17 +52,16 @@ class AdminController extends Controller
     public function reject($id)
     {
         $mitra = User::findOrFail($id);
-        $mitra->status = 'banned'; // Ubah jadi Banned
+        $mitra->status = 'banned'; 
         $mitra->save();
-
         return redirect()->back()->with('error', 'Akun Mitra dibekukan.');
     }
 
-    // 1. Tampilkan Semua Pesanan
+    // --- MANAJEMEN PESANAN (ORDER) ---
+
     public function manageOrders()
     {
-        // Urutkan: Yang 'paid' & 'processing' paling atas, baru history lainnya
-        $orders = \App\Models\Order::with('user')
+        $orders = Order::with('user')
             ->orderByRaw("FIELD(order_status, 'processing', 'pending', 'shipped', 'completed', 'cancelled')")
             ->latest()
             ->get();
@@ -51,7 +69,6 @@ class AdminController extends Controller
         return view('admin.orders.index', compact('orders'));
     }
 
-    // 2. Update Resi & Kirim Barang
     public function shipOrder(Request $request, $id)
     {
         $request->validate([
@@ -59,15 +76,14 @@ class AdminController extends Controller
             'courier_name' => 'required|string',
         ]);
 
-        $order = \App\Models\Order::findOrFail($id);
+        $order = Order::findOrFail($id);
         
         $order->update([
             'resi_number' => $request->resi_number,
             'courier_name' => $request->courier_name,
-            'order_status' => 'shipped' // Ubah status jadi DIKIRIM
+            'order_status' => 'shipped'
         ]);
 
         return redirect()->back()->with('success', 'Resi berhasil diinput! Pesanan sedang dikirim.');
     }
-
 }
