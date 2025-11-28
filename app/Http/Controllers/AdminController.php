@@ -38,4 +38,36 @@ class AdminController extends Controller
 
         return redirect()->back()->with('error', 'Akun Mitra dibekukan.');
     }
+
+    // 1. Tampilkan Semua Pesanan
+    public function manageOrders()
+    {
+        // Urutkan: Yang 'paid' & 'processing' paling atas, baru history lainnya
+        $orders = \App\Models\Order::with('user')
+            ->orderByRaw("FIELD(order_status, 'processing', 'pending', 'shipped', 'completed', 'cancelled')")
+            ->latest()
+            ->get();
+
+        return view('admin.orders.index', compact('orders'));
+    }
+
+    // 2. Update Resi & Kirim Barang
+    public function shipOrder(Request $request, $id)
+    {
+        $request->validate([
+            'resi_number' => 'required|string',
+            'courier_name' => 'required|string',
+        ]);
+
+        $order = \App\Models\Order::findOrFail($id);
+        
+        $order->update([
+            'resi_number' => $request->resi_number,
+            'courier_name' => $request->courier_name,
+            'order_status' => 'shipped' // Ubah status jadi DIKIRIM
+        ]);
+
+        return redirect()->back()->with('success', 'Resi berhasil diinput! Pesanan sedang dikirim.');
+    }
+
 }
