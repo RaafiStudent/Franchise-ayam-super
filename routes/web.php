@@ -55,6 +55,9 @@ Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
         // Manajemen Produk (CRUD)
         Route::resource('products', ProductController::class);
 
+        // Route Laporan Statistik
+         Route::get('/reports', [App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
+
         // Manajemen Pesanan & Input Resi
         Route::get('/orders', [AdminController::class, 'manageOrders'])->name('orders.index');
         Route::patch('/orders/{id}/ship', [AdminController::class, 'shipOrder'])->name('orders.ship');

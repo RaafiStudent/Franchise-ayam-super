@@ -26,6 +26,12 @@
                     {{-- 3. Menu Khusus Admin --}}
                     @if(Auth::user()->role === 'admin')
                         
+
+                        {{-- MENU BARU --}}
+    <x-nav-link :href="route('admin.reports.index')" :active="request()->routeIs('admin.reports.*')">
+        {{ __('Laporan Statistik') }}
+    </x-nav-link>
+
                         {{-- Manajemen Produk --}}
                         <x-nav-link :href="route('admin.products.index')" :active="request()->routeIs('admin.products.*')">
                             {{ __('Manajemen Produk') }}
@@ -101,6 +107,11 @@
 
             {{-- 3. Menu Khusus Admin Mobile --}}
             @if(Auth::user()->role === 'admin')
+
+                {{-- MENU BARU (Gunakan x-responsive-nav-link) --}}
+                <x-responsive-nav-link :href="route('admin.reports.index')" :active="request()->routeIs('admin.reports.*')">
+                    {{ __('Laporan Statistik') }}
+                </x-responsive-nav-link>
                 
                 <x-responsive-nav-link :href="route('admin.products.index')" :active="request()->routeIs('admin.products.*')">
                     {{ __('Manajemen Produk') }}
