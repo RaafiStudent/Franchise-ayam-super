@@ -7,11 +7,21 @@ use App\Http\Controllers\ShopController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentCallbackController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\MessageController; // Import MessageController
+use App\Http\Controllers\ReportController;  // Import ReportController
+use App\Models\Product;                     // <--- [PENTING] Import Model Product
 use Illuminate\Support\Facades\Route;
 
-// 1. Halaman Utama (Landing Page)
+// =========================================================================
+// 1. HALAMAN UTAMA (Landing Page) - SUDAH DIPERBAIKI
+// =========================================================================
 Route::get('/', function () {
-    return view('welcome');
+    // Ambil data produk dari database agar menu.blade.php tidak error
+    $products = Product::all(); 
+    
+    // Kirim variable $products ke view
+    return view('welcome', compact('products'));
 });
 
 // 2. Halaman Menunggu Persetujuan
@@ -19,7 +29,16 @@ Route::get('/menunggu-persetujuan', function () {
     return view('auth.approval-notice');
 })->name('approval.notice');
 
-// === GROUP MIDDLEWARE UTAMA (Area Wajib Login) ===
+// =========================================================================
+// 3. ROUTE INTERAKTIF PUBLIK (Contact & Love)
+// =========================================================================
+Route::post('/contact-send', [MessageController::class, 'store'])->name('contact.send');
+Route::post('/product/{id}/love', [HomeController::class, 'toggleLove'])->name('product.love');
+
+
+// =========================================================================
+// 4. GROUP MIDDLEWARE UTAMA (Area Wajib Login)
+// =========================================================================
 Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
 
     // A. ROUTE DASHBOARD
@@ -46,7 +65,9 @@ Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
     Route::patch('/my-orders/{id}/complete', [OrderController::class, 'markAsCompleted'])->name('orders.complete');
 
     // E. ROUTE KHUSUS ADMIN
+    // Saya rapikan route Messages ke dalam sini agar terlindungi middleware admin
     Route::prefix('admin')->name('admin.')->group(function () {
+        
         // Dashboard Admin & Approval Mitra
         Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
         Route::patch('/mitra/{id}/approve', [AdminController::class, 'approve'])->name('mitra.approve');
@@ -56,11 +77,15 @@ Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
         Route::resource('products', ProductController::class);
 
         // Route Laporan Statistik
-         Route::get('/reports', [App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 
         // Manajemen Pesanan & Input Resi
         Route::get('/orders', [AdminController::class, 'manageOrders'])->name('orders.index');
         Route::patch('/orders/{id}/ship', [AdminController::class, 'shipOrder'])->name('orders.ship');
+
+        // Manajemen Pesan Masuk (Contact Us)
+        Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
+        Route::delete('/messages/{id}', [MessageController::class, 'destroy'])->name('messages.destroy');
     });
 
     // F. ROUTE PROFILE
@@ -69,7 +94,9 @@ Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// === ROUTE WEBHOOK MIDTRANS (PENTING: Di Luar Middleware Auth) ===
+// =========================================================================
+// 5. ROUTE WEBHOOK MIDTRANS (PENTING: Di Luar Middleware Auth)
+// =========================================================================
 // Jalur ini terbuka 24 jam agar Midtrans bisa kirim laporan status bayar
 Route::post('midtrans-callback', [PaymentCallbackController::class, 'receive']);
 

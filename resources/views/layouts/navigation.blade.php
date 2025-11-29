@@ -8,6 +8,7 @@
                     </a>
                 </div>
 
+                {{-- MENU DESKTOP --}}
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     
                     {{-- 1. Dashboard (Semua User) --}}
@@ -16,7 +17,6 @@
                     </x-nav-link>
 
                     {{-- 2. Riwayat Pesanan (HANYA MITRA) --}}
-                    {{-- Tambahan Logika: Jika Admin login, menu ini HILANG --}}
                     @if(Auth::user()->role === 'mitra')
                         <x-nav-link :href="route('orders.index')" :active="request()->routeIs('orders.*')">
                             {{ __('Riwayat Pesanan') }}
@@ -26,20 +26,24 @@
                     {{-- 3. Menu Khusus Admin --}}
                     @if(Auth::user()->role === 'admin')
                         
-
-                        {{-- MENU BARU --}}
-    <x-nav-link :href="route('admin.reports.index')" :active="request()->routeIs('admin.reports.*')">
-        {{ __('Laporan Statistik') }}
-    </x-nav-link>
+                        {{-- Laporan Statistik --}}
+                        <x-nav-link :href="route('admin.reports.index')" :active="request()->routeIs('admin.reports.*')">
+                            {{ __('Laporan Statistik') }}
+                        </x-nav-link>
 
                         {{-- Manajemen Produk --}}
                         <x-nav-link :href="route('admin.products.index')" :active="request()->routeIs('admin.products.*')">
-                            {{ __('Manajemen Produk') }}
+                            {{ __('Produk') }}
                         </x-nav-link>
 
-                        {{-- Kelola Pesanan (Input Resi) --}}
+                        {{-- Kelola Pesanan --}}
                         <x-nav-link :href="route('admin.orders.index')" :active="request()->routeIs('admin.orders.*')">
                             {{ __('Kelola Pesanan') }}
+                        </x-nav-link>
+
+                        {{-- Kotak Masuk (BARU) --}}
+                        <x-nav-link :href="route('messages.index')" :active="request()->routeIs('messages.*')">
+                            {{ __('Kotak Masuk') }}
                         </x-nav-link>
 
                     @endif
@@ -90,6 +94,7 @@
         </div>
     </div>
 
+    {{-- MENU MOBILE (RESPONSIVE) --}}
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
             
@@ -107,18 +112,21 @@
 
             {{-- 3. Menu Khusus Admin Mobile --}}
             @if(Auth::user()->role === 'admin')
-
-                {{-- MENU BARU (Gunakan x-responsive-nav-link) --}}
+                
                 <x-responsive-nav-link :href="route('admin.reports.index')" :active="request()->routeIs('admin.reports.*')">
                     {{ __('Laporan Statistik') }}
                 </x-responsive-nav-link>
-                
+
                 <x-responsive-nav-link :href="route('admin.products.index')" :active="request()->routeIs('admin.products.*')">
                     {{ __('Manajemen Produk') }}
                 </x-responsive-nav-link>
 
                 <x-responsive-nav-link :href="route('admin.orders.index')" :active="request()->routeIs('admin.orders.*')">
                     {{ __('Kelola Pesanan') }}
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('messages.index')" :active="request()->routeIs('messages.*')">
+                    {{ __('Kotak Masuk') }}
                 </x-responsive-nav-link>
 
             @endif

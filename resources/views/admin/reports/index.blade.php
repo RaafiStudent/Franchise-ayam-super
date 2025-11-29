@@ -8,6 +8,7 @@
             <form action="{{ route('admin.reports.index') }}" method="GET" class="flex items-center gap-2">
                 <label class="text-sm text-gray-600 font-bold">Periode:</label>
                 <select name="filter" onchange="this.form.submit()" class="border-gray-300 focus:border-red-500 focus:ring-red-500 rounded-md shadow-sm text-sm">
+                    <option value="today" {{ $filter == 'today' ? 'selected' : '' }}>Hari Ini (Real-time)</option>
                     <option value="day" {{ $filter == 'day' ? 'selected' : '' }}>Harian (7 Hari)</option>
                     <option value="week" {{ $filter == 'week' ? 'selected' : '' }}>Mingguan (1 Bulan)</option>
                     <option value="month" {{ $filter == 'month' ? 'selected' : '' }}>Bulanan (Tahun Ini)</option>

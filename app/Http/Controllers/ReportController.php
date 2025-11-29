@@ -11,15 +11,32 @@ class ReportController extends Controller
 {
     public function index(Request $request)
     {
-        // 1. Tentukan Filter (Default: Bulanan / 'month')
+        // 1. Tentukan Filter (Default: Bulanan)
         $filter = $request->input('filter', 'month');
         
         $query = Order::where('payment_status', 'paid');
         $label = [];
         $dataPendapatan = [];
 
-        // 2. Logika Filter Data untuk Grafik Garis (Tren Pendapatan)
-        if ($filter == 'day') {
+        // --- LOGIKA BARU DI SINI ---
+        if ($filter == 'today') {
+            // FILTER HARI INI (Grafik Per Jam)
+            $orders = $query->whereDate('created_at', Carbon::today())
+                            ->select(DB::raw('HOUR(created_at) as hour'), DB::raw('SUM(total_price) as total'))
+                            ->groupBy('hour')
+                            ->orderBy('hour', 'ASC')
+                            ->get();
+
+            // Loop dari Jam 00 s/d 23 (24 Jam)
+            for ($i = 0; $i <= 23; $i++) {
+                $label[] = sprintf('%02d:00', $i); // Label: 00:00, 01:00, dst
+                
+                // Cari apakah ada transaksi di jam ini?
+                $found = $orders->firstWhere('hour', $i);
+                $dataPendapatan[] = $found ? $found->total : 0;
+            }
+
+        } elseif ($filter == 'day') {
             // Filter Harian (7 Hari Terakhir)
             $startDate = Carbon::now()->subDays(6);
             $orders = $query->where('created_at', '>=', $startDate)
@@ -28,7 +45,6 @@ class ReportController extends Controller
                             ->orderBy('date', 'ASC')
                             ->get();
             
-            // Format Label (Senin, Selasa, dst)
             foreach($orders as $o) {
                 $label[] = Carbon::parse($o->date)->locale('id')->isoFormat('dddd, D MMM');
                 $dataPendapatan[] = $o->total;
@@ -49,30 +65,30 @@ class ReportController extends Controller
             }
 
         } else {
-            // Filter Bulanan (Tahun Ini - Jan s/d Des)
+            // Filter Bulanan (Tahun Ini)
             $orders = $query->whereYear('created_at', date('Y'))
                             ->select(DB::raw('MONTH(created_at) as month'), DB::raw('SUM(total_price) as total'))
                             ->groupBy('month')
                             ->orderBy('month', 'ASC')
                             ->get();
 
-            // Mapping Angka Bulan ke Nama Bulan
-            $months = [];
             for ($i=1; $i<=12; $i++) {
                 $found = $orders->firstWhere('month', $i);
-                $months[] = $found ? $found->total : 0; // Kalau bulan kosong, isi 0
+                $months[] = $found ? $found->total : 0;
                 $label[] = Carbon::create()->month($i)->locale('id')->isoFormat('MMMM');
             }
             $dataPendapatan = $months;
         }
 
-        // 3. Data untuk Pie Chart (Komposisi Status Pesanan) - Semua Waktu
+        // ... (Sisa kode ke bawah sama persis: Pie Chart & Ringkasan) ...
+        // Copy paste sisa kode lama di sini (Pie Data, Total Omset, Return View)
+        
+        // 3. Data untuk Pie Chart
         $statusCounts = Order::select('order_status', DB::raw('count(*) as total'))
                              ->groupBy('order_status')
                              ->pluck('total', 'order_status')
                              ->toArray();
         
-        // Pastikan urutan key sama agar warna konsisten
         $pieData = [
             $statusCounts['pending'] ?? 0,
             $statusCounts['processing'] ?? 0,
@@ -81,7 +97,6 @@ class ReportController extends Controller
             $statusCounts['cancelled'] ?? 0,
         ];
 
-        // 4. Ringkasan Kartu Atas
         $totalOmset = Order::where('payment_status', 'paid')->sum('total_price');
         $totalTransaksi = Order::where('payment_status', 'paid')->count();
         $totalMitra = \App\Models\User::where('role', 'mitra')->where('status', 'active')->count();

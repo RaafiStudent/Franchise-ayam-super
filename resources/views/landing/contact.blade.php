@@ -46,43 +46,48 @@
                     </div>
                 </div>
                 
+                {{-- Area Peta (Gunakan Link Google Maps Asli jika ada, ini dummy) --}}
                 <div class="relative w-full h-64 rounded-2xl shadow-inner overflow-hidden group border border-gray-200">
                     <iframe class="w-full h-full border-0" 
-                            src="https://maps.google.com/maps?q=Jl.%20Puter%20Gg.%20Bango%20No%2020A%20Randugunting%20Tegal&t=&z=15&ie=UTF8&iwloc=&output=embed" 
+                            src="https://maps.google.com/maps?q=tegal&t=&z=13&ie=UTF8&iwloc=&output=embed" 
                             allowfullscreen="" loading="lazy">
                     </iframe>
 
                     <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-[1px]">
-                        <a href="https://www.google.com/maps/search/?api=1&query=Jl.+Puter+Gg.+Bango+No+20A,+Randugunting,+Tegal+Selatan,+Kota+Tegal" 
+                        <a href="https://goo.gl/maps/placeholder" 
                            target="_blank" 
                            class="bg-red-600 text-white font-bold py-2 px-6 rounded-full shadow-lg hover:bg-red-700 transition transform hover:scale-105 flex items-center gap-2">
                             <i class="fas fa-location-arrow"></i> Buka di Google Maps
                         </a>
                     </div>
-
-                    <a href="https://www.google.com/maps/search/?api=1&query=Jl.+Puter+Gg.+Bango+No+20A,+Randugunting,+Tegal+Selatan,+Kota+Tegal" 
-                       target="_blank"
-                       class="absolute bottom-3 right-3 bg-white text-xs font-bold text-gray-800 py-2 px-3 rounded-lg shadow-md hover:bg-gray-100 flex items-center gap-1 z-10 border border-gray-200">
-                       <i class="fas fa-external-link-alt text-red-600"></i> Lihat Lokasi
-                    </a>
                 </div>
             </div>
 
             <div class="bg-white p-8 rounded-2xl shadow-xl">
                 <h3 class="text-2xl font-bold text-gray-800 mb-6">Kirim Saran & Kritik</h3>
-                <form action="#" method="POST"> 
+
+                {{-- [PERBAIKAN 1]: Tambahkan Alert Pesan Sukses --}}
+                @if(session('success'))
+                    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">
+                        <strong class="font-bold">Berhasil!</strong>
+                        <span class="block sm:inline">{{ session('success') }}</span>
+                    </div>
+                @endif
+
+                {{-- [PERBAIKAN 2]: Ubah Action ke Route yang benar --}}
+                <form action="{{ route('contact.send') }}" method="POST"> 
                     @csrf
                     <div class="mb-4">
                         <label class="block text-gray-700 font-bold mb-2">Nama Lengkap</label>
-                        <input type="text" name="name" class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-300 focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 transition" placeholder="Nama Anda">
+                        <input type="text" name="name" required class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-300 focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 transition" placeholder="Nama Anda">
                     </div>
                     <div class="mb-4">
                         <label class="block text-gray-700 font-bold mb-2">Email / No. HP</label>
-                        <input type="text" name="contact" class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-300 focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 transition" placeholder="Kontak Anda">
+                        <input type="text" name="contact" required class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-300 focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 transition" placeholder="Kontak Anda">
                     </div>
                     <div class="mb-6">
                         <label class="block text-gray-700 font-bold mb-2">Pesan</label>
-                        <textarea name="message" class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-300 focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 transition h-32" placeholder="Tulis pesan anda..."></textarea>
+                        <textarea name="message" required class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-300 focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 transition h-32" placeholder="Tulis pesan anda..."></textarea>
                     </div>
                     <button type="submit" class="w-full bg-red-700 text-white font-bold py-3 rounded-lg hover:bg-red-800 shadow-lg transform active:scale-95 transition duration-200">
                         Kirim Pesan
