@@ -2,6 +2,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <div class="flex">
+                {{-- LOGO --}}
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}">
                         <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
@@ -26,9 +27,14 @@
                     {{-- 3. Menu Khusus Admin --}}
                     @if(Auth::user()->role === 'admin')
                         
-                        {{-- Laporan Statistik --}}
-                        <x-nav-link :href="route('admin.reports.index')" :active="request()->routeIs('admin.reports.*')">
-                            {{ __('Laporan Statistik') }}
+                        {{-- [UPDATE] Laporan Keuangan --}}
+                        <x-nav-link :href="route('admin.reports.index')" :active="request()->routeIs('admin.reports.index')">
+                            {{ __('Laporan Keuangan') }}
+                        </x-nav-link>
+
+                        {{-- [BARU] Laporan Menu Favorit --}}
+                        <x-nav-link :href="route('admin.reports.menus')" :active="request()->routeIs('admin.reports.menus')">
+                            {{ __('Laporan Menu') }}
                         </x-nav-link>
 
                         {{-- Manajemen Produk --}}
@@ -41,8 +47,8 @@
                             {{ __('Kelola Pesanan') }}
                         </x-nav-link>
 
-                        {{-- Kotak Masuk (BARU) --}}
-                        <x-nav-link :href="route('messages.index')" :active="request()->routeIs('messages.*')">
+                        {{-- Kotak Masuk --}}
+                        <x-nav-link :href="route('admin.messages.index')" :active="request()->routeIs('admin.messages.*')">
                             {{ __('Kotak Masuk') }}
                         </x-nav-link>
 
@@ -51,6 +57,7 @@
                 </div>
             </div>
 
+            {{-- DROPDOWN USER (Kanan Atas) --}}
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
@@ -72,7 +79,6 @@
 
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-
                             <x-dropdown-link :href="route('logout')"
                                     onclick="event.preventDefault();
                                                 this.closest('form').submit();">
@@ -83,6 +89,7 @@
                 </x-dropdown>
             </div>
 
+            {{-- TOMBOL HAMBURGER MOBILE --}}
             <div class="-me-2 flex items-center sm:hidden">
                 <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
@@ -113,8 +120,14 @@
             {{-- 3. Menu Khusus Admin Mobile --}}
             @if(Auth::user()->role === 'admin')
                 
-                <x-responsive-nav-link :href="route('admin.reports.index')" :active="request()->routeIs('admin.reports.*')">
-                    {{ __('Laporan Statistik') }}
+                {{-- Laporan Keuangan --}}
+                <x-responsive-nav-link :href="route('admin.reports.index')" :active="request()->routeIs('admin.reports.index')">
+                    {{ __('Laporan Keuangan') }}
+                </x-responsive-nav-link>
+
+                {{-- [BARU] Laporan Menu --}}
+                <x-responsive-nav-link :href="route('admin.reports.menus')" :active="request()->routeIs('admin.reports.menus')">
+                    {{ __('Laporan Menu') }}
                 </x-responsive-nav-link>
 
                 <x-responsive-nav-link :href="route('admin.products.index')" :active="request()->routeIs('admin.products.*')">
@@ -125,7 +138,7 @@
                     {{ __('Kelola Pesanan') }}
                 </x-responsive-nav-link>
 
-                <x-responsive-nav-link :href="route('messages.index')" :active="request()->routeIs('messages.*')">
+                <x-responsive-nav-link :href="route('admin.messages.index')" :active="request()->routeIs('admin.messages.*')">
                     {{ __('Kotak Masuk') }}
                 </x-responsive-nav-link>
 
@@ -133,6 +146,7 @@
             
         </div>
 
+        {{-- USER INFO MOBILE --}}
         <div class="pt-4 pb-1 border-t border-gray-200">
             <div class="px-4">
                 <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
@@ -146,7 +160,6 @@
 
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-
                     <x-responsive-nav-link :href="route('logout')"
                             onclick="event.preventDefault();
                                         this.closest('form').submit();">

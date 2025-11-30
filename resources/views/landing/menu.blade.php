@@ -4,235 +4,211 @@
         <div class="text-center mb-8 md:mb-12">
             <h2 class="text-3xl md:text-4xl font-extrabold text-red-700 uppercase mb-2">Menu Favorit</h2>
             <div class="w-24 h-1 bg-yellow-400 mx-auto"></div>
-            <p class="text-gray-600 mt-4 text-sm md:text-base">Geser untuk melihat menu lezat lainnya!</p>
+            <p class="text-gray-600 mt-4 text-sm md:text-base">Bantu kami menilai menu dengan memberikan Like atau Dislike!</p>
         </div>
 
-        {{-- SETUP PHP: Ambil data session 'liked_products' sekali saja di atas --}}
         @php
-            $likedProducts = session('liked_products', []);
+            $likedMenus = session('liked_menus', []);
+            $dislikedMenus = session('disliked_menus', []);
         @endphp
 
-        {{-- Container Slider --}}
         <div id="menu-slider" class="flex overflow-x-auto gap-5 md:gap-8 pb-10 snap-x snap-mandatory scroll-pl-4 no-scrollbar scroll-smooth px-2">
             
-            {{-- ITEM 1 (ID: 1) --}}
-            <div class="min-w-[85vw] sm:min-w-[300px] md:min-w-[350px] flex-none snap-center bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 group relative">
-                <div class="h-56 md:h-64 overflow-hidden relative rounded-t-3xl">
-                    <img src="https://placehold.co/400x300/orange/white?text=Paket+Hemat" alt="Paket Hemat" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
-                    <div class="absolute top-4 left-4 bg-green-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-md uppercase tracking-wider">HEMAT</div>
-                    
-                    {{-- TOMBOL LOVE ID 1 --}}
-                    <button onclick="toggleLove(1)" id="btn-love-1" 
-                        class="absolute top-4 right-4 bg-white/80 backdrop-blur-sm p-2 rounded-full transition shadow-sm group-active:scale-90 {{ in_array(1, $likedProducts) ? 'text-red-600' : 'text-gray-400 hover:text-red-500 hover:bg-white' }}">
-                        <i class="fas fa-heart"></i>
-                    </button>
-                </div>
-                <div class="p-6">
-                    <div class="flex items-center space-x-1 mb-2">
-                        <i class="fas fa-star text-yellow-400 text-xs"></i>
-                        <span class="text-xs font-bold text-gray-600">4.8</span>
-                        {{-- ANGKA LOVE ID 1 --}}
-                        <span class="text-xs text-gray-400">(<span id="count-love-1">{{ optional($products->firstWhere('id', 1))->loves ?? 0 }}</span> menyukai)</span>
-                    </div>
-                    <h3 class="text-xl font-extrabold text-gray-900 mb-2 leading-tight group-hover:text-red-700 transition">Paket Hemat Pelajar</h3>
-                    <p class="text-gray-500 text-sm leading-relaxed line-clamp-2">Sayap/Paha Bawah Crispy + Nasi + Es Teh Manis.</p>
-                </div>
-            </div>
+            @foreach($menus as $menu)
+                {{-- LOGIKA HITUNG RATING (PHP) --}}
+                @php
+                    $totalVotes = $menu->loves + $menu->dislikes;
+                    // Rumus: (Like / Total) * 5. Jika total 0, maka rating 0.
+                    $rating = $totalVotes > 0 ? ($menu->loves / $totalVotes) * 5 : 0;
+                    // Format 1 angka di belakang koma (misal: 4.5)
+                    $ratingFormatted = number_format($rating, 1);
+                @endphp
 
-            {{-- ITEM 2 (ID: 2) --}}
             <div class="min-w-[85vw] sm:min-w-[300px] md:min-w-[350px] flex-none snap-center bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 group relative">
                 <div class="h-56 md:h-64 overflow-hidden relative rounded-t-3xl">
-                    <img src="https://placehold.co/400x300/d32f2f/white?text=Ayam+Geprek" alt="Ayam Geprek" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
-                    <div class="absolute top-4 left-4 bg-yellow-400 text-red-900 text-[10px] font-bold px-3 py-1 rounded-full shadow-md uppercase tracking-wider">BEST SELLER</div>
+                    <img src="{{ $menu->image }}" alt="{{ $menu->name }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
                     
-                    {{-- TOMBOL LOVE ID 2 --}}
-                    <button onclick="toggleLove(2)" id="btn-love-2" 
-                        class="absolute top-4 right-4 bg-white/80 backdrop-blur-sm p-2 rounded-full transition shadow-sm group-active:scale-90 {{ in_array(2, $likedProducts) ? 'text-red-600' : 'text-gray-400 hover:text-red-500 hover:bg-white' }}">
-                        <i class="fas fa-heart"></i>
-                    </button>
-                </div>
-                <div class="p-6">
-                    <div class="flex items-center space-x-1 mb-2">
-                        <i class="fas fa-star text-yellow-400 text-xs"></i>
-                        <span class="text-xs font-bold text-gray-600">4.9</span>
-                        {{-- ANGKA LOVE ID 2 --}}
-                        <span class="text-xs text-gray-400">(<span id="count-love-2">{{ optional($products->firstWhere('id', 2))->loves ?? 0 }}</span> menyukai)</span>
-                    </div>
-                    <h3 class="text-xl font-extrabold text-gray-900 mb-2 leading-tight group-hover:text-red-700 transition">Ayam Geprek Level</h3>
-                    <p class="text-gray-500 text-sm leading-relaxed line-clamp-2">Ayam crispy digeprek dengan sambal bawang super pedas.</p>
-                </div>
-            </div>
+                    @if($menu->badge)
+                        <div class="absolute top-4 left-4 bg-{{ $menu->badge_color ?? 'red' }}-600 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-md uppercase tracking-wider">
+                            {{ $menu->badge }}
+                        </div>
+                    @endif
+                    
+                    {{-- TOMBOL INTERAKSI (Hanya ada di sini biar ga dobel) --}}
+                    <div class="absolute top-4 right-4 flex flex-col gap-2">
+                        {{-- Like --}}
+                        <button onclick="toggleLove({{ $menu->id }})" id="btn-love-{{ $menu->id }}" 
+                            class="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm transition active:scale-90 flex items-center justify-center w-9 h-9 {{ in_array($menu->id, $likedMenus) ? 'text-red-600' : 'text-gray-400 hover:text-red-500' }}"
+                            title="Suka (Like)">
+                            <i class="fas fa-heart"></i>
+                        </button>
 
-            {{-- ITEM 3 (ID: 3) --}}
-            <div class="min-w-[85vw] sm:min-w-[300px] md:min-w-[350px] flex-none snap-center bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 group relative">
-                <div class="h-56 md:h-64 overflow-hidden relative rounded-t-3xl">
-                    <img src="https://placehold.co/400x300/brown/white?text=BBQ+Wings" alt="BBQ Wings" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
-                    <div class="absolute top-4 left-4 bg-purple-600 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-md uppercase tracking-wider">FAVORIT</div>
-                    
-                    {{-- TOMBOL LOVE ID 3 --}}
-                    <button onclick="toggleLove(3)" id="btn-love-3" 
-                        class="absolute top-4 right-4 bg-white/80 backdrop-blur-sm p-2 rounded-full transition shadow-sm group-active:scale-90 {{ in_array(3, $likedProducts) ? 'text-red-600' : 'text-gray-400 hover:text-red-500 hover:bg-white' }}">
-                        <i class="fas fa-heart"></i>
-                    </button>
-                </div>
-                <div class="p-6">
-                    <div class="flex items-center space-x-1 mb-2">
-                        <i class="fas fa-star text-yellow-400 text-xs"></i>
-                        <span class="text-xs font-bold text-gray-600">4.7</span>
-                        {{-- ANGKA LOVE ID 3 --}}
-                        <span class="text-xs text-gray-400">(<span id="count-love-3">{{ optional($products->firstWhere('id', 3))->loves ?? 0 }}</span> menyukai)</span>
+                        {{-- Dislike --}}
+                        <button onclick="toggleDislike({{ $menu->id }})" id="btn-dislike-{{ $menu->id }}" 
+                            class="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm transition active:scale-90 flex items-center justify-center w-9 h-9 {{ in_array($menu->id, $dislikedMenus) ? 'text-slate-800' : 'text-gray-400 hover:text-slate-800' }}"
+                            title="Tidak Suka (Dislike)">
+                            <i class="fas fa-thumbs-down"></i>
+                        </button>
                     </div>
-                    <h3 class="text-xl font-extrabold text-gray-900 mb-2 leading-tight group-hover:text-red-700 transition">Chicken Wings BBQ</h3>
-                    <p class="text-gray-500 text-sm leading-relaxed line-clamp-2">Sayap ayam gurih dengan saus BBQ manis dan smoky.</p>
                 </div>
-            </div>
 
-            {{-- ITEM 4 (ID: 4) --}}
-            <div class="min-w-[85vw] sm:min-w-[300px] md:min-w-[350px] flex-none snap-center bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 group relative">
-                <div class="h-56 md:h-64 overflow-hidden relative rounded-t-3xl">
-                    <img src="https://placehold.co/400x300/purple/white?text=Sambal+Matah" alt="Sambal Matah" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
-                    <div class="absolute top-4 left-4 bg-red-600 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-md uppercase tracking-wider">PEDAS</div>
-                    
-                    {{-- TOMBOL LOVE ID 4 --}}
-                    <button onclick="toggleLove(4)" id="btn-love-4" 
-                        class="absolute top-4 right-4 bg-white/80 backdrop-blur-sm p-2 rounded-full transition shadow-sm group-active:scale-90 {{ in_array(4, $likedProducts) ? 'text-red-600' : 'text-gray-400 hover:text-red-500 hover:bg-white' }}">
-                        <i class="fas fa-heart"></i>
-                    </button>
-                </div>
                 <div class="p-6">
-                    <div class="flex items-center space-x-1 mb-2">
-                        <i class="fas fa-star text-yellow-400 text-xs"></i>
-                        <span class="text-xs font-bold text-gray-600">4.8</span>
-                        {{-- ANGKA LOVE ID 4 --}}
-                        <span class="text-xs text-gray-400">(<span id="count-love-4">{{ optional($products->firstWhere('id', 4))->loves ?? 0 }}</span> menyukai)</span>
+                    {{-- Statistik Rating Dinamis --}}
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center space-x-1 bg-yellow-50 px-2 py-1 rounded-lg border border-yellow-100">
+                            <i class="fas fa-star text-yellow-400 text-xs"></i>
+                            {{-- ID ini penting untuk update Javascript --}}
+                            <span id="rating-text-{{ $menu->id }}" class="text-xs font-bold text-gray-700">{{ $ratingFormatted }}</span>
+                            <span class="text-[10px] text-gray-400 ml-1">/ 5.0</span>
+                        </div>
+                        
+                        {{-- Info Jumlah Vote Kecil --}}
+                        <div class="text-[10px] text-gray-400">
+                            (<span id="total-votes-{{ $menu->id }}">{{ $totalVotes }}</span> ulasan)
+                        </div>
                     </div>
-                    <h3 class="text-xl font-extrabold text-gray-900 mb-2 leading-tight group-hover:text-red-700 transition">Ayam Sambal Matah</h3>
-                    <p class="text-gray-500 text-sm leading-relaxed line-clamp-2">Ayam crispy disajikan dengan sambal matah segar khas Bali.</p>
-                </div>
-            </div>
 
-            {{-- ITEM 5 (ID: 5) --}}
-            <div class="min-w-[85vw] sm:min-w-[300px] md:min-w-[350px] flex-none snap-center bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 group relative">
-                <div class="h-56 md:h-64 overflow-hidden relative rounded-t-3xl">
-                    <img src="https://placehold.co/400x300/green/white?text=Burger+Ayam" alt="Burger Ayam" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
-                    <div class="absolute top-4 left-4 bg-blue-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-md uppercase tracking-wider">BARU</div>
-                    
-                    {{-- TOMBOL LOVE ID 5 --}}
-                    <button onclick="toggleLove(5)" id="btn-love-5" 
-                        class="absolute top-4 right-4 bg-white/80 backdrop-blur-sm p-2 rounded-full transition shadow-sm group-active:scale-90 {{ in_array(5, $likedProducts) ? 'text-red-600' : 'text-gray-400 hover:text-red-500 hover:bg-white' }}">
-                        <i class="fas fa-heart"></i>
-                    </button>
-                </div>
-                <div class="p-6">
-                    <div class="flex items-center space-x-1 mb-2">
-                        <i class="fas fa-star text-yellow-400 text-xs"></i>
-                        <span class="text-xs font-bold text-gray-600">4.6</span>
-                        {{-- ANGKA LOVE ID 5 --}}
-                        <span class="text-xs text-gray-400">(<span id="count-love-5">{{ optional($products->firstWhere('id', 5))->loves ?? 0 }}</span> menyukai)</span>
-                    </div>
-                    <h3 class="text-xl font-extrabold text-gray-900 mb-2 leading-tight group-hover:text-red-700 transition">Burger Ayam Crispy</h3>
-                    <p class="text-gray-500 text-sm leading-relaxed line-clamp-2">Burger isi ayam crispy, selada, dan saus spesial.</p>
+                    <h3 class="text-xl font-extrabold text-gray-900 mb-2 leading-tight group-hover:text-red-700 transition">{{ $menu->name }}</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed line-clamp-2">{{ $menu->description }}</p>
                 </div>
             </div>
-
-            {{-- ITEM 6 (ID: 6) --}}
-            <div class="min-w-[85vw] sm:min-w-[300px] md:min-w-[350px] flex-none snap-center bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 group relative">
-                <div class="h-56 md:h-64 overflow-hidden relative rounded-t-3xl">
-                    <img src="https://placehold.co/400x300/blue/white?text=Paket+Keluarga" alt="Paket Keluarga" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
-                    <div class="absolute top-4 left-4 bg-indigo-600 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-md uppercase tracking-wider">FAMILY</div>
-                    
-                    {{-- TOMBOL LOVE ID 6 --}}
-                    <button onclick="toggleLove(6)" id="btn-love-6" 
-                        class="absolute top-4 right-4 bg-white/80 backdrop-blur-sm p-2 rounded-full transition shadow-sm group-active:scale-90 {{ in_array(6, $likedProducts) ? 'text-red-600' : 'text-gray-400 hover:text-red-500 hover:bg-white' }}">
-                        <i class="fas fa-heart"></i>
-                    </button>
-                </div>
-                <div class="p-6">
-                    <div class="flex items-center space-x-1 mb-2">
-                        <i class="fas fa-star text-yellow-400 text-xs"></i>
-                        <span class="text-xs font-bold text-gray-600">4.9</span>
-                        {{-- ANGKA LOVE ID 6 --}}
-                        <span class="text-xs text-gray-400">(<span id="count-love-6">{{ optional($products->firstWhere('id', 6))->loves ?? 0 }}</span> menyukai)</span>
-                    </div>
-                    <h3 class="text-xl font-extrabold text-gray-900 mb-2 leading-tight group-hover:text-red-700 transition">Paket Keluarga</h3>
-                    <p class="text-gray-500 text-sm leading-relaxed line-clamp-2">4 Ayam crispy + 2 Nasi + 2 Kentang + 2 Es Teh Jumbo.</p>
-                </div>
-            </div>
+            @endforeach
 
         </div>
         
         <div class="text-center mt-8 md:mt-12 flex justify-center items-center gap-3 md:gap-4">
-            <button onclick="scrollMenu('left')" class="bg-gray-100 hover:bg-gray-200 text-gray-600 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition shadow-sm active:scale-95">
-                <i class="fas fa-arrow-left"></i>
-            </button>
-
-            <button onclick="scrollMenu('right')" class="bg-red-700 text-white font-bold px-6 py-2 md:px-8 md:py-3 text-sm md:text-base rounded-full hover:bg-red-800 transition shadow-lg flex items-center active:scale-95">
-                <i class="fas fa-arrow-right ml-2"></i>
-            </button>
+            <button onclick="scrollMenu('left')" class="bg-gray-100 hover:bg-gray-200 text-gray-600 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition shadow-sm active:scale-95"><i class="fas fa-arrow-left"></i></button>
+            <button onclick="scrollMenu('right')" class="bg-red-700 text-white font-bold px-6 py-2 md:px-8 md:py-3 text-sm md:text-base rounded-full hover:bg-red-800 transition shadow-lg flex items-center active:scale-95"><i class="fas fa-arrow-right ml-2"></i></button>
         </div>
     </div>
 
-    <style>
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    </style>
+    <style>.no-scrollbar::-webkit-scrollbar { display: none; } .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }</style>
 
     <script>
-        // Fungsi Scroll Menu (Tetap)
         function scrollMenu(direction) {
             const container = document.getElementById('menu-slider');
             const scrollAmount = window.innerWidth < 768 ? 280 : 350; 
-            if (direction === 'left') {
-                container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-            } else {
-                container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-            }
+            if (direction === 'left') container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+            else container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
         }
 
-        // Fungsi Toggle Love (Real AJAX + Cek Status)
-        function toggleLove(id) {
-            const btn = document.getElementById(`btn-love-${id}`);
-            const countSpan = document.getElementById(`count-love-${id}`);
+        // FUNGSI HITUNG RATING (MATEMATIKA)
+        function updateRatingUI(id, likes, dislikes) {
+            const ratingSpan = document.getElementById(`rating-text-${id}`);
+            const totalVotesSpan = document.getElementById(`total-votes-${id}`);
+            
+            // Pastikan angka dibaca sebagai Integer
+            likes = parseInt(likes);
+            dislikes = parseInt(dislikes);
 
-            if (!btn || !countSpan) return;
+            const total = likes + dislikes;
+            let rating = 0.0;
 
-            // Cek apakah tombol sudah merah (sudah dilike)
-            if (btn.classList.contains('text-red-600')) {
-                 // Tidak melakukan apa-apa jika sudah dilike (sesuai logic controller)
-                 return; 
+            if (total > 0) {
+                rating = (likes / total) * 5;
             }
 
-            btn.disabled = true;
+            // Update UI
+            if(ratingSpan) ratingSpan.innerText = rating.toFixed(1); 
+            if(totalVotesSpan) totalVotesSpan.innerText = total;
+        }
+
+        // FUNGSI LIKE
+        function toggleLove(id) {
+            const btnLove = document.getElementById(`btn-love-${id}`);
+            const btnDislike = document.getElementById(`btn-dislike-${id}`);
+
+            if (!btnLove) return;
             
-            fetch(`/product/${id}/love`, {
+            // Simpan icon asli untuk jaga-jaga
+            const originalIcon = btnLove.innerHTML;
+            btnLove.disabled = true; 
+
+            fetch(`/menu/${id}/love`, {
                 method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Content-Type': 'application/json'
-                }
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Content-Type': 'application/json' }
             })
-            .then(response => response.json())
+            .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    // Update Tampilan jadi Merah
-                    btn.classList.remove('text-gray-400', 'hover:text-red-500', 'hover:bg-white');
-                    btn.classList.add('text-red-600');
-                    
-                    // Efek detak jantung
-                    btn.innerHTML = '<i class="fas fa-heart fa-beat"></i>';
-                    
-                    // Update Angka
-                    countSpan.innerText = data.new_count;
-                    
-                    setTimeout(() => {
-                        btn.innerHTML = '<i class="fas fa-heart"></i>';
-                    }, 1000);
+                    // 1. Update Tampilan Tombol Berdasarkan Status dari Server
+                    if (data.is_liked) {
+                        // JADI MERAH (Aktif)
+                        btnLove.classList.remove('text-gray-400', 'hover:text-red-500');
+                        btnLove.classList.add('text-red-600');
+                        btnLove.innerHTML = '<i class="fas fa-heart fa-beat"></i>';
+                        setTimeout(() => { btnLove.innerHTML = '<i class="fas fa-heart"></i>'; }, 1000);
+                    } else {
+                        // JADI ABU-ABU (Cancel Like)
+                        btnLove.classList.remove('text-red-600');
+                        btnLove.classList.add('text-gray-400', 'hover:text-red-500');
+                        btnLove.innerHTML = '<i class="fas fa-heart"></i>';
+                    }
+
+                    // 2. Pastikan Tombol Lawan (Dislike) Mati/Abu-abu
+                    if(btnDislike) {
+                        btnDislike.classList.remove('text-slate-800');
+                        btnDislike.classList.add('text-gray-400', 'hover:text-slate-800');
+                    }
+
+                    // 3. Hitung Ulang Rating (Tanpa Error Update Count manual)
+                    updateRatingUI(id, data.likes, data.dislikes);
                 }
             })
-            .catch(error => console.error('Error:', error))
-            .finally(() => {
-                btn.disabled = false;
-            });
+            .catch(err => {
+                console.error(err);
+                btnLove.innerHTML = originalIcon;
+            })
+            .finally(() => { btnLove.disabled = false; });
+        }
+
+        // FUNGSI DISLIKE
+        function toggleDislike(id) {
+            const btnDislike = document.getElementById(`btn-dislike-${id}`);
+            const btnLove = document.getElementById(`btn-love-${id}`);
+
+            if (!btnDislike) return;
+
+            const originalIcon = btnDislike.innerHTML;
+            btnDislike.disabled = true;
+
+            fetch(`/menu/${id}/dislike`, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Content-Type': 'application/json' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    // 1. Update Tampilan Tombol Dislike
+                    if (data.is_disliked) {
+                        // JADI HITAM (Aktif)
+                        btnDislike.classList.remove('text-gray-400', 'hover:text-slate-800');
+                        btnDislike.classList.add('text-slate-800');
+                    } else {
+                        // JADI ABU-ABU (Cancel Dislike)
+                        btnDislike.classList.remove('text-slate-800');
+                        btnDislike.classList.add('text-gray-400', 'hover:text-slate-800');
+                    }
+
+                    // 2. Pastikan Tombol Lawan (Like) Mati/Abu-abu
+                    if(btnLove) {
+                        btnLove.classList.remove('text-red-600');
+                        btnLove.classList.add('text-gray-400', 'hover:text-red-500');
+                        // Reset icon love biar ga ada efek beat yg nyangkut
+                        if(!btnLove.innerHTML.includes('fa-beat')) {
+                             btnLove.innerHTML = '<i class="fas fa-heart"></i>';
+                        }
+                    }
+
+                    // 3. Hitung Ulang Rating
+                    updateRatingUI(id, data.likes, data.dislikes);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                btnDislike.innerHTML = originalIcon;
+            })
+            .finally(() => { btnDislike.disabled = false; });
         }
     </script>
 </section>

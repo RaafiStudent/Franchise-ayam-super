@@ -8,20 +8,21 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentCallbackController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\MessageController; // Import MessageController
-use App\Http\Controllers\ReportController;  // Import ReportController
-use App\Models\Product;                     // <--- [PENTING] Import Model Product
+use App\Http\Controllers\MessageController;
+use App\Http\Controllers\ReportController;      // Laporan Keuangan
+use App\Http\Controllers\MenuReportController;  // Laporan Menu Favorit (BARU)
+use App\Models\Menu;                            // Model untuk Landing Page
 use Illuminate\Support\Facades\Route;
 
 // =========================================================================
-// 1. HALAMAN UTAMA (Landing Page) - SUDAH DIPERBAIKI
+// 1. HALAMAN UTAMA (Landing Page)
 // =========================================================================
 Route::get('/', function () {
-    // Ambil data produk dari database agar menu.blade.php tidak error
-    $products = Product::all(); 
+    // Ambil data menu dari tabel 'menus' untuk ditampilkan di landing page
+    $menus = Menu::all(); 
     
-    // Kirim variable $products ke view
-    return view('welcome', compact('products'));
+    // Kirim variable $menus ke view
+    return view('welcome', compact('menus'));
 });
 
 // 2. Halaman Menunggu Persetujuan
@@ -30,10 +31,14 @@ Route::get('/menunggu-persetujuan', function () {
 })->name('approval.notice');
 
 // =========================================================================
-// 3. ROUTE INTERAKTIF PUBLIK (Contact & Love)
+// 3. ROUTE INTERAKTIF PUBLIK (Contact, Like, Dislike)
 // =========================================================================
+// Kirim Pesan (Contact Us)
 Route::post('/contact-send', [MessageController::class, 'store'])->name('contact.send');
-Route::post('/product/{id}/love', [HomeController::class, 'toggleLove'])->name('product.love');
+
+// Route Like & Dislike untuk Menu (AJAX)
+Route::post('/menu/{id}/love', [HomeController::class, 'toggleLove'])->name('menu.love');
+Route::post('/menu/{id}/dislike', [HomeController::class, 'toggleDislike'])->name('menu.dislike');
 
 
 // =========================================================================
@@ -41,9 +46,8 @@ Route::post('/product/{id}/love', [HomeController::class, 'toggleLove'])->name('
 // =========================================================================
 Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
 
-    // A. ROUTE DASHBOARD
+    // A. ROUTE DASHBOARD (Redirect sesuai role)
     Route::get('/dashboard', function () {
-        // Cek Admin
         if (auth()->user()->role === 'admin') {
             return redirect()->route('admin.dashboard');
         }
@@ -65,7 +69,6 @@ Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
     Route::patch('/my-orders/{id}/complete', [OrderController::class, 'markAsCompleted'])->name('orders.complete');
 
     // E. ROUTE KHUSUS ADMIN
-    // Saya rapikan route Messages ke dalam sini agar terlindungi middleware admin
     Route::prefix('admin')->name('admin.')->group(function () {
         
         // Dashboard Admin & Approval Mitra
@@ -73,17 +76,20 @@ Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
         Route::patch('/mitra/{id}/approve', [AdminController::class, 'approve'])->name('mitra.approve');
         Route::patch('/mitra/{id}/reject', [AdminController::class, 'reject'])->name('mitra.reject');
         
-        // Manajemen Produk (CRUD)
+        // Manajemen Produk (Bahan Baku untuk Mitra)
         Route::resource('products', ProductController::class);
 
-        // Route Laporan Statistik
+        // --- LAPORAN & ANALISIS ---
+        // 1. Laporan Keuangan (Grafik Omset)
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+        // 2. Laporan Menu Favorit (Tabel Like/Dislike) -> BARU
+        Route::get('/reports/menus', [MenuReportController::class, 'index'])->name('reports.menus');
 
         // Manajemen Pesanan & Input Resi
         Route::get('/orders', [AdminController::class, 'manageOrders'])->name('orders.index');
         Route::patch('/orders/{id}/ship', [AdminController::class, 'shipOrder'])->name('orders.ship');
 
-        // Manajemen Pesan Masuk (Contact Us)
+        // Manajemen Pesan Masuk (Inbox)
         Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
         Route::delete('/messages/{id}', [MessageController::class, 'destroy'])->name('messages.destroy');
     });
@@ -97,7 +103,6 @@ Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
 // =========================================================================
 // 5. ROUTE WEBHOOK MIDTRANS (PENTING: Di Luar Middleware Auth)
 // =========================================================================
-// Jalur ini terbuka 24 jam agar Midtrans bisa kirim laporan status bayar
 Route::post('midtrans-callback', [PaymentCallbackController::class, 'receive']);
 
 // File route auth bawaan Laravel Breeze
