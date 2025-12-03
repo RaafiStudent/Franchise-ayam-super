@@ -64,6 +64,7 @@ Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
     Route::get('/checkout/{id}', [CheckoutController::class, 'show'])->name('checkout.show');
 
     // D. ROUTE RIWAYAT PESANAN (MY ORDERS)
+    Route::get('/my-orders/{id}/invoice', [OrderController::class, 'downloadInvoice'])->name('orders.invoice');
     Route::get('/my-orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/my-orders/{id}', [OrderController::class, 'show'])->name('orders.show');
     Route::patch('/my-orders/{id}/complete', [OrderController::class, 'markAsCompleted'])->name('orders.complete');
