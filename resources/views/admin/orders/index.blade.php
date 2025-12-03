@@ -17,6 +17,37 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     
+                    {{-- === FITUR PENCARIAN & FILTER (BARU) === --}}
+                    <form method="GET" action="{{ route('admin.orders.index') }}" class="mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                        
+                        {{-- Dropdown Show Entries --}}
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm text-gray-600">Tampilkan</span>
+                            <select name="per_page" onchange="this.form.submit()" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm text-sm">
+                                <option value="5" {{ $perPage == 5 ? 'selected' : '' }}>5</option>
+                                <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
+                                <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
+                                <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
+                                <option value="100" {{ $perPage == 100 ? 'selected' : '' }}>100</option>
+                            </select>
+                            <span class="text-sm text-gray-600">data</span>
+                        </div>
+
+                        {{-- Search Bar --}}
+                        <div class="flex w-full md:w-auto gap-2">
+                            <input type="text" name="search" value="{{ $search }}" placeholder="Cari Order ID / Nama Mitra..." class="w-full md:w-64 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm text-sm">
+                            <button type="submit" class="bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition">
+                                <i class="fas fa-search"></i> Cari
+                            </button>
+                            @if($search)
+                                <a href="{{ route('admin.orders.index') }}" class="bg-red-100 text-red-600 px-4 py-2 rounded-md hover:bg-red-200 transition">
+                                    Reset
+                                </a>
+                            @endif
+                        </div>
+                    </form>
+                    {{-- ========================================== --}}
+
                     <div class="overflow-x-auto">
                         <table class="min-w-full bg-white border border-gray-200 text-sm">
                             <thead>
@@ -28,7 +59,7 @@
                                 </tr>
                             </thead>
                             <tbody class="text-gray-600 font-light">
-                                @foreach($orders as $order)
+                                @forelse($orders as $order)
                                 <tr class="border-b border-gray-200 hover:bg-gray-50">
                                     
                                     {{-- Kolom 1: ID & Nama --}}
@@ -86,26 +117,19 @@
                                     {{-- Kolom 4: Form Input Resi --}}
                                     <td class="py-3 px-6 text-left">
                                         @if($order->payment_status == 'paid' && $order->order_status == 'processing')
-                                            
                                             <form action="{{ route('admin.orders.ship', $order->id) }}" method="POST" class="bg-gray-50 p-3 rounded-lg border border-gray-200">
                                                 @csrf
                                                 @method('PATCH')
-                                                
                                                 <div class="mb-2">
-                                                    <label class="text-[10px] uppercase font-bold text-gray-500">Nama Kurir / Supir</label>
-                                                    <input type="text" name="courier_name" class="w-full text-xs border-gray-300 rounded focus:ring-red-500 focus:border-red-500" placeholder="JNE / Pak Budi" required>
+                                                    <input type="text" name="courier_name" class="w-full text-xs border-gray-300 rounded focus:ring-red-500 focus:border-red-500" placeholder="Nama Kurir / Supir" required>
                                                 </div>
-
                                                 <div class="mb-2">
-                                                    <label class="text-[10px] uppercase font-bold text-gray-500">No. Resi / Plat Nomor</label>
-                                                    <input type="text" name="resi_number" class="w-full text-xs border-gray-300 rounded focus:ring-red-500 focus:border-red-500" placeholder="JPK-881922" required>
+                                                    <input type="text" name="resi_number" class="w-full text-xs border-gray-300 rounded focus:ring-red-500 focus:border-red-500" placeholder="No. Resi / Plat Nomor" required>
                                                 </div>
-
                                                 <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2 rounded transition flex items-center justify-center gap-1">
                                                     <i class="fas fa-paper-plane"></i> KIRIM SEKARANG
                                                 </button>
                                             </form>
-
                                         @elseif($order->order_status == 'shipped')
                                             <span class="text-xs text-gray-400 italic">Menunggu konfirmasi Mitra...</span>
                                         @elseif($order->order_status == 'completed')
@@ -115,10 +139,23 @@
                                         @endif
                                     </td>
                                 </tr>
-                                @endforeach
+                                @empty
+                                <tr>
+                                    <td colspan="4" class="text-center py-8 text-gray-500">
+                                        <i class="fas fa-box-open text-4xl mb-2 text-gray-300"></i><br>
+                                        Data pesanan tidak ditemukan.
+                                    </td>
+                                </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
+
+                    {{-- === PAGINATION LINKS (Angka 1, 2, 3...) === --}}
+                    <div class="mt-4">
+                        {{ $orders->links() }}
+                    </div>
+                    {{-- =========================================== --}}
 
                 </div>
             </div>

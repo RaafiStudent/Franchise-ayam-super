@@ -59,14 +59,34 @@ class AdminController extends Controller
 
     // --- MANAJEMEN PESANAN (ORDER) ---
 
-    public function manageOrders()
+    // Pastikan di bagian atas file sudah ada: use Illuminate\Http\Request;
+
+    public function manageOrders(Request $request)
     {
-        $orders = Order::with('user')
+        // 1. Ambil input pencarian & jumlah per halaman
+        $search = $request->input('search');
+        $perPage = $request->input('per_page', 10); // Default 10 data per halaman
+
+        // 2. Query Data dengan Filter
+        $orders = \App\Models\Order::with('user')
+            ->when($search, function ($query, $search) {
+                return $query->where('id', 'like', "%{$search}%") // Cari by Order ID
+                    ->orWhere('resi_number', 'like', "%{$search}%") // Cari by Resi
+                    ->orWhereHas('user', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%") // Cari by Nama Mitra
+                          ->orWhere('kota', 'like', "%{$search}%"); // Cari by Kota
+                    });
+            })
+            // Urutan prioritas status (Processing -> Pending -> Shipped -> Completed -> Cancelled)
             ->orderByRaw("FIELD(order_status, 'processing', 'pending', 'shipped', 'completed', 'cancelled')")
             ->latest()
-            ->get();
+            // 3. Paginate (Gantikan get() dengan paginate())
+            ->paginate($perPage);
 
-        return view('admin.orders.index', compact('orders'));
+        // Append query string agar saat pindah halaman, search tidak hilang
+        $orders->appends(['search' => $search, 'per_page' => $perPage]);
+
+        return view('admin.orders.index', compact('orders', 'search', 'perPage'));
     }
 
     public function shipOrder(Request $request, $id)
