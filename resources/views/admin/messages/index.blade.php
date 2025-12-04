@@ -62,7 +62,7 @@
 
                                         {{-- Aksi --}}
                                         <td class="py-3 px-6 text-center align-middle">
-                                            <form action="{{ route('messages.destroy', $msg->id) }}" method="POST" onsubmit="return confirm('Hapus pesan ini?');">
+                                            <form action="{{ route('admin.messages.destroy', $msg->id) }}" method="POST" onsubmit="return confirm('Hapus pesan ini?');"></form>
                                                 @csrf
                                                 @method('DELETE')
                                                 <button class="w-8 h-8 rounded-full bg-red-100 text-red-600 hover:bg-red-200 flex items-center justify-center transition" title="Hapus Pesan">

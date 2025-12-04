@@ -6,9 +6,50 @@ use App\Models\Order;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf; // Jangan lupa ini
 
 class ReportController extends Controller
 {
+
+    public function exportPdf(Request $request)
+{
+    // 1. Tangkap Filter
+    $filter = $request->input('filter', 'month');
+    
+    $query = Order::where('payment_status', 'paid');
+    $title = "";
+
+    // 2. Filter Data Sesuai Pilihan Boss
+    if ($filter == 'today') {
+        // HANYA HARI INI
+        $orders = $query->whereDate('created_at', Carbon::today())->get();
+        $title = "Laporan Harian (" . Carbon::now()->isoFormat('D MMMM Y') . ")";
+
+    } elseif ($filter == 'week') {
+        // MINGGUAN (7 Hari Terakhir)
+        $startDate = Carbon::now()->subDays(7);
+        $orders = $query->where('created_at', '>=', $startDate)->get();
+        $title = "Laporan Mingguan (7 Hari Terakhir)";
+
+    } elseif ($filter == 'month') {  // Tambahkan elseif khusus month
+    $orders = $query->whereYear('created_at', date('Y'))
+                    ->whereMonth('created_at', date('m')) // Tambahkan Filter Bulan
+                    ->get();
+    $title = "Laporan Bulan " . date('F Y');
+} else {
+    // Default (Tahunan)
+    $orders = $query->whereYear('created_at', date('Y'))->get();
+    $title = "Laporan Tahunan (" . date('Y') . ")";
+}
+
+    $totalOmset = $orders->sum('total_price');
+
+    // 3. Cetak PDF
+    $pdf = Pdf::loadView('admin.reports.pdf', compact('orders', 'totalOmset', 'title'));
+    
+    return $pdf->download('Laporan-AyamSuper-' . ucfirst($filter) . '.pdf');
+}
+
     public function index(Request $request)
     {
         // 1. Tentukan Filter (Default: Bulanan)

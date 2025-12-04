@@ -28,7 +28,18 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // === PERBAIKAN DI SINI BOSS ===
+        
+        // 1. Cek apakah yang login adalah ADMIN
+        if ($request->user()->role === 'admin') {
+            // Langsung antar ke Admin Dashboard bawa oleh-oleh popup
+            return redirect()->intended(route('admin.dashboard'))
+                             ->with('show_guide', true);
+        }
+
+        // 2. Kalau bukan Admin (berarti Mitra), antar ke Dashboard biasa
+        return redirect()->intended(route('dashboard', absolute: false))
+                         ->with('show_guide', true);
     }
 
     /**

@@ -32,5 +32,7 @@
                 {{ $slot }}
             </main>
         </div>
+        {{-- PASANG POPUP DI SINI --}}
+    <x-guide-modal />
     </body>
 </html>

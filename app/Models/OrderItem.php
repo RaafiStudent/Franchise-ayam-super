@@ -19,7 +19,7 @@ class OrderItem extends Model
     // Relasi: Item ini adalah Produk apa?
     public function product()
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(Product::class, 'product_id')->withTrashed();
     }
 
     // Relasi: Item ini milik Order nomor berapa?

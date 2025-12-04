@@ -71,7 +71,7 @@ Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
 
     // E. ROUTE KHUSUS ADMIN
     Route::prefix('admin')->name('admin.')->group(function () {
-        
+    Route::get('/reports/export', [App\Http\Controllers\ReportController::class, 'exportPdf'])->name('reports.export');
         // Dashboard Admin & Approval Mitra
         Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
         Route::patch('/mitra/{id}/approve', [AdminController::class, 'approve'])->name('mitra.approve');
