@@ -2,8 +2,13 @@
 
 @php
 $classes = ($active ?? false)
-            ? 'inline-flex items-center px-1 pt-1 border-b-2 border-indigo-400 text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-indigo-700 transition duration-150 ease-in-out'
-            : 'inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out';
+            // === JIKA MENU AKTIF (Sedang Dibuka) ===
+            // Kita kasih Background Merah Gelap (bg-red-900), Teks Kuning, dan Shadow
+            ? 'inline-flex items-center px-4 py-2 bg-red-900 border border-transparent rounded-md font-bold text-sm text-yellow-300 shadow-md transition duration-150 ease-in-out transform scale-105'
+            
+            // === JIKA MENU TIDAK AKTIF ===
+            // Teks Putih polos, pas di-hover baru muncul background tipis
+            : 'inline-flex items-center px-4 py-2 border border-transparent rounded-md font-medium text-sm text-white hover:text-yellow-300 hover:bg-red-800 focus:outline-none transition duration-150 ease-in-out';
 @endphp
 
 <a {{ $attributes->merge(['class' => $classes]) }}>

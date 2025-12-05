@@ -3,40 +3,69 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\Order;   // <--- Tambahan
-use App\Models\Product; // <--- Tambahan
+use App\Models\Order;
+use App\Models\Product;
 use Illuminate\Http\Request;
-use Carbon\Carbon;      // <--- Tambahan untuk tanggal
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB; // <--- PENTING! Jangan dihapus
 
 class AdminController extends Controller
 {
-    // 1. Dashboard Utama (Statistik & Approval Mitra)
+    // 1. Dashboard Utama (Statistik, Approval, & Widget Baru)
     public function index()
     {
-        // A. Logika Approval Mitra (Yang lama)
+        // A. Logika Approval Mitra (Ambil 5 terbaru saja)
         $mitras = User::where('role', 'mitra')
             ->orderByRaw("FIELD(status, 'pending', 'active', 'banned')")
             ->latest()
+            ->take(5)
             ->get();
 
-        // B. Logika Statistik (BARU)
+        // B. Logika Statistik Utama
         $today = Carbon::today();
-
-        // 1. Total Omset Hari Ini (Hanya yang sudah PAID)
-        $omsetHariIni = Order::whereDate('created_at', $today)
-            ->where('payment_status', 'paid')
-            ->sum('total_price');
-
-        // 2. Jumlah Order Masuk Hari Ini
+        $omsetHariIni = Order::whereDate('created_at', $today)->where('payment_status', 'paid')->sum('total_price');
         $orderHariIni = Order::whereDate('created_at', $today)->count();
-
-        // 3. Order Belum Dibayar (Total Pending)
         $belumDibayar = Order::where('payment_status', 'unpaid')->count();
-
-        // 4. Stok Alert (Cari produk yang stoknya < 10)
+        
+        // C. Stok Alert
         $stokMenipis = Product::where('stock', '<', 10)->get();
 
-        return view('admin.dashboard', compact('mitras', 'omsetHariIni', 'orderHariIni', 'belumDibayar', 'stokMenipis'));
+        // --- BAGIAN BARU (Penyebab Error Tadi) ---
+
+        // D. WIDGET BARU: Top 5 Produk Terlaris
+        // Menggabungkan tabel order_items dengan products untuk hitung jumlah terjual
+        $topProducts = DB::table('order_items')
+            ->join('products', 'order_items.product_id', '=', 'products.id')
+            ->select('products.name', 'products.image', DB::raw('SUM(order_items.quantity) as total_sold'))
+            ->groupBy('products.id', 'products.name', 'products.image')
+            ->orderByDesc('total_sold')
+            ->limit(5)
+            ->get();
+
+        // E. WIDGET BARU: Grafik Mini (Omset 7 Hari Terakhir)
+        $startDate = Carbon::now()->subDays(6);
+        $chartData = Order::where('payment_status', 'paid')
+            ->where('created_at', '>=', $startDate)
+            ->selectRaw('DATE(created_at) as date, SUM(total_price) as total')
+            ->groupBy('date')
+            ->orderBy('date', 'asc')
+            ->get();
+
+        // Siapkan data array untuk Chart.js di View
+        $chartLabels = $chartData->pluck('date')->map(fn($date) => Carbon::parse($date)->isoFormat('dddd')); 
+        $chartValues = $chartData->pluck('total');
+
+        // F. Kirim SEMUA Variabel ke View (Jangan ada yang ketinggalan!)
+        return view('admin.dashboard', compact(
+            'mitras', 
+            'omsetHariIni', 
+            'orderHariIni', 
+            'belumDibayar', 
+            'stokMenipis', 
+            'topProducts',   // <--- Ini yang tadi error (undefined)
+            'chartLabels',   // <--- Ini buat grafik
+            'chartValues'    // <--- Ini buat grafik
+        ));
     }
 
     // 2. Proses ACC / Aktivasi Akun
@@ -58,32 +87,24 @@ class AdminController extends Controller
     }
 
     // --- MANAJEMEN PESANAN (ORDER) ---
-
-    // Pastikan di bagian atas file sudah ada: use Illuminate\Http\Request;
-
     public function manageOrders(Request $request)
     {
-        // 1. Ambil input pencarian & jumlah per halaman
         $search = $request->input('search');
-        $perPage = $request->input('per_page', 10); // Default 10 data per halaman
+        $perPage = $request->input('per_page', 10);
 
-        // 2. Query Data dengan Filter
-        $orders = \App\Models\Order::with('user')
+        $orders = Order::with('user')
             ->when($search, function ($query, $search) {
-                return $query->where('id', 'like', "%{$search}%") // Cari by Order ID
-                    ->orWhere('resi_number', 'like', "%{$search}%") // Cari by Resi
+                return $query->where('id', 'like', "%{$search}%")
+                    ->orWhere('resi_number', 'like', "%{$search}%")
                     ->orWhereHas('user', function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%") // Cari by Nama Mitra
-                          ->orWhere('kota', 'like', "%{$search}%"); // Cari by Kota
+                        $q->where('name', 'like', "%{$search}%")
+                          ->orWhere('kota', 'like', "%{$search}%");
                     });
             })
-            // Urutan prioritas status (Processing -> Pending -> Shipped -> Completed -> Cancelled)
             ->orderByRaw("FIELD(order_status, 'processing', 'pending', 'shipped', 'completed', 'cancelled')")
             ->latest()
-            // 3. Paginate (Gantikan get() dengan paginate())
             ->paginate($perPage);
 
-        // Append query string agar saat pindah halaman, search tidak hilang
         $orders->appends(['search' => $search, 'per_page' => $perPage]);
 
         return view('admin.orders.index', compact('orders', 'search', 'perPage'));
@@ -97,7 +118,6 @@ class AdminController extends Controller
         ]);
 
         $order = Order::findOrFail($id);
-        
         $order->update([
             'resi_number' => $request->resi_number,
             'courier_name' => $request->courier_name,

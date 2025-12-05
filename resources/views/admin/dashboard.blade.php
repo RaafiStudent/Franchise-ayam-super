@@ -8,6 +8,17 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
             
+            {{-- UCAPAN SELAMAT DATANG (BARU) --}}
+            <div class="bg-gradient-to-r from-red-600 to-red-500 rounded-2xl p-6 text-white shadow-lg flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold mb-1">Halo, {{ Auth::user()->name }}! 👋</h2>
+                    <p class="text-red-100 text-sm">Selamat datang kembali di Panel Admin Ayam Super.</p>
+                </div>
+                <div class="hidden md:block opacity-20">
+                    <i class="fas fa-user-astronaut text-6xl"></i>
+                </div>
+            </div>
+
             {{-- BAGIAN 1: KARTU STATISTIK --}}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 border-l-4 border-green-500">
@@ -32,7 +43,7 @@
                 </div>
             </div>
 
-            {{-- BAGIAN 2: ALERT STOK MENIPIS (Hanya muncul jika ada stok < 10) --}}
+            {{-- BAGIAN 2: ALERT STOK MENIPIS --}}
             @if($stokMenipis->count() > 0)
             <div class="bg-red-50 border border-red-200 rounded-lg p-4">
                 <div class="flex items-center mb-3">
@@ -52,7 +63,53 @@
             </div>
             @endif
 
-            {{-- BAGIAN 3: APPROVAL MITRA (YANG LAMA) --}}
+            {{-- === BAGIAN 3: COCKPIT WIDGETS (PRODUK LARIS & GRAFIK) === --}}
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                {{-- WIDGET A: TOP PRODUK --}}
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 lg:col-span-1">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-gray-800 text-lg">🏆 Produk Terlaris</h3>
+                    </div>
+                    <div class="space-y-4">
+                        @forelse($topProducts as $product)
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden shrink-0 border">
+                                @if($product->image)
+                                    <img src="{{ asset('storage/' . $product->image) }}" class="w-full h-full object-cover" alt="img">
+                                @else
+                                    <div class="flex items-center justify-center h-full text-gray-400"><i class="fas fa-image"></i></div>
+                                @endif
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm font-bold text-gray-700 truncate w-32">{{ $product->name }}</span>
+                                    <span class="text-xs font-bold text-red-600">{{ $product->total_sold }} Terjual</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                    <div class="bg-yellow-400 h-1.5 rounded-full" style="width: {{ rand(40, 90) }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        @empty
+                        <p class="text-gray-400 text-sm text-center py-4">Belum ada data penjualan.</p>
+                        @endforelse
+                    </div>
+                </div>
+
+                {{-- WIDGET B: GRAFIK MINI --}}
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 lg:col-span-2">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="font-bold text-gray-800 text-lg">📈 Tren Penjualan Minggu Ini</h3>
+                        <span class="text-xs text-gray-400">Update Real-time</span>
+                    </div>
+                    <div class="h-64 w-full">
+                        <canvas id="miniChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            {{-- BAGIAN 4: APPROVAL MITRA --}}
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <h3 class="text-lg font-bold mb-4">Daftar Permintaan & Status Mitra</h3>
@@ -109,16 +166,16 @@
                                             @if($mitra->status == 'pending')
                                                 <form action="{{ route('admin.mitra.approve', $mitra->id) }}" method="POST">
                                                     @csrf @method('PATCH')
-                                                    <button class="w-8 h-8 rounded-full bg-green-100 text-green-600 hover:bg-green-200 flex items-center justify-center" title="Terima / Aktifkan">
+                                                    <button class="w-8 h-8 rounded-full bg-green-100 text-green-600 hover:bg-green-200 flex items-center justify-center" title="Terima">
                                                         <i class="fas fa-check"></i>
                                                     </button>
                                                 </form>
                                             @endif
 
                                             @if($mitra->status !== 'banned')
-                                                <form action="{{ route('admin.mitra.reject', $mitra->id) }}" method="POST" onsubmit="return confirm('Yakin ingin memblokir akun ini?');">
+                                                <form action="{{ route('admin.mitra.reject', $mitra->id) }}" method="POST" onsubmit="return confirm('Blokir akun ini?');">
                                                     @csrf @method('PATCH')
-                                                    <button class="w-8 h-8 rounded-full bg-red-100 text-red-600 hover:bg-red-200 flex items-center justify-center" title="Blokir / Tolak">
+                                                    <button class="w-8 h-8 rounded-full bg-red-100 text-red-600 hover:bg-red-200 flex items-center justify-center" title="Blokir">
                                                         <i class="fas fa-ban"></i>
                                                     </button>
                                                 </form>
@@ -135,4 +192,39 @@
 
         </div>
     </div>
+
+    {{-- Script Chart.js Khusus Dashboard --}}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctxMini = document.getElementById('miniChart').getContext('2d');
+        let gradientMini = ctxMini.createLinearGradient(0, 0, 0, 300);
+        gradientMini.addColorStop(0, 'rgba(220, 38, 38, 0.2)'); 
+        gradientMini.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+        new Chart(ctxMini, {
+            type: 'line',
+            data: {
+                labels: {!! json_encode($chartLabels) !!},
+                datasets: [{
+                    label: 'Omset',
+                    data: {!! json_encode($chartValues) !!},
+                    borderColor: '#dc2626',
+                    backgroundColor: gradientMini,
+                    borderWidth: 2,
+                    pointRadius: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { display: false },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    </script>
 </x-app-layout>
