@@ -12,11 +12,6 @@
                 {{-- MENU DESKTOP --}}
                 <div class="hidden space-x-4 sm:-my-px sm:ms-10 sm:flex items-center">
                     
-                    {{-- 
-                        PERHATIKAN: Saya sudah MENGHAPUS class manual (!text-white dst).
-                        Sekarang tampilannya diatur otomatis oleh nav-link.blade.php
-                    --}}
-
                     {{-- 1. Dashboard --}}
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         <i class="fas fa-home mr-2"></i> {{ __('Dashboard') }}
@@ -25,7 +20,7 @@
                     {{-- 2. Riwayat Pesanan (MITRA) --}}
                     @if(Auth::user()->role === 'mitra')
                         <x-nav-link :href="route('orders.index')" :active="request()->routeIs('orders.*')">
-                            <i class="fas fa-history mr-2"></i> {{ __('Riwayat') }}
+                            <i class="fas fa-history mr-2"></i> {{ __('Riwayat Pesanan') }}
                         </x-nav-link>
                     @endif
 
@@ -33,23 +28,23 @@
                     @if(Auth::user()->role === 'admin')
                         
                         <x-nav-link :href="route('admin.reports.index')" :active="request()->routeIs('admin.reports.index')">
-                            <i class="fas fa-chart-line mr-2"></i> {{ __('Keuangan') }}
+                            <i class="fas fa-chart-line mr-2"></i> {{ __('Laporan Keuangan') }}
                         </x-nav-link>
 
                         <x-nav-link :href="route('admin.reports.menus')" :active="request()->routeIs('admin.reports.menus')">
-                            <i class="fas fa-utensils mr-2"></i> {{ __('Menu') }}
+                            <i class="fas fa-utensils mr-2"></i> {{ __('Laporan Menu') }}
                         </x-nav-link>
 
                         <x-nav-link :href="route('admin.products.index')" :active="request()->routeIs('admin.products.*')">
-                            <i class="fas fa-box mr-2"></i> {{ __('Produk') }}
+                            <i class="fas fa-box mr-2"></i> {{ __('Manajemen Produk') }}
                         </x-nav-link>
 
                         <x-nav-link :href="route('admin.orders.index')" :active="request()->routeIs('admin.orders.*')">
-                            <i class="fas fa-shopping-cart mr-2"></i> {{ __('Pesanan') }}
+                            <i class="fas fa-shopping-cart mr-2"></i> {{ __('Kelola Pesanan') }}
                         </x-nav-link>
 
                         <x-nav-link :href="route('admin.messages.index')" :active="request()->routeIs('admin.messages.*')">
-                            <i class="fas fa-envelope mr-2"></i> {{ __('Pesan') }}
+                            <i class="fas fa-envelope mr-2"></i> {{ __('Kotak Masuk') }}
                         </x-nav-link>
 
                     @endif
@@ -71,15 +66,18 @@
                         </button>
                     </x-slot>
 
+                    {{-- ISI DROPDOWN (Profile & Logout) --}}
                     <x-slot name="content">
-                        <x-dropdown-link :href="route('profile.edit')">
-                            {{ __('Profile') }}
+                        {{-- Saya tambahkan class hover merah biar senada --}}
+                        <x-dropdown-link :href="route('profile.edit')" class="hover:bg-red-50 hover:text-red-700">
+                            <i class="fas fa-user-circle mr-2"></i> {{ __('Profile') }}
                         </x-dropdown-link>
+
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <x-dropdown-link :href="route('logout')"
+                            <x-dropdown-link :href="route('logout')" class="hover:bg-red-50 hover:text-red-700"
                                     onclick="event.preventDefault(); this.closest('form').submit();">
-                                {{ __('Log Out') }}
+                                <i class="fas fa-sign-out-alt mr-2"></i> {{ __('Log Out') }}
                             </x-dropdown-link>
                         </form>
                     </x-slot>
@@ -99,7 +97,8 @@
     </div>
 
     {{-- MENU MOBILE (RESPONSIVE) --}}
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden bg-white border-b border-gray-200 shadow-xl">
+    {{-- UBAH BACKGROUND JADI MERAH (bg-red-700) AGAR MENYATU --}}
+    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden bg-red-700 border-b border-red-800 shadow-xl">
         <div class="pt-2 pb-3 space-y-1">
             
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
@@ -132,18 +131,21 @@
         </div>
 
         {{-- USER INFO MOBILE --}}
-        <div class="pt-4 pb-1 border-t border-gray-200 bg-gray-50">
+        {{-- Background Merah Gelap dikit (bg-red-800) biar ada pemisah --}}
+        <div class="pt-4 pb-1 border-t border-red-600 bg-red-800">
             <div class="px-4">
-                <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
-                <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
+                <div class="font-medium text-base text-yellow-300">{{ Auth::user()->name }}</div>
+                <div class="font-medium text-sm text-red-200">{{ Auth::user()->email }}</div>
             </div>
             <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('profile.edit')">
+                {{-- Styling Link Profile Mobile --}}
+                <x-responsive-nav-link :href="route('profile.edit')" class="!text-red-100 hover:!text-white hover:!bg-red-600">
                     {{ __('Profile') }}
                 </x-responsive-nav-link>
+                
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <x-responsive-nav-link :href="route('logout')"
+                    <x-responsive-nav-link :href="route('logout')" class="!text-red-100 hover:!text-white hover:!bg-red-600"
                             onclick="event.preventDefault(); this.closest('form').submit();">
                         {{ __('Log Out') }}
                     </x-responsive-nav-link>
