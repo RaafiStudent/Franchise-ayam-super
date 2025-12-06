@@ -54,6 +54,7 @@ class OrderController extends Controller
 
         $pdf = Pdf::loadView('orders.invoice_pdf', compact('order'));
 
-        return $pdf->download('Invoice-AyamSuper-ORDER-'.$order->id.'.pdf');
+        // Pakai stream() agar terbuka di browser dulu
+return $pdf->stream('Invoice-AyamSuper-ORDER-'.$order->id.'.pdf');
     }
 }

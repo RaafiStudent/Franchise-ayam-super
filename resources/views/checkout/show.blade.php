@@ -127,9 +127,10 @@
                             <i class="fas fa-arrow-left mr-1"></i> Kembali
                         </a>
 
-                        <a href="{{ route('orders.invoice', $order->id) }}" class="bg-gray-800 text-white text-sm font-bold px-4 py-2 rounded-lg hover:bg-gray-900 transition flex items-center">
-                            <i class="fas fa-print mr-2"></i> Cetak Invoice
-                        </a>
+                            {{-- Tambahkan target="_blank" agar buka tab baru --}}
+<a href="{{ route('orders.invoice', $order->id) }}" target="_blank" class="bg-gray-800 text-white text-sm font-bold px-4 py-2 rounded-lg hover:bg-gray-900 transition flex items-center">
+    <i class="fas fa-print mr-2"></i> Cetak Invoice
+</a>
                     </div>
 
                     {{-- JIKA UNPAID: TOMBOL BAYAR --}}
