@@ -31,7 +31,7 @@
                                 @foreach($orders as $order)
                                 <tr class="border-b border-gray-200 hover:bg-gray-50">
                                     <td class="py-3 px-6 text-left whitespace-nowrap font-bold">
-                                        #{{ $order->id }}
+                                        #ORDER-{{ $order->id }}
                                     </td>
                                     <td class="py-3 px-6 text-left">
                                         {{ $order->created_at->format('d M Y H:i') }}
@@ -43,25 +43,45 @@
                                     {{-- Status Pembayaran --}}
                                     <td class="py-3 px-6 text-center">
                                         @if($order->payment_status == 'paid')
-                                            <span class="bg-green-200 text-green-700 py-1 px-3 rounded-full text-xs font-bold">Lunas</span>
+                                            <span class="bg-green-100 text-green-700 py-1 px-3 rounded-full text-xs font-bold border border-green-200">
+                                                <i class="fas fa-check"></i> Lunas
+                                            </span>
                                         @elseif($order->payment_status == 'unpaid')
-                                            <span class="bg-yellow-200 text-yellow-700 py-1 px-3 rounded-full text-xs font-bold">Belum Bayar</span>
+                                            <span class="bg-yellow-100 text-yellow-700 py-1 px-3 rounded-full text-xs font-bold border border-yellow-200">
+                                                Belum Bayar
+                                            </span>
                                         @else
                                             <span class="bg-red-200 text-red-700 py-1 px-3 rounded-full text-xs font-bold">{{ ucfirst($order->payment_status) }}</span>
                                         @endif
                                     </td>
 
-                                    {{-- Status Pengiriman --}}
+                                    {{-- Status Pengiriman (DIPERBAIKI) --}}
                                     <td class="py-3 px-6 text-center">
                                         @if($order->order_status == 'pending')
-                                            <span class="bg-gray-200 text-gray-600 py-1 px-3 rounded-full text-xs">Menunggu</span>
+                                            <span class="bg-gray-200 text-gray-600 py-1 px-3 rounded-full text-xs font-bold">
+                                                <i class="fas fa-clock mr-1"></i> Menunggu
+                                            </span>
                                         @elseif($order->order_status == 'processing')
-                                            <span class="bg-blue-200 text-blue-700 py-1 px-3 rounded-full text-xs font-bold">Sedang Dikemas</span>
+                                            <span class="bg-blue-100 text-blue-700 py-1 px-3 rounded-full text-xs font-bold animate-pulse">
+                                                <i class="fas fa-box-open mr-1"></i> Sedang Dikemas
+                                            </span>
                                         @elseif($order->order_status == 'shipped')
-                                            <span class="bg-purple-200 text-purple-700 py-1 px-3 rounded-full text-xs font-bold">Dikirim</span>
-                                            <div class="text-[10px] mt-1 text-gray-500">Resi: {{ $order->resi_number ?? '-' }}</div>
+                                            <div class="flex flex-col items-center">
+                                                <span class="bg-purple-100 text-purple-700 py-1 px-3 rounded-full text-xs font-bold mb-1">
+                                                    <i class="fas fa-shipping-fast mr-1"></i> Sedang Dikirim
+                                                </span>
+                                                <div class="text-[10px] text-gray-500 bg-gray-50 border px-2 py-1 rounded">
+                                                    {{ $order->courier_name }} - {{ $order->resi_number }}
+                                                </div>
+                                            </div>
                                         @elseif($order->order_status == 'completed')
-                                            <span class="bg-green-200 text-green-700 py-1 px-3 rounded-full text-xs font-bold">Selesai</span>
+                                            <span class="bg-green-100 text-green-700 py-1 px-3 rounded-full text-xs font-bold border border-green-200">
+                                                <i class="fas fa-check-circle mr-1"></i> Barang Diterima
+                                            </span>
+                                        @elseif($order->order_status == 'cancelled')
+                                            <span class="bg-red-100 text-red-700 py-1 px-3 rounded-full text-xs font-bold">
+                                                <i class="fas fa-times-circle mr-1"></i> Dibatalkan
+                                            </span>
                                         @endif
                                     </td>
 
@@ -81,10 +101,10 @@
 
                                             {{-- Tombol Terima Barang (Kalau Sedang Dikirim) --}}
                                             @if($order->order_status == 'shipped')
-                                                <form action="{{ route('orders.complete', $order->id) }}" method="POST" onsubmit="return confirm('Barang sudah sampai?');">
+                                                <form action="{{ route('orders.complete', $order->id) }}" method="POST" onsubmit="return confirm('Apakah barang sudah sampai dan sesuai?');">
                                                     @csrf
                                                     @method('PATCH')
-                                                    <button class="w-8 h-8 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center text-green-600" title="Pesanan Diterima">
+                                                    <button class="w-8 h-8 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center text-green-600" title="Konfirmasi Terima Barang">
                                                         <i class="fas fa-check-double"></i>
                                                     </button>
                                                 </form>

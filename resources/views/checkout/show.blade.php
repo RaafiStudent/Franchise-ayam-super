@@ -4,13 +4,31 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 {{ __('Invoice: ') }} #ORDER-{{ $order->id }}
             </h2>
-            {{-- Badge Status di Pojok Kanan Atas --}}
-            <span class="px-4 py-2 rounded-full text-sm font-bold 
-                @if($order->payment_status == 'paid') bg-green-100 text-green-700 
-                @elseif($order->payment_status == 'unpaid') bg-yellow-100 text-yellow-700 
-                @else bg-red-100 text-red-700 @endif">
-                {{ strtoupper($order->payment_status) }}
-            </span>
+            
+            <div class="flex gap-2">
+                {{-- 1. BADGE STATUS PEMBAYARAN --}}
+                <span class="px-4 py-2 rounded-full text-sm font-bold
+                    @if($order->payment_status == 'paid') bg-green-100 text-green-700
+                    @elseif($order->payment_status == 'unpaid') bg-yellow-100 text-yellow-700
+                    @else bg-red-100 text-red-700 @endif">
+                    {{ strtoupper($order->payment_status) }}
+                </span>
+
+                {{-- 2. BADGE STATUS BARANG (BARU - FITUR YANG BOSS MINTA) --}}
+                @if($order->order_status == 'shipped')
+                    <span class="px-4 py-2 rounded-full text-sm font-bold bg-purple-100 text-purple-700">
+                        <i class="fas fa-truck mr-1"></i> SEDANG DIKIRIM
+                    </span>
+                @elseif($order->order_status == 'completed')
+                    <span class="px-4 py-2 rounded-full text-sm font-bold bg-green-100 text-green-700 border border-green-200">
+                        <i class="fas fa-check-circle mr-1"></i> DITERIMA
+                    </span>
+                @elseif($order->order_status == 'processing')
+                    <span class="px-4 py-2 rounded-full text-sm font-bold bg-blue-100 text-blue-700">
+                        <i class="fas fa-box mr-1"></i> DIKEMAS
+                    </span>
+                @endif
+            </div>
         </div>
     </x-slot>
 
@@ -24,8 +42,8 @@
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                
-                {{-- 1. INFO UMUM (Tanggal & Pelanggan) --}}
+
+                {{-- INFO UMUM --}}
                 <div class="grid grid-cols-2 gap-4 mb-8 border-b pb-6">
                     <div>
                         <p class="text-gray-500 text-sm">Tanggal Order</p>
@@ -38,24 +56,38 @@
                     </div>
                 </div>
 
-                {{-- 2. INFO PENGIRIMAN (Hanya Muncul Jika Sudah Dikirim) --}}
+                {{-- INFO PENGIRIMAN (Jika Ada) --}}
                 @if($order->order_status == 'shipped' || $order->order_status == 'completed')
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
-                    <h3 class="font-bold text-blue-800 mb-2"><i class="fas fa-shipping-fast mr-2"></i>Info Pengiriman</h3>
-                    <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div class="flex justify-between items-start">
                         <div>
-                            <p class="text-blue-600">Kurir / Ekspedisi</p>
-                            <p class="font-bold text-gray-800">{{ $order->courier_name }}</p>
+                            <h3 class="font-bold text-blue-800 mb-2"><i class="fas fa-shipping-fast mr-2"></i>Info Pengiriman</h3>
+                            <div class="grid grid-cols-2 gap-8 text-sm">
+                                <div>
+                                    <p class="text-blue-600">Kurir / Ekspedisi</p>
+                                    <p class="font-bold text-gray-800 uppercase">{{ $order->courier_name }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-blue-600">Nomor Resi / Plat</p>
+                                    <p class="font-bold text-gray-800 uppercase">{{ $order->resi_number }}</p>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <p class="text-blue-600">Nomor Resi / Plat</p>
-                            <p class="font-bold text-gray-800">{{ $order->resi_number }}</p>
+                        
+                        {{-- STATUS BESAR DI DALAM KOTAK PENGIRIMAN --}}
+                        <div class="text-right">
+                            <p class="text-xs text-blue-500 mb-1">Status Paket:</p>
+                            @if($order->order_status == 'completed')
+                                <span class="text-xl font-bold text-green-600">SUDAH DITERIMA ✅</span>
+                            @else
+                                <span class="text-xl font-bold text-purple-600">DALAM PERJALANAN 🚚</span>
+                            @endif
                         </div>
                     </div>
                 </div>
                 @endif
 
-                {{-- 3. TABEL RINCIAN BARANG --}}
+                {{-- TABEL BARANG --}}
                 <div class="mb-8">
                     <h3 class="font-bold text-gray-700 mb-3">Rincian Pesanan</h3>
                     <div class="overflow-x-auto">
@@ -88,45 +120,48 @@
                     </div>
                 </div>
 
-                {{-- 4. TOMBOL AKSI (Update Terpenting Ada Di Sini) --}}
+                {{-- TOMBOL AKSI --}}
                 <div class="flex justify-between items-center pt-6 border-t border-gray-100">
-                    
-                    {{-- KELOMPOK TOMBOL KIRI (Kembali & Cetak PDF) --}}
-                    <div class="flex gap-3">
-                        <a href="{{ route('orders.index') }}" class="text-gray-600 hover:text-gray-900 text-sm font-medium px-4 py-2 border border-gray-300 rounded-lg flex items-center transition hover:bg-gray-50">
-                            <i class="fas fa-arrow-left mr-2"></i> Kembali
+                    <div class="flex gap-2">
+                        <a href="{{ route('orders.index') }}" class="text-gray-500 hover:text-gray-800 text-sm font-medium px-4 py-2 border rounded-lg">
+                            <i class="fas fa-arrow-left mr-1"></i> Kembali
                         </a>
 
-                        {{-- TOMBOL CETAK PDF (BARU) --}}
-                        <a href="{{ route('orders.invoice', $order->id) }}" class="bg-gray-800 text-white text-sm font-bold px-4 py-2 rounded-lg hover:bg-gray-900 transition flex items-center shadow-md transform active:scale-95">
+                        <a href="{{ route('orders.invoice', $order->id) }}" class="bg-gray-800 text-white text-sm font-bold px-4 py-2 rounded-lg hover:bg-gray-900 transition flex items-center">
                             <i class="fas fa-print mr-2"></i> Cetak Invoice
                         </a>
                     </div>
 
-                    {{-- KELOMPOK TOMBOL KANAN (Bayar / Status) --}}
-                    <div>
-                        {{-- Jika Belum Bayar -> Muncul Tombol Bayar --}}
-                        @if($order->payment_status == 'unpaid')
-                            <button id="pay-button" class="bg-red-600 text-white font-bold py-2 px-6 rounded-lg shadow-lg hover:bg-red-700 transition transform hover:-translate-y-0.5 active:scale-95 flex items-center">
-                                <i class="fas fa-credit-card mr-2"></i> BAYAR SEKARANG
+                    {{-- JIKA UNPAID: TOMBOL BAYAR --}}
+                    @if($order->payment_status == 'unpaid')
+                        <button id="pay-button" class="bg-red-600 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-red-700 transition transform hover:scale-105">
+                            BAYAR SEKARANG
+                        </button>
+                    
+                    {{-- JIKA SEDANG DIKIRIM: TOMBOL TERIMA --}}
+                    @elseif($order->order_status == 'shipped')
+                        <form action="{{ route('orders.complete', $order->id) }}" method="POST" onsubmit="return confirm('Barang sudah sampai?');">
+                            @csrf
+                            @method('PATCH')
+                            <button class="bg-green-600 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-green-700 transition transform hover:scale-105 flex items-center">
+                                <i class="fas fa-check-double mr-2"></i> KONFIRMASI TERIMA BARANG
                             </button>
-                        
-                        {{-- Jika Sudah Lunas -> Muncul Info --}}
-                        @else
-                            <div class="text-green-600 font-bold flex items-center gap-2 bg-green-50 px-4 py-2 rounded-lg border border-green-200">
-                                <i class="fas fa-check-circle text-xl"></i>
-                                <span>Pembayaran Lunas</span>
-                            </div>
-                        @endif
-                    </div>
+                        </form>
 
+                    {{-- JIKA SELESAI --}}
+                    @elseif($order->order_status == 'completed')
+                        <div class="text-green-600 font-bold flex items-center gap-2 border border-green-200 bg-green-50 px-4 py-2 rounded-lg">
+                            <i class="fas fa-check-circle text-xl"></i>
+                            <span>PESANAN SELESAI</span>
+                        </div>
+                    @endif
                 </div>
 
             </div>
         </div>
     </div>
 
-    {{-- SCRIPT MIDTRANS (Hanya aktif jika tombol ada) --}}
+    {{-- Script Midtrans --}}
     @if($order->payment_status == 'unpaid')
     <script type="text/javascript">
         var payButton = document.getElementById('pay-button');

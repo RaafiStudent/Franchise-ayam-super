@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Invoice #{{ $order->id }}</title>
+    <title>Invoice #ORDER-{{ $order->id }}</title>
     <style>
         body { font-family: sans-serif; font-size: 10pt; color: #333; }
         .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
-        .header h1 { margin: 0; color: #d32f2f; } /* Merah Ayam Super */
+        .header h1 { margin: 0; color: #d32f2f; }
         .header p { margin: 2px 0; font-size: 9pt; }
         
         .meta-info { width: 100%; margin-bottom: 20px; }
@@ -19,10 +19,9 @@
         .text-right { text-align: right; }
         .text-center { text-align: center; }
         .font-bold { font-weight: bold; }
-        .total-row td { background-color: #f9f9f9; font-weight: bold; }
         
-        .status-paid { color: green; border: 1px solid green; padding: 5px 10px; display: inline-block; }
-        .status-unpaid { color: red; border: 1px solid red; padding: 5px 10px; display: inline-block; }
+        .status-paid { color: green; border: 1px solid green; padding: 5px 10px; display: inline-block; font-weight: bold; }
+        .status-unpaid { color: red; border: 1px solid red; padding: 5px 10px; display: inline-block; font-weight: bold; }
         
         .footer { margin-top: 30px; text-align: center; font-size: 8pt; color: #777; border-top: 1px solid #eee; padding-top: 10px; }
     </style>
@@ -30,10 +29,10 @@
 <body>
 
     <div class="header">
-    <h1>AYAM SUPER FRIED CHICKEN</h1>
-    <p>Jl. Puter Gg. Bango No 20A, Randugunting, Tegal Selatan, Kota Tegal</p>
-    <p>Email: admin@ayamsuper.com | WA: +62 812 3456 7890</p>
-</div>
+        <h1>AYAM SUPER FRIED CHICKEN</h1>
+        <p>Jl. Puter Gg. Bango No 20A, Randugunting, Tegal Selatan, Kota Tegal</p>
+        <p>Email: admin@ayamsuper.com | WA: +62 812 3456 7890</p>
+    </div>
 
     <table class="meta-info">
         <tr>
@@ -48,13 +47,26 @@
                 <span class="meta-title">FAKTUR PENJUALAN</span><br>
                 <h3>#ORDER-{{ $order->id }}</h3>
                 Tanggal: {{ $order->created_at->format('d M Y, H:i') }} WIB<br>
-                
                 <br>
-                STATUS: 
+                
+                {{-- STATUS PEMBAYARAN --}}
                 @if($order->payment_status == 'paid')
                     <span class="status-paid">LUNAS</span>
                 @else
                     <span class="status-unpaid">BELUM LUNAS</span>
+                @endif
+                <br><br>
+
+                {{-- STATUS PESANAN (BARU) --}}
+                <strong>STATUS BARANG:</strong><br>
+                @if($order->order_status == 'completed')
+                    <span style="color: green; font-weight: bold; font-size: 12pt;">SELESAI (DITERIMA)</span>
+                @elseif($order->order_status == 'shipped')
+                    <span style="color: blue; font-weight: bold;">SEDANG DIKIRIM</span>
+                @elseif($order->order_status == 'processing')
+                    <span style="color: orange; font-weight: bold;">SEDANG DIKEMAS</span>
+                @else
+                    <span style="color: gray;">MENUNGGU</span>
                 @endif
             </td>
         </tr>
@@ -83,8 +95,8 @@
         </tbody>
         <tfoot>
             <tr class="total-row">
-                <td colspan="4" class="text-right">TOTAL TAGIHAN</td>
-                <td class="text-right" style="font-size: 12pt; color: #d32f2f;">
+                <td colspan="4" class="text-right font-bold">TOTAL TAGIHAN</td>
+                <td class="text-right" style="font-size: 12pt; color: #d32f2f; font-weight: bold;">
                     Rp {{ number_format($order->total_price, 0, ',', '.') }}
                 </td>
             </tr>
@@ -92,9 +104,10 @@
     </table>
 
     @if($order->order_status == 'shipped' || $order->order_status == 'completed')
-    <div style="margin-top: 20px; border: 1px dashed #ccc; padding: 10px;">
+    <div style="margin-top: 20px; border: 1px dashed #ccc; padding: 10px; background-color: #f9f9f9;">
         <strong>Info Pengiriman:</strong><br>
-        Kurir: {{ $order->courier_name }} | Resi: {{ $order->resi_number }}
+        Ekspedisi: {{ $order->courier_name }} <br>
+        No. Resi: {{ $order->resi_number }}
     </div>
     @endif
 
