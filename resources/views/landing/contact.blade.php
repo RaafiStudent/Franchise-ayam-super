@@ -1,6 +1,6 @@
-<section id="kontak" class="py-20 bg-gray-50">
+<section id="kontak" class="py-10 md:py-12 bg-gray-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16">
+        <div class="text-center mb-8">
             <h2 class="text-4xl font-extrabold text-red-700 uppercase mb-2">Hubungi Kami</h2>
             <div class="w-24 h-1 bg-yellow-400 mx-auto"></div>
             <p class="mt-4 text-gray-600">Kami siap mendengar masukan dan melayani pesanan Anda.</p>

@@ -1,4 +1,4 @@
-<section id="menu" class="py-12 md:py-20 bg-white">
+<section id="menu" class="py-8 bg-white">
     <div class="container mx-auto px-4">
         
         <div class="text-center mb-8 md:mb-12">

@@ -1,4 +1,4 @@
-<section id="kemitraan" class="py-20 bg-gray-50">
+<section id="kemitraan" class="py-8 bg-gray-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <div class="text-center mb-12">
@@ -8,7 +8,8 @@
             </p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+        {{-- Perbaikan: mb-10 diubah jadi mb-8 --}}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
             <div class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition border-t-4 border-red-500">
                 <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
                     <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -124,7 +125,8 @@
             </div>
         </div>
 
-        <div class="mt-12 text-center bg-yellow-50 p-4 rounded-lg border border-yellow-200 max-w-4xl mx-auto">
+        {{-- Perbaikan: mt-12 diubah jadi mt-8 agar jarak ke footer tidak terlalu jauh --}}
+        <div class="mt-8 text-center bg-yellow-50 p-4 rounded-lg border border-yellow-200 max-w-4xl mx-auto">
             <p class="text-gray-700 font-medium">
                 <i class="fas fa-info-circle text-yellow-500 mr-2"></i> 
                 Harga belum termasuk ongkos kirim booth ke lokasi dan sewa tempat.
