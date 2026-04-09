@@ -9,13 +9,13 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentCallbackController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MessageController;
-use App\Http\Controllers\ReportController;     
-use App\Http\Controllers\MenuReportController; 
-use App\Http\Controllers\OwnerController; // Pastikan ini ada
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\MenuReportController;
+use App\Http\Controllers\OwnerController;
 use App\Models\Menu;
 use Illuminate\Support\Facades\Route;
 
-// 1. HALAMAN UTAMA
+// --- PUBLIC ROUTES ---
 Route::get('/', function () {
     $menus = Menu::all(); 
     return view('welcome', compact('menus'));
@@ -25,40 +25,32 @@ Route::get('/menunggu-persetujuan', function () {
     return view('auth.approval-notice');
 })->name('approval.notice');
 
-// 3. ROUTE INTERAKTIF PUBLIK
-Route::post('/contact-send', [MessageController::class, 'store'])->name('contact.send');
-Route::post('/menu/{id}/love', [HomeController::class, 'toggleLove'])->name('menu.love');
-Route::post('/menu/{id}/dislike', [HomeController::class, 'toggleDislike'])->name('menu.dislike');
-
-// 4. AREA WAJIB LOGIN
+// --- AUTHENTICATED ROUTES ---
 Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
 
-    // A. ROUTE DASHBOARD (Redirect sesuai 3 role)
+    // 1. LOGIKA DASHBOARD UTAMA (AUTO-REDIRECT)
     Route::get('/dashboard', function () {
-        if (auth()->user()->role === 'admin') {
-            return redirect()->route('admin.dashboard');
-        } elseif (auth()->user()->role === 'owner') {
-            return redirect()->route('owner.dashboard');
-        }
-        return app(ShopController::class)->index();
+        $role = auth()->user()->role;
+        if ($role === 'admin') return redirect()->route('admin.dashboard');
+        if ($role === 'owner') return redirect()->route('owner.dashboard');
+        return redirect()->route('mitra.shop');
     })->name('dashboard');
 
-    // B. ROUTE KHUSUS OWNER (Read-Only Monitoring)
-    Route::prefix('owner')->name('owner.')->group(function () {
+    // 2. KELOMPOK ROLE: OWNER (Sesuai Permintaan)
+    Route::middleware(['role:owner'])->prefix('owner')->name('owner.')->group(function () {
         Route::get('/dashboard', [OwnerController::class, 'index'])->name('dashboard');
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('/reports/menus', [MenuReportController::class, 'index'])->name('reports.menus');
         Route::get('/reports/export', [ReportController::class, 'exportPdf'])->name('reports.export');
     });
 
-    // C. ROUTE KHUSUS ADMIN
-    Route::prefix('admin')->name('admin.')->group(function () {
+    // 3. KELOMPOK ROLE: ADMIN
+    Route::middleware(['role:admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
         Route::patch('/mitra/{id}/approve', [AdminController::class, 'approve'])->name('mitra.approve');
         Route::patch('/mitra/{id}/reject', [AdminController::class, 'reject'])->name('mitra.reject');
         
         Route::resource('products', ProductController::class);
-
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('/reports/menus', [MenuReportController::class, 'index'])->name('reports.menus');
         Route::get('/reports/export', [ReportController::class, 'exportPdf'])->name('reports.export');
@@ -70,17 +62,20 @@ Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
         Route::delete('/messages/{id}', [MessageController::class, 'destroy'])->name('messages.destroy');
     });
 
-    // D. ROUTE BELANJA & PESANAN (MITRA)
-    Route::post('/cart/add/{id}', [ShopController::class, 'addToCart'])->name('cart.add');
-    Route::post('/cart/decrease/{id}', [ShopController::class, 'decreaseCart'])->name('cart.decrease');
-    Route::post('/checkout', [CheckoutController::class, 'process'])->name('checkout.process');
-    Route::get('/checkout/{id}', [CheckoutController::class, 'show'])->name('checkout.show');
-    Route::get('/my-orders', [OrderController::class, 'index'])->name('orders.index');
-    Route::get('/my-orders/{id}', [OrderController::class, 'show'])->name('orders.show');
-    Route::get('/my-orders/{id}/invoice', [OrderController::class, 'downloadInvoice'])->name('orders.invoice');
-    Route::patch('/my-orders/{id}/complete', [OrderController::class, 'markAsCompleted'])->name('orders.complete');
+    // 4. KELOMPOK ROLE: MITRA
+    Route::middleware(['role:mitra'])->group(function () {
+        Route::get('/shop', [ShopController::class, 'index'])->name('mitra.shop');
+        Route::post('/cart/add/{id}', [ShopController::class, 'addToCart'])->name('cart.add');
+        Route::post('/cart/decrease/{id}', [ShopController::class, 'decreaseCart'])->name('cart.decrease');
+        Route::post('/checkout', [CheckoutController::class, 'process'])->name('checkout.process');
+        Route::get('/checkout/{id}', [CheckoutController::class, 'show'])->name('checkout.show');
+        Route::get('/my-orders', [OrderController::class, 'index'])->name('orders.index');
+        Route::get('/my-orders/{id}', [OrderController::class, 'show'])->name('orders.show');
+        Route::get('/my-orders/{id}/invoice', [OrderController::class, 'downloadInvoice'])->name('orders.invoice');
+        Route::patch('/my-orders/{id}/complete', [OrderController::class, 'markAsCompleted'])->name('orders.complete');
+    });
 
-    // E. ROUTE PROFILE
+    // COMMON ROUTES (PROFILE)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
