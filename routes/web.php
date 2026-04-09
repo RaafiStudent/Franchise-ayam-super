@@ -15,28 +15,44 @@ use App\Http\Controllers\OwnerController;
 use App\Models\Menu;
 use Illuminate\Support\Facades\Route;
 
-// --- PUBLIC ROUTES ---
+// =========================================================================
+// 1. HALAMAN UTAMA (Landing Page)
+// =========================================================================
 Route::get('/', function () {
     $menus = Menu::all(); 
     return view('welcome', compact('menus'));
 });
 
+// 2. Halaman Menunggu Persetujuan
 Route::get('/menunggu-persetujuan', function () {
     return view('auth.approval-notice');
 })->name('approval.notice');
 
-// --- AUTHENTICATED ROUTES ---
-Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
+// =========================================================================
+// 3. ROUTE INTERAKTIF PUBLIK (Contact, Like, Dislike)
+// =========================================================================
+Route::post('/contact-send', [MessageController::class, 'store'])->name('contact.send');
+Route::post('/menu/{id}/love', [HomeController::class, 'toggleLove'])->name('menu.love');
+Route::post('/menu/{id}/dislike', [HomeController::class, 'toggleDislike'])->name('menu.dislike');
 
-    // 1. LOGIKA DASHBOARD UTAMA (AUTO-REDIRECT)
+
+// =========================================================================
+// 4. GROUP MIDDLEWARE UTAMA (Tanpa is_active untuk sementara)
+// =========================================================================
+Route::middleware(['auth', 'verified'])->group(function () {
+
+    // A. ROUTE DASHBOARD (Redirect otomatis sesuai role)
     Route::get('/dashboard', function () {
         $role = auth()->user()->role;
-        if ($role === 'admin') return redirect()->route('admin.dashboard');
-        if ($role === 'owner') return redirect()->route('owner.dashboard');
+        if ($role === 'admin') {
+            return redirect()->route('admin.dashboard');
+        } elseif ($role === 'owner') {
+            return redirect()->route('owner.dashboard');
+        }
         return redirect()->route('mitra.shop');
     })->name('dashboard');
 
-    // 2. KELOMPOK ROLE: OWNER (Sesuai Permintaan)
+    // B. KELOMPOK ROLE: OWNER
     Route::middleware(['role:owner'])->prefix('owner')->name('owner.')->group(function () {
         Route::get('/dashboard', [OwnerController::class, 'index'])->name('dashboard');
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
@@ -44,13 +60,14 @@ Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
         Route::get('/reports/export', [ReportController::class, 'exportPdf'])->name('reports.export');
     });
 
-    // 3. KELOMPOK ROLE: ADMIN
+    // C. KELOMPOK ROLE: ADMIN
     Route::middleware(['role:admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
         Route::patch('/mitra/{id}/approve', [AdminController::class, 'approve'])->name('mitra.approve');
         Route::patch('/mitra/{id}/reject', [AdminController::class, 'reject'])->name('mitra.reject');
         
         Route::resource('products', ProductController::class);
+
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('/reports/menus', [MenuReportController::class, 'index'])->name('reports.menus');
         Route::get('/reports/export', [ReportController::class, 'exportPdf'])->name('reports.export');
@@ -62,7 +79,7 @@ Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
         Route::delete('/messages/{id}', [MessageController::class, 'destroy'])->name('messages.destroy');
     });
 
-    // 4. KELOMPOK ROLE: MITRA
+    // D. KELOMPOK ROLE: MITRA
     Route::middleware(['role:mitra'])->group(function () {
         Route::get('/shop', [ShopController::class, 'index'])->name('mitra.shop');
         Route::post('/cart/add/{id}', [ShopController::class, 'addToCart'])->name('cart.add');
@@ -75,11 +92,13 @@ Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
         Route::patch('/my-orders/{id}/complete', [OrderController::class, 'markAsCompleted'])->name('orders.complete');
     });
 
-    // COMMON ROUTES (PROFILE)
+    // E. ROUTE PROFILE (Bisa diakses semua role)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+// 5. CALLBACK PAYMENT
 Route::post('midtrans-callback', [PaymentCallbackController::class, 'receive']);
+
 require __DIR__.'/auth.php';
