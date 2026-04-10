@@ -31,6 +31,10 @@
                         <x-nav-link :href="route('owner.reports.menus')" :active="request()->routeIs('owner.reports.menus')">
                             <i class="fas fa-utensils mr-2"></i> {{ __('Laporan Menu') }}
                         </x-nav-link>
+                        {{-- TAMBAHAN: Audit Log untuk Owner --}}
+                        <x-nav-link :href="route('owner.logs')" :active="request()->routeIs('owner.logs')">
+                            <i class="fas fa-history mr-2"></i> {{ __('Audit Log') }}
+                        </x-nav-link>
                     @endif
 
                     {{-- MENU ADMIN (Akses Full Management) --}}
@@ -41,6 +45,10 @@
                         <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
                             <i class="fas fa-users-cog mr-2"></i> {{ __('Manajemen User') }}
                         </x-nav-link>
+                        {{-- TAMBAHAN: Audit Log untuk Admin --}}
+                        <x-nav-link :href="route('admin.logs')" :active="request()->routeIs('admin.logs')">
+                            <i class="fas fa-history mr-2"></i> {{ __('Audit Log') }}
+                        </x-nav-link>
                         <x-nav-link :href="route('admin.products.index')" :active="request()->routeIs('admin.products.*')">
                             <i class="fas fa-box mr-2"></i> {{ __('Produk') }}
                         </x-nav-link>
@@ -50,7 +58,6 @@
                         <x-nav-link :href="route('admin.reports.index')" :active="request()->routeIs('admin.reports.index')">
                             <i class="fas fa-chart-line mr-2"></i> {{ __('Laporan') }}
                         </x-nav-link>
-                        {{-- KOTAK MASUK (Kembali Ditambahkan) --}}
                         <x-nav-link :href="route('admin.messages.index')" :active="request()->routeIs('admin.messages.*')">
                             <i class="fas fa-envelope mr-2"></i> {{ __('Kotak Masuk') }}
                         </x-nav-link>
@@ -118,15 +125,45 @@
 
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden bg-red-800">
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
-            </x-responsive-nav-link>
+            
+            {{-- Mobile Menu Mitra --}}
+            @if(Auth::user()->role === 'mitra')
+                <x-responsive-nav-link :href="route('mitra.shop')" :active="request()->routeIs('mitra.shop')"> {{ __('Belanja Stok') }} </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('orders.index')" :active="request()->routeIs('orders.*')"> {{ __('Riwayat Pesanan') }} </x-responsive-nav-link>
+            @endif
 
+            {{-- Mobile Menu Owner --}}
+            @if(Auth::user()->role === 'owner')
+                <x-responsive-nav-link :href="route('owner.dashboard')"> {{ __('Monitoring') }} </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('owner.reports.index')"> {{ __('Laporan Keuangan') }} </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('owner.reports.menus')"> {{ __('Laporan Menu') }} </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('owner.logs')"> {{ __('Audit Log') }} </x-responsive-nav-link>
+            @endif
+
+            {{-- Mobile Menu Admin --}}
             @if(Auth::user()->role === 'admin')
+                <x-responsive-nav-link :href="route('admin.dashboard')"> {{ __('Dashboard') }} </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.users.index')"> {{ __('Manajemen User') }} </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.logs')"> {{ __('Audit Log') }} </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.products.index')"> {{ __('Produk') }} </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.orders.index')"> {{ __('Pesanan') }} </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.reports.index')"> {{ __('Laporan') }} </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.messages.index')"> {{ __('Kotak Masuk') }} </x-responsive-nav-link>
             @endif
+        </div>
+        
+        <div class="pt-4 pb-1 border-t border-red-600">
+            <div class="mt-3 space-y-1">
+                <x-responsive-nav-link :href="route('profile.edit')">
+                    {{ __('Edit Profil') }}
+                </x-responsive-nav-link>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <x-responsive-nav-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">
+                        {{ __('Log Out') }}
+                    </x-responsive-nav-link>
+                </form>
+            </div>
         </div>
     </div>
 </nav>
