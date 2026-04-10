@@ -36,6 +36,7 @@
                 </div>
             @endif
 
+            {{-- Form dengan Alpine.js untuk mendeteksi role saat pertama kali halaman dimuat --}}
             <form action="{{ route('admin.users.update', $user->id) }}" method="POST" enctype="multipart/form-data" x-data="{ role: '{{ old('role', $user->role) }}' }" class="bg-white p-8 rounded-xl shadow-md border border-gray-100">
                 @csrf
                 @method('PUT') 
@@ -54,11 +55,12 @@
 
                     <div>
                         <x-input-label for="role" :value="__('Hak Akses (Role)')" />
-                        <select name="role" x-model="role" class="block mt-1 w-full border-gray-300 focus:border-red-500 focus:ring-red-500 rounded-md shadow-sm">
-                            <option value="mitra">Mitra Cabang</option>
-                            <option value="owner">Owner (Pemilik)</option>
-                            <option value="admin">Administrator</option>
+                        <select name="role" disabled class="block mt-1 w-full border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed focus:border-red-500 focus:ring-red-500 rounded-md shadow-sm">
+                            <option value="mitra" {{ $user->role == 'mitra' ? 'selected' : '' }}>Mitra Cabang</option>
+                            <option value="owner" {{ $user->role == 'owner' ? 'selected' : '' }}>Owner (Pemilik)</option>
+                            <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>Administrator</option>
                         </select>
+                        <p class="text-[10px] text-red-500 mt-1 font-bold">*Role tidak dapat diubah demi keamanan sistem.</p>
                     </div>
 
                     <div x-show="role === 'mitra'" x-transition class="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 bg-yellow-50 p-6 rounded-lg border border-yellow-200 mt-2 mb-2">
