@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Daftarkan alias middleware di sini
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureUserHasRole::class,
+            'is_active' => \App\Http\Middleware\IsActive::class, // INI YANG TERLEWAT, SEKARANG SUDAH DITAMBAHKAN
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
