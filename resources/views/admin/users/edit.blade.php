@@ -68,44 +68,44 @@
                         </div>
 
                         <div>
-                            <x-input-label for="phone" :value="__('No Handphone (WA)')" />
-                            <x-text-input id="phone" class="block mt-1 w-full" type="text" name="phone" value="{{ old('phone', $user->phone) }}" />
+                            <x-input-label for="no_hp" :value="__('No Handphone (WA)')" />
+                            <x-text-input id="no_hp" class="block mt-1 w-full" type="text" name="no_hp" value="{{ old('no_hp', $user->no_hp) }}" />
                         </div>
 
                         <div>
-                            <x-input-label for="ktp_photo" :value="__('Upload Foto KTP Baru')" />
-                            <input id="ktp_photo" type="file" name="ktp_photo" accept="image/*" class="block mt-1 w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 border border-gray-300 rounded-md bg-white"/>
+                            <x-input-label for="ktp_image" :value="__('Upload Foto KTP Baru')" />
+                            <input id="ktp_image" type="file" name="ktp_image" accept="image/*" class="block mt-1 w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 border border-gray-300 rounded-md bg-white"/>
                             <p class="text-[10px] text-gray-500 mt-1">*Kosongkan jika tidak ingin mengganti foto KTP lama.</p>
                             
-                            @if($user->ktp_photo)
+                            @if($user->ktp_image)
                                 <div class="mt-3">
                                     <p class="text-xs font-semibold text-gray-600 mb-1">KTP Saat Ini:</p>
-                                    <a href="{{ asset('storage/' . $user->ktp_photo) }}" target="_blank">
-                                        <img src="{{ asset('storage/' . $user->ktp_photo) }}" alt="KTP {{ $user->name }}" class="h-20 w-auto object-cover rounded border border-gray-300 shadow-sm hover:opacity-75 transition">
+                                    <a href="{{ asset('storage/' . $user->ktp_image) }}" target="_blank">
+                                        <img src="{{ asset('storage/' . $user->ktp_image) }}" alt="KTP {{ $user->name }}" class="h-20 w-auto object-cover rounded border border-gray-300 shadow-sm hover:opacity-75 transition">
                                     </a>
                                 </div>
                             @endif
                         </div>
 
                         <div>
-                            <x-input-label for="province" :value="__('Provinsi')" />
-                            <select name="province" id="province" class="block mt-1 w-full border-gray-300 focus:border-red-500 focus:ring-red-500 rounded-md shadow-sm">
+                            <x-input-label for="provinsi" :value="__('Provinsi')" />
+                            <select name="provinsi" id="provinsi" class="block mt-1 w-full border-gray-300 focus:border-red-500 focus:ring-red-500 rounded-md shadow-sm">
                                 <option value="">Pilih Provinsi...</option>
-                                <option value="Jawa Tengah" {{ old('province', $user->province) == 'Jawa Tengah' ? 'selected' : '' }}>Jawa Tengah</option>
-                                <option value="Jawa Barat" {{ old('province', $user->province) == 'Jawa Barat' ? 'selected' : '' }}>Jawa Barat</option>
-                                <option value="Jawa Timur" {{ old('province', $user->province) == 'Jawa Timur' ? 'selected' : '' }}>Jawa Timur</option>
-                                <option value="DKI Jakarta" {{ old('province', $user->province) == 'DKI Jakarta' ? 'selected' : '' }}>DKI Jakarta</option>
+                                <option value="Jawa Tengah" {{ old('provinsi', $user->provinsi) == 'Jawa Tengah' ? 'selected' : '' }}>Jawa Tengah</option>
+                                <option value="Jawa Barat" {{ old('provinsi', $user->provinsi) == 'Jawa Barat' ? 'selected' : '' }}>Jawa Barat</option>
+                                <option value="Jawa Timur" {{ old('provinsi', $user->provinsi) == 'Jawa Timur' ? 'selected' : '' }}>Jawa Timur</option>
+                                <option value="DKI Jakarta" {{ old('provinsi', $user->provinsi) == 'DKI Jakarta' ? 'selected' : '' }}>DKI Jakarta</option>
                             </select>
                         </div>
 
                         <div>
-                            <x-input-label for="city" :value="__('Kota / Kabupaten')" />
-                            <x-text-input id="city" class="block mt-1 w-full" type="text" name="city" value="{{ old('city', $user->city) }}" />
+                            <x-input-label for="kota" :value="__('Kota / Kabupaten')" />
+                            <x-text-input id="kota" class="block mt-1 w-full" type="text" name="kota" value="{{ old('kota', $user->kota) }}" />
                         </div>
 
                         <div class="col-span-1 md:col-span-2">
-                            <x-input-label for="address" :value="__('Alamat Lengkap')" />
-                            <textarea id="address" name="address" rows="3" class="block mt-1 w-full border-gray-300 focus:border-red-500 focus:ring-red-500 rounded-md shadow-sm">{{ old('address', $user->address) }}</textarea>
+                            <x-input-label for="alamat_lengkap" :value="__('Alamat Lengkap')" />
+                            <textarea id="alamat_lengkap" name="alamat_lengkap" rows="3" class="block mt-1 w-full border-gray-300 focus:border-red-500 focus:ring-red-500 rounded-md shadow-sm">{{ old('alamat_lengkap', $user->alamat_lengkap) }}</textarea>
                         </div>
                     </div>
 

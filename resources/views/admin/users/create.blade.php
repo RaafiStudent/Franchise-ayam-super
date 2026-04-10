@@ -6,7 +6,6 @@
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
 
-            {{-- NOTIFIKASI ERROR --}}
             @if ($errors->any())
                 <div class="mb-6 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-r shadow-sm">
                     <div class="flex items-center mb-2">
@@ -21,7 +20,6 @@
                 </div>
             @endif
 
-            {{-- FORM TAMBAH USER (Menggunakan x-data untuk mendeteksi pilihan Role) --}}
             <form action="{{ route('admin.users.store') }}" method="POST" enctype="multipart/form-data" x-data="{ role: '{{ old('role', 'mitra') }}' }" class="bg-white p-8 rounded-xl shadow-md border border-gray-100">
                 @csrf
                 
@@ -56,35 +54,35 @@
                         </div>
 
                         <div>
-                            <x-input-label for="phone" :value="__('No Handphone (WA)')" />
-                            <x-text-input id="phone" class="block mt-1 w-full" type="text" name="phone" value="{{ old('phone') }}" placeholder="Contoh: 08123456789" />
+                            <x-input-label for="no_hp" :value="__('No Handphone (WA)')" />
+                            <x-text-input id="no_hp" class="block mt-1 w-full" type="text" name="no_hp" value="{{ old('no_hp') }}" placeholder="Contoh: 08123456789" />
                         </div>
 
                         <div>
-                            <x-input-label for="ktp_photo" :value="__('Upload Foto KTP')" />
-                            <input id="ktp_photo" type="file" name="ktp_photo" accept="image/*" class="block mt-1 w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 border border-gray-300 rounded-md bg-white"/>
+                            <x-input-label for="ktp_image" :value="__('Upload Foto KTP')" />
+                            <input id="ktp_image" type="file" name="ktp_image" accept="image/*" class="block mt-1 w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 border border-gray-300 rounded-md bg-white"/>
                             <p class="text-[10px] text-gray-500 mt-1">*Format: JPG/PNG, Maks: 2MB.</p>
                         </div>
 
                         <div>
-                            <x-input-label for="province" :value="__('Provinsi')" />
-                            <select name="province" id="province" class="block mt-1 w-full border-gray-300 focus:border-red-500 focus:ring-red-500 rounded-md shadow-sm">
+                            <x-input-label for="provinsi" :value="__('Provinsi')" />
+                            <select name="provinsi" id="provinsi" class="block mt-1 w-full border-gray-300 focus:border-red-500 focus:ring-red-500 rounded-md shadow-sm">
                                 <option value="">Pilih Provinsi...</option>
-                                <option value="Jawa Tengah" {{ old('province') == 'Jawa Tengah' ? 'selected' : '' }}>Jawa Tengah</option>
-                                <option value="Jawa Barat" {{ old('province') == 'Jawa Barat' ? 'selected' : '' }}>Jawa Barat</option>
-                                <option value="Jawa Timur" {{ old('province') == 'Jawa Timur' ? 'selected' : '' }}>Jawa Timur</option>
-                                <option value="DKI Jakarta" {{ old('province') == 'DKI Jakarta' ? 'selected' : '' }}>DKI Jakarta</option>
+                                <option value="Jawa Tengah" {{ old('provinsi') == 'Jawa Tengah' ? 'selected' : '' }}>Jawa Tengah</option>
+                                <option value="Jawa Barat" {{ old('provinsi') == 'Jawa Barat' ? 'selected' : '' }}>Jawa Barat</option>
+                                <option value="Jawa Timur" {{ old('provinsi') == 'Jawa Timur' ? 'selected' : '' }}>Jawa Timur</option>
+                                <option value="DKI Jakarta" {{ old('provinsi') == 'DKI Jakarta' ? 'selected' : '' }}>DKI Jakarta</option>
                             </select>
                         </div>
 
                         <div>
-                            <x-input-label for="city" :value="__('Kota / Kabupaten')" />
-                            <x-text-input id="city" class="block mt-1 w-full" type="text" name="city" value="{{ old('city') }}" placeholder="Contoh: Semarang" />
+                            <x-input-label for="kota" :value="__('Kota / Kabupaten')" />
+                            <x-text-input id="kota" class="block mt-1 w-full" type="text" name="kota" value="{{ old('kota') }}" placeholder="Contoh: Semarang" />
                         </div>
 
                         <div class="col-span-1 md:col-span-2">
-                            <x-input-label for="address" :value="__('Alamat Lengkap')" />
-                            <textarea id="address" name="address" rows="3" class="block mt-1 w-full border-gray-300 focus:border-red-500 focus:ring-red-500 rounded-md shadow-sm">{{ old('address') }}</textarea>
+                            <x-input-label for="alamat_lengkap" :value="__('Alamat Lengkap')" />
+                            <textarea id="alamat_lengkap" name="alamat_lengkap" rows="3" class="block mt-1 w-full border-gray-300 focus:border-red-500 focus:ring-red-500 rounded-md shadow-sm">{{ old('alamat_lengkap') }}</textarea>
                         </div>
                     </div>
 
