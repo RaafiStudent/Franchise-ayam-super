@@ -5,6 +5,31 @@
         Login Mitra
     </h2>
 
+    {{-- NOTIFIKASI ERROR (Untuk Akun Banned / Diblokir) --}}
+    @if (session('error'))
+        <div x-data="{ show: true }" x-show="show" class="mb-6 bg-red-50 border-l-4 border-red-600 p-4 rounded-r shadow-md relative overflow-hidden">
+            {{-- Aksen background pudar agar lebih elegan --}}
+            <div class="absolute top-0 right-0 -mt-4 -mr-4 text-red-100 opacity-50">
+                <i class="fas fa-ban text-6xl"></i>
+            </div>
+            
+            <div class="relative flex items-start">
+                <div class="flex-shrink-0 mt-0.5 bg-red-100 p-2 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user-lock text-red-600 text-lg"></i>
+                </div>
+                <div class="ml-4 pr-6">
+                    <h3 class="text-sm font-bold text-red-800 uppercase tracking-wide">Akses Ditolak!</h3>
+                    <p class="text-sm text-red-700 mt-1 font-medium">{{ session('error') }}</p>
+                </div>
+            </div>
+
+            {{-- Tombol Silang (Tutup Notifikasi) --}}
+            <button @click="show = false" class="absolute top-3 right-3 text-red-400 hover:text-red-700 transition">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    @endif
+
     <form method="POST" action="{{ route('login') }}">
         @csrf
 
