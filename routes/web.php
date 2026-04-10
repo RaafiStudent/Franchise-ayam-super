@@ -12,8 +12,9 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\MenuReportController;
 use App\Http\Controllers\OwnerController;
-use App\Http\Controllers\Admin\UserManagementController; // Controller Baru
+use App\Http\Controllers\Admin\UserManagementController; 
 use App\Models\Menu;
+use App\Models\ActivityLog; // Pastikan Model ini di-import untuk rute log
 use Illuminate\Support\Facades\Route;
 
 // =========================================================================
@@ -52,8 +53,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['role:admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
         
-        // Manajemen User (Fitur Baru)
+        // Manajemen User
         Route::resource('users', UserManagementController::class);
+        
+        // Rute Audit Log (Baru) - Untuk Monitoring Aktivitas Admin
+        Route::get('/audit-logs', function() {
+            $logs = ActivityLog::with('user')->latest()->paginate(20);
+            return view('admin.logs.index', compact('logs'));
+        })->name('logs');
         
         // Operasional Mitra
         Route::patch('/mitra/{id}/approve', [AdminController::class, 'approve'])->name('mitra.approve');
@@ -74,15 +81,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/messages/{id}', [MessageController::class, 'destroy'])->name('messages.destroy');
     });
 
-    // C. GRUP ROLE: OWNER (Read-Only Monitoring)
+    // C. GRUP ROLE: OWNER (Read-Only Monitoring) [cite: 35, 206]
     Route::middleware(['role:owner'])->prefix('owner')->name('owner.')->group(function () {
         Route::get('/dashboard', [OwnerController::class, 'index'])->name('dashboard');
+        
+        // Rute Audit Log (Baru) - Agar Owner bisa memantau jika ada Admin nakal
+        Route::get('/audit-logs', function() {
+            $logs = ActivityLog::with('user')->latest()->paginate(20);
+            return view('admin.logs.index', compact('logs'));
+        })->name('logs');
+
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('/reports/menus', [MenuReportController::class, 'index'])->name('reports.menus');
         Route::get('/reports/export', [ReportController::class, 'exportPdf'])->name('reports.export');
     });
 
-    // D. GRUP ROLE: MITRA (Shopping & Orders)
+    // D. GRUP ROLE: MITRA (Shopping & Orders) [cite: 34, 205]
     Route::middleware(['role:mitra'])->group(function () {
         Route::get('/shop', [ShopController::class, 'index'])->name('mitra.shop');
         Route::post('/cart/add/{id}', [ShopController::class, 'addToCart'])->name('cart.add');
