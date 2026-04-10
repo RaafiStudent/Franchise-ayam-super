@@ -35,24 +35,25 @@ class UserManagementController extends Controller
 
     public function store(Request $request)
     {
-        // 1. Kumpulan pesan error bahasa Indonesia
+        // Kumpulan pesan error FULL BAHASA INDONESIA
         $messages = [
             'name.required' => 'Nama lengkap wajib diisi.',
-            'email.required' => 'Email wajib diisi.',
-            'email.email' => 'Format email tidak valid.',
+            'email.required' => 'Alamat email wajib diisi.',
+            'email.email' => 'Format email tidak valid (harus memakai @).',
             'email.unique' => 'Email ini sudah terdaftar! Silakan gunakan email lain.',
-            'password.required' => 'Password wajib diisi.',
-            'password.confirmed' => 'Konfirmasi password tidak cocok dengan password di atas.',
-            'password.min' => 'Password minimal harus 8 karakter.',
+            'password.required' => 'Kata sandi wajib diisi.',
+            'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
+            'password.min' => 'Kata sandi minimal harus 8 karakter.',
+            'role.in' => 'Pilihan hak akses (Role) tidak valid.',
+            'status.in' => 'Pilihan status tidak valid.',
         ];
 
-        // 2. Terapkan pesan error tersebut ke validasi
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'role' => ['required', 'in:admin,owner,mitra'],
-            'status' => ['required', 'in:active,pending'],
+            'status' => ['required', 'in:active,pending,banned'], // Ditambah banned
         ], $messages);
 
         $user = User::create([
@@ -65,7 +66,7 @@ class UserManagementController extends Controller
 
         $this->logActivity('CREATE_USER', $user->name, "Menambahkan user baru dengan role: {$user->role}");
 
-        return redirect()->route('admin.users.index')->with('success', 'User berhasil ditambahkan ke dalam sistem!');
+        return redirect()->route('admin.users.index')->with('success', 'Berhasil! Pengguna baru telah ditambahkan ke sistem.');
     }
 
     public function edit(User $user)
@@ -75,22 +76,26 @@ class UserManagementController extends Controller
 
     public function update(Request $request, User $user)
     {
+        // Kumpulan pesan error FULL BAHASA INDONESIA untuk fitur Edit
         $messages = [
             'name.required' => 'Nama lengkap wajib diisi.',
-            'email.required' => 'Email wajib diisi.',
-            'email.unique' => 'Email ini sudah dipakai oleh user lain.',
-            'password.confirmed' => 'Konfirmasi password baru tidak cocok.',
-            'password.min' => 'Password minimal harus 8 karakter.',
+            'email.required' => 'Alamat email wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'email.unique' => 'Email ini sudah dipakai oleh pengguna lain.',
+            'password.confirmed' => 'Konfirmasi kata sandi baru tidak cocok dengan yang diketik di atas.',
+            'password.min' => 'Kata sandi baru minimal harus 8 karakter.',
+            'role.in' => 'Pilihan hak akses (Role) tidak valid.',
+            'status.in' => 'Pilihan status yang Anda masukkan tidak valid.',
         ];
 
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email,'.$user->id],
             'role' => ['required', 'in:admin,owner,mitra'],
-            'status' => ['required', 'in:active,pending'],
+            'status' => ['required', 'in:active,pending,banned'], // Ditambah banned
         ], $messages);
 
-        $details = "Memperbarui profil user";
+        $details = "Memperbarui data profil pengguna";
         $data = [
             'name' => $request->name,
             'email' => $request->email,
@@ -101,27 +106,27 @@ class UserManagementController extends Controller
         if ($request->filled('password')) {
             $request->validate(['password' => ['confirmed', Rules\Password::defaults()]], $messages);
             $data['password'] = Hash::make($request->password);
-            $details = "Memperbarui profil dan melakukan RESET PASSWORD";
+            $details = "Memperbarui profil dan melakukan RESET KATA SANDI";
         }
 
         $user->update($data);
 
         $this->logActivity('UPDATE_USER', $user->name, $details);
 
-        return redirect()->route('admin.users.index')->with('success', 'Data user berhasil diperbarui!');
+        return redirect()->route('admin.users.index')->with('success', 'Mantap! Data pengguna berhasil diperbarui.');
     }
 
     public function destroy(User $user)
     {
         if (auth()->id() === $user->id) {
-            return back()->with('error', 'Anda tidak bisa menghapus akun sendiri!');
+            return back()->with('error', 'Anda tidak bisa menghapus akun Anda sendiri!');
         }
 
         $targetName = $user->name;
         $user->delete();
 
-        $this->logActivity('DELETE_USER', $targetName, "Menghapus akun user secara permanen");
+        $this->logActivity('DELETE_USER', $targetName, "Menghapus akun secara permanen");
 
-        return redirect()->route('admin.users.index')->with('success', 'User berhasil dihapus!');
+        return redirect()->route('admin.users.index')->with('success', 'Data pengguna berhasil dihapus dari sistem.');
     }
 }
