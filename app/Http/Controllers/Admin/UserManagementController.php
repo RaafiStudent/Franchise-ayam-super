@@ -4,12 +4,28 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\ActivityLog; // Tambahkan ini
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rules;
 
 class UserManagementController extends Controller
 {
+    /**
+     * Fungsi Helper untuk mencatat Log Aktivitas
+     */
+    private function logActivity($action, $targetName, $details = null)
+    {
+        ActivityLog::create([
+            'user_id' => auth()->id(),
+            'action' => $action,
+            'target_user' => $targetName,
+            'description' => $details,
+            'ip_address' => request()->ip(),
+        ]);
+    }
+
     // Menampilkan daftar semua user
     public function index()
     {
@@ -34,13 +50,16 @@ class UserManagementController extends Controller
             'status' => ['required', 'in:active,pending'],
         ]);
 
-        User::create([
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $request->role,
             'status' => $request->status,
         ]);
+
+        // Catat Log Aktivitas
+        $this->logActivity('CREATE_USER', $user->name, "Menambahkan user baru dengan role: {$user->role}");
 
         return redirect()->route('admin.users.index')->with('success', 'User berhasil ditambahkan!');
     }
@@ -61,6 +80,7 @@ class UserManagementController extends Controller
             'status' => ['required', 'in:active,pending'],
         ]);
 
+        $details = "Memperbarui profil user";
         $data = [
             'name' => $request->name,
             'email' => $request->email,
@@ -68,13 +88,17 @@ class UserManagementController extends Controller
             'status' => $request->status,
         ];
 
-        // Update password hanya jika diisi
+        // Cek jika password diganti (Reset Password)
         if ($request->filled('password')) {
             $request->validate(['password' => ['confirmed', Rules\Password::defaults()]]);
             $data['password'] = Hash::make($request->password);
+            $details = "Memperbarui profil dan melakukan RESET PASSWORD";
         }
 
         $user->update($data);
+
+        // Catat Log Aktivitas
+        $this->logActivity('UPDATE_USER', $user->name, $details);
 
         return redirect()->route('admin.users.index')->with('success', 'User berhasil diperbarui!');
     }
@@ -87,7 +111,12 @@ class UserManagementController extends Controller
             return back()->with('error', 'Anda tidak bisa menghapus akun sendiri!');
         }
 
+        $targetName = $user->name;
         $user->delete();
+
+        // Catat Log Aktivitas
+        $this->logActivity('DELETE_USER', $targetName, "Menghapus akun user secara permanen dari sistem");
+
         return redirect()->route('admin.users.index')->with('success', 'User berhasil dihapus!');
     }
 }
