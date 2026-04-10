@@ -48,7 +48,7 @@ class UserManagementController extends Controller
             'ktp_image.max' => 'Ukuran foto KTP maksimal 2MB.',
         ];
 
-        // Validasi Dasar
+        // Validasi Dasar (Role wajib ada saat CREATE)
         $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
@@ -84,7 +84,6 @@ class UserManagementController extends Controller
             $data['provinsi'] = $request->provinsi;
             $data['kota'] = $request->kota;
 
-            // Proses Upload Foto KTP
             if ($request->hasFile('ktp_image')) {
                 $data['ktp_image'] = $request->file('ktp_image')->store('mitra-ktp', 'public');
             }
@@ -111,15 +110,15 @@ class UserManagementController extends Controller
             'ktp_image.max' => 'Ukuran foto maksimal 2MB.',
         ];
 
+        // PERHATIKAN: Role sudah DIBUANG dari validasi update agar tidak error
         $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email,'.$user->id],
-            'role' => ['required', 'in:admin,owner,mitra'],
             'status' => ['required', 'in:active,pending,banned'],
         ];
 
-        // Validasi tambahan khusus Mitra saat Update
-        if ($request->role === 'mitra') {
+        // Validasi tambahan jika yang diedit adalah Mitra (mengambil role dari database)
+        if ($user->role === 'mitra') {
             $rules['no_hp'] = ['nullable', 'string', 'max:20'];
             $rules['alamat_lengkap'] = ['nullable', 'string'];
             $rules['provinsi'] = ['nullable', 'string', 'max:100'];
@@ -130,21 +129,21 @@ class UserManagementController extends Controller
         $request->validate($rules, $messages);
 
         $details = "Memperbarui data profil pengguna";
+        
+        // PERHATIKAN: Role sudah DIBUANG dari data yang disimpan
         $data = [
             'name' => $request->name,
             'email' => $request->email,
-            'role' => $request->role,
             'status' => $request->status,
         ];
 
         // Proses penyimpanan data khusus Mitra saat Update
-        if ($request->role === 'mitra') {
+        if ($user->role === 'mitra') {
             $data['no_hp'] = $request->no_hp;
             $data['alamat_lengkap'] = $request->alamat_lengkap;
             $data['provinsi'] = $request->provinsi;
             $data['kota'] = $request->kota;
 
-            // Jika ada KTP baru di-upload, hapus yang lama, simpan yang baru
             if ($request->hasFile('ktp_image')) {
                 if ($user->ktp_image && Storage::disk('public')->exists($user->ktp_image)) {
                     Storage::disk('public')->delete($user->ktp_image);
