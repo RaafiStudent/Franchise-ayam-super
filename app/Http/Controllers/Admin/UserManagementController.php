@@ -8,7 +8,7 @@ use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
-use Illuminate\Support\Facades\Storage; // Tambahan untuk fitur upload
+use Illuminate\Support\Facades\Storage; 
 
 class UserManagementController extends Controller
 {
@@ -44,8 +44,8 @@ class UserManagementController extends Controller
             'password.required' => 'Kata sandi wajib diisi.',
             'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
             'password.min' => 'Kata sandi minimal harus 8 karakter.',
-            'ktp_photo.image' => 'File KTP harus berupa gambar (JPG, PNG).',
-            'ktp_photo.max' => 'Ukuran foto KTP maksimal 2MB.',
+            'ktp_image.image' => 'File KTP harus berupa gambar (JPG, PNG).',
+            'ktp_image.max' => 'Ukuran foto KTP maksimal 2MB.',
         ];
 
         // Validasi Dasar
@@ -57,18 +57,18 @@ class UserManagementController extends Controller
             'status' => ['required', 'in:active,pending,banned'],
         ];
 
-        // Jika Role adalah Mitra, tambahkan validasi untuk data pelengkap
+        // Validasi tambahan khusus Mitra
         if ($request->role === 'mitra') {
-            $rules['phone'] = ['nullable', 'string', 'max:20'];
-            $rules['address'] = ['nullable', 'string'];
-            $rules['province'] = ['nullable', 'string', 'max:100'];
-            $rules['city'] = ['nullable', 'string', 'max:100'];
-            $rules['ktp_photo'] = ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'];
+            $rules['no_hp'] = ['nullable', 'string', 'max:20'];
+            $rules['alamat_lengkap'] = ['nullable', 'string'];
+            $rules['provinsi'] = ['nullable', 'string', 'max:100'];
+            $rules['kota'] = ['nullable', 'string', 'max:100'];
+            $rules['ktp_image'] = ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'];
         }
 
         $request->validate($rules, $messages);
 
-        // Siapkan data untuk disimpan
+        // Siapkan data dasar
         $data = [
             'name' => $request->name,
             'email' => $request->email,
@@ -77,16 +77,16 @@ class UserManagementController extends Controller
             'status' => $request->status,
         ];
 
-        // Masukkan data tambahan jika rolenya Mitra
+        // Masukkan data tambahan khusus Mitra
         if ($request->role === 'mitra') {
-            $data['phone'] = $request->phone;
-            $data['address'] = $request->address;
-            $data['province'] = $request->province;
-            $data['city'] = $request->city;
+            $data['no_hp'] = $request->no_hp;
+            $data['alamat_lengkap'] = $request->alamat_lengkap;
+            $data['provinsi'] = $request->provinsi;
+            $data['kota'] = $request->kota;
 
             // Proses Upload Foto KTP
-            if ($request->hasFile('ktp_photo')) {
-                $data['ktp_photo'] = $request->file('ktp_photo')->store('mitra-ktp', 'public');
+            if ($request->hasFile('ktp_image')) {
+                $data['ktp_image'] = $request->file('ktp_image')->store('mitra-ktp', 'public');
             }
         }
 
@@ -97,7 +97,6 @@ class UserManagementController extends Controller
         return redirect()->route('admin.users.index')->with('success', 'Berhasil! Pengguna baru telah ditambahkan ke sistem.');
     }
 
-    // ... (Fungsi edit, update, dan destroy TETAP SAMA seperti sebelumnya)
     public function edit(User $user) { return view('admin.users.edit', compact('user')); }
     
     public function update(Request $request, User $user)
@@ -108,6 +107,8 @@ class UserManagementController extends Controller
             'email.unique' => 'Email ini sudah dipakai oleh pengguna lain.',
             'password.confirmed' => 'Konfirmasi kata sandi baru tidak cocok.',
             'password.min' => 'Kata sandi minimal 8 karakter.',
+            'ktp_image.image' => 'File KTP harus berupa gambar.',
+            'ktp_image.max' => 'Ukuran foto maksimal 2MB.',
         ];
 
         $rules = [
@@ -116,6 +117,15 @@ class UserManagementController extends Controller
             'role' => ['required', 'in:admin,owner,mitra'],
             'status' => ['required', 'in:active,pending,banned'],
         ];
+
+        // Validasi tambahan khusus Mitra saat Update
+        if ($request->role === 'mitra') {
+            $rules['no_hp'] = ['nullable', 'string', 'max:20'];
+            $rules['alamat_lengkap'] = ['nullable', 'string'];
+            $rules['provinsi'] = ['nullable', 'string', 'max:100'];
+            $rules['kota'] = ['nullable', 'string', 'max:100'];
+            $rules['ktp_image'] = ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'];
+        }
 
         $request->validate($rules, $messages);
 
@@ -127,6 +137,23 @@ class UserManagementController extends Controller
             'status' => $request->status,
         ];
 
+        // Proses penyimpanan data khusus Mitra saat Update
+        if ($request->role === 'mitra') {
+            $data['no_hp'] = $request->no_hp;
+            $data['alamat_lengkap'] = $request->alamat_lengkap;
+            $data['provinsi'] = $request->provinsi;
+            $data['kota'] = $request->kota;
+
+            // Jika ada KTP baru di-upload, hapus yang lama, simpan yang baru
+            if ($request->hasFile('ktp_image')) {
+                if ($user->ktp_image && Storage::disk('public')->exists($user->ktp_image)) {
+                    Storage::disk('public')->delete($user->ktp_image);
+                }
+                $data['ktp_image'] = $request->file('ktp_image')->store('mitra-ktp', 'public');
+            }
+        }
+
+        // Proses jika password diganti
         if ($request->filled('password')) {
             $request->validate(['password' => ['confirmed', Rules\Password::defaults()]], $messages);
             $data['password'] = Hash::make($request->password);
@@ -141,6 +168,12 @@ class UserManagementController extends Controller
     public function destroy(User $user)
     {
         if (auth()->id() === $user->id) { return back()->with('error', 'Anda tidak bisa menghapus akun Anda sendiri!'); }
+        
+        // Hapus foto KTP dari storage jika ada saat user dihapus
+        if ($user->ktp_image && Storage::disk('public')->exists($user->ktp_image)) {
+            Storage::disk('public')->delete($user->ktp_image);
+        }
+
         $targetName = $user->name;
         $user->delete();
         $this->logActivity('DELETE_USER', $targetName, "Menghapus akun secara permanen");
