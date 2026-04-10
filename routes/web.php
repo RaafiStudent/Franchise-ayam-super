@@ -36,7 +36,8 @@ Route::post('/menu/{id}/dislike', [HomeController::class, 'toggleDislike'])->nam
 // =========================================================================
 // 2. AREA WAJIB LOGIN (Terproteksi Middleware)
 // =========================================================================
-Route::middleware(['auth', 'verified'])->group(function () {
+// PERBAIKAN DI SINI: Menambahkan 'is_active' ke dalam grup middleware
+Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
 
     // A. REDIRECT DASHBOARD UTAMA
     Route::get('/dashboard', function () {
