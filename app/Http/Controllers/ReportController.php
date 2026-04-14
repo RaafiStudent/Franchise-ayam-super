@@ -14,38 +14,32 @@ class ReportController extends Controller
     public function exportPdf(Request $request)
 {
     // 1. Tangkap Filter
-    $filter = $request->input('filter', 'month');
+    $filter = $request->input('filter', 'today'); // Default ke today agar sinkron
     
     $query = Order::where('payment_status', 'paid');
-    $title = "";
-
-    // 2. Filter Data Sesuai Pilihan Boss
+    
+    // 2. Filter Data Sesuai Pilihan
     if ($filter == 'today') {
-        // HANYA HARI INI
         $orders = $query->whereDate('created_at', Carbon::today())->get();
-        $title = "Laporan Harian (" . Carbon::now()->isoFormat('D MMMM Y') . ")";
-
     } elseif ($filter == 'week') {
-        // MINGGUAN (7 Hari Terakhir)
-        $startDate = Carbon::now()->subDays(7);
-        $orders = $query->where('created_at', '>=', $startDate)->get();
-        $title = "Laporan Mingguan (7 Hari Terakhir)";
+        // Mingguan (Senin - Minggu Berjalan)
+        $orders = $query->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->get();
+    } elseif ($filter == 'month') {
+        $orders = $query->whereYear('created_at', date('Y'))
+                        ->whereMonth('created_at', date('m'))
+                        ->get();
+    } else {
+        // Tahunan
+        $orders = $query->whereYear('created_at', date('Y'))->get();
+    }
 
-    } elseif ($filter == 'month') {  // Tambahkan elseif khusus month
-    $orders = $query->whereYear('created_at', date('Y'))
-                    ->whereMonth('created_at', date('m')) // Tambahkan Filter Bulan
-                    ->get();
-    $title = "Laporan Bulan " . date('F Y');
-} else {
-    // Default (Tahunan)
-    $orders = $query->whereYear('created_at', date('Y'))->get();
-    $title = "Laporan Tahunan (" . date('Y') . ")";
-}
-
+    // 3. Hitung Ringkasan (PENTING: Variabel ini harus ada karena dipanggil di Blade PDF)
     $totalOmset = $orders->sum('total_price');
+    $totalTransaksi = $orders->count(); // Ini yang tadi lupa dihitung
 
-    // 3. Cetak PDF
-    $pdf = Pdf::loadView('admin.reports.pdf', compact('orders', 'totalOmset', 'title'));
+    // 4. Cetak PDF
+    // Tambahkan 'filter' dan 'totalTransaksi' ke dalam compact
+    $pdf = Pdf::loadView('admin.reports.pdf', compact('orders', 'totalOmset', 'totalTransaksi', 'filter'));
     
     return $pdf->download('Laporan-AyamSuper-' . ucfirst($filter) . '.pdf');
 }
