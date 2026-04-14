@@ -7,7 +7,7 @@ use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB; // <--- PENTING! Jangan dihapus
+use Illuminate\Support\Facades\DB; 
 
 class AdminController extends Controller
 {
@@ -21,19 +21,28 @@ class AdminController extends Controller
             ->take(5)
             ->get();
 
-        // B. Logika Statistik Utama
+        // B. Logika Statistik Utama (SINKRON DENGAN LAPORAN)
         $today = Carbon::today();
-        $omsetHariIni = Order::whereDate('created_at', $today)->where('payment_status', 'paid')->sum('total_price');
-        $orderHariIni = Order::whereDate('created_at', $today)->count();
-        $belumDibayar = Order::where('payment_status', 'unpaid')->count();
+        
+        // Omset Hari Ini (Hanya yang sudah bayar)
+        $omsetHariIni = Order::whereDate('created_at', $today)
+            ->where('payment_status', 'paid')
+            ->sum('total_price');
+
+        // Order Hari Ini (Hanya yang sudah bayar agar sinkron dengan nominal omset)
+        $orderHariIni = Order::whereDate('created_at', $today)
+            ->where('payment_status', 'paid') // PERBAIKAN: Tambahkan filter paid
+            ->count();
+
+        // Pesanan yang masuk tapi belum dibayar hari ini
+        $belumDibayar = Order::where('payment_status', 'unpaid')
+            ->whereDate('created_at', $today)
+            ->count();
         
         // C. Stok Alert
         $stokMenipis = Product::where('stock', '<', 10)->get();
 
-        // --- BAGIAN BARU (Penyebab Error Tadi) ---
-
-        // D. WIDGET BARU: Top 5 Produk Terlaris
-        // Menggabungkan tabel order_items dengan products untuk hitung jumlah terjual
+        // D. WIDGET: Top 5 Produk Terlaris
         $topProducts = DB::table('order_items')
             ->join('products', 'order_items.product_id', '=', 'products.id')
             ->select('products.name', 'products.image', DB::raw('SUM(order_items.quantity) as total_sold'))
@@ -42,29 +51,30 @@ class AdminController extends Controller
             ->limit(5)
             ->get();
 
-        // E. WIDGET BARU: Grafik Mini (Omset 7 Hari Terakhir)
-        $startDate = Carbon::now()->subDays(6);
-        $chartData = Order::where('payment_status', 'paid')
-            ->where('created_at', '>=', $startDate)
-            ->selectRaw('DATE(created_at) as date, SUM(total_price) as total')
-            ->groupBy('date')
-            ->orderBy('date', 'asc')
-            ->get();
+        // E. WIDGET: Grafik Mingguan (SINKRON DENGAN LAPORAN MINGGUAN: SENIN - MINGGU)
+        $chartLabels = [];
+        $chartValues = [];
+        $startOfWeek = Carbon::now()->startOfWeek(); // Mulai dari hari Senin
 
-        // Siapkan data array untuk Chart.js di View
-        $chartLabels = $chartData->pluck('date')->map(fn($date) => Carbon::parse($date)->isoFormat('dddd')); 
-        $chartValues = $chartData->pluck('total');
+        for ($i = 0; $i < 7; $i++) {
+            $date = $startOfWeek->copy()->addDays($i);
+            $chartLabels[] = $date->translatedFormat('l'); // Senin, Selasa, dst
+            
+            $chartValues[] = Order::where('payment_status', 'paid')
+                ->whereDate('created_at', $date)
+                ->sum('total_price');
+        }
 
-        // F. Kirim SEMUA Variabel ke View (Jangan ada yang ketinggalan!)
+        // F. Kirim SEMUA Variabel ke View
         return view('admin.dashboard', compact(
             'mitras', 
             'omsetHariIni', 
             'orderHariIni', 
             'belumDibayar', 
             'stokMenipis', 
-            'topProducts',   // <--- Ini yang tadi error (undefined)
-            'chartLabels',   // <--- Ini buat grafik
-            'chartValues'    // <--- Ini buat grafik
+            'topProducts',
+            'chartLabels',
+            'chartValues'
         ));
     }
 
@@ -78,9 +88,9 @@ class AdminController extends Controller
     }
 
     public function viewLogs() {
-    $logs = \App\Models\ActivityLog::with('user')->latest()->paginate(20);
-    return view('admin.logs.index', compact('logs'));
-}
+        $logs = \App\Models\ActivityLog::with('user')->latest()->paginate(20);
+        return view('admin.logs.index', compact('logs'));
+    }
     
     // 3. Proses Blokir / Tolak
     public function reject($id)
