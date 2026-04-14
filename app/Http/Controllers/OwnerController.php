@@ -21,78 +21,81 @@ class OwnerController extends Controller
         return view('owner.dashboard', $data);
     }
 
-    public function reportIndex(Request $request)
-    {
-        $filter = $request->query('filter', 'week');
-        $label = [];
-        $dataPendapatan = [];
+   public function reportIndex(Request $request)
+{
+    $filter = $request->query('filter', 'today');
+    $label = [];
+    $dataPendapatan = [];
 
-        // --- LOGIKA FIX: MENGGUNAKAN WHERERAW AGAR TIDAK ERROR 'COLUMN NOT FOUND' ---
-        if ($filter == 'today') {
-            for ($i = 0; $i <= 20; $i += 4) {
-                $label[] = str_pad($i, 2, '0', STR_PAD_LEFT) . ':00';
-                
-                // Gunakan whereRaw untuk mengambil JAM (HOUR) dari created_at
-                $dataPendapatan[] = Order::where('payment_status', 'paid')
-                    ->whereDate('created_at', Carbon::today())
-                    ->whereRaw("HOUR(created_at) >= ?", [$i])
-                    ->whereRaw("HOUR(created_at) < ?", [$i + 4])
-                    ->sum('total_price');
-            }
-        } elseif ($filter == 'month') {
-            for ($i = 25; $i >= 0; $i -= 5) {
-                $date = Carbon::now()->subDays($i);
-                $label[] = $date->format('d M');
-                $dataPendapatan[] = Order::where('payment_status', 'paid')
-                    ->whereDate('created_at', $date)
-                    ->sum('total_price');
-            }
-        } elseif ($filter == 'year') {
-            for ($i = 5; $i >= 0; $i--) {
-                $date = Carbon::now()->subMonths($i);
-                $label[] = $date->format('M');
-                $dataPendapatan[] = Order::where('payment_status', 'paid')
-                    ->whereMonth('created_at', $date->month)
-                    ->whereYear('created_at', $date->year)
-                    ->sum('total_price');
-            }
-        } else {
-            // Default: 'week'
-            for ($i = 6; $i >= 0; $i--) {
-                $date = Carbon::now()->subDays($i);
-                $label[] = $date->format('d M');
-                $dataPendapatan[] = Order::where('payment_status', 'paid')
-                    ->whereDate('created_at', $date)
-                    ->sum('total_price');
-            }
+    // --- LOGIKA SMART KALENDER ---
+
+    if ($filter == 'today') {
+        // 1. HARI INI: 24 Jam (00:00 - 23:00)
+        for ($i = 0; $i <= 23; $i++) {
+            $label[] = str_pad($i, 2, '0', STR_PAD_LEFT) . ':00';
+            $dataPendapatan[] = Order::where('payment_status', 'paid')
+                ->whereDate('created_at', Carbon::today())
+                ->whereRaw("HOUR(created_at) = ?", [$i])
+                ->sum('total_price');
         }
-
-        // 2. Data Ringkasan Atas
-        $queryBase = Order::where('payment_status', 'paid');
-        if($filter == 'today') $queryBase->whereDate('created_at', Carbon::today());
-        if($filter == 'week') $queryBase->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
-        if($filter == 'month') $queryBase->whereMonth('created_at', Carbon::now()->month);
-
-        $totalOmset = $queryBase->sum('total_price');
-        $totalTransaksi = $queryBase->count();
-        $totalMitra = User::where('role', 'mitra')->count();
-
-        // 3. Grafik Lingkaran
-        $pieData = [
-            Order::where('order_status', 'pending')->count(),
-            Order::where('order_status', 'processing')->count(),
-            Order::where('order_status', 'shipped')->count(),
-            Order::where('order_status', 'completed')->count(),
-            Order::where('order_status', 'cancelled')->count(),
-        ];
-
-        $orders = Order::with('user')->latest()->paginate(10);
-
-        return view('owner.reports.index', compact(
-            'filter', 'totalOmset', 'totalTransaksi', 'totalMitra', 
-            'label', 'dataPendapatan', 'pieData', 'orders'
-        ));
+    } elseif ($filter == 'week') {
+        // 2. MINGGU INI: Senin - Minggu (Berdasarkan Minggu Berjalan)
+        $startOfWeek = Carbon::now()->startOfWeek(); // Dimulai dari Senin
+        for ($i = 0; $i < 7; $i++) {
+            $date = $startOfWeek->copy()->addDays($i);
+            $label[] = $date->translatedFormat('l'); // Nama Hari (Senin, Selasa, dsb)
+            $dataPendapatan[] = Order::where('payment_status', 'paid')
+                ->whereDate('created_at', $date)
+                ->sum('total_price');
+        }
+    } elseif ($filter == 'month') {
+        // 3. BULAN INI: Tanggal 1 sampai akhir bulan
+        $daysInMonth = Carbon::now()->daysInMonth;
+        for ($i = 1; $i <= $daysInMonth; $i++) {
+            $label[] = $i; // Tanggal 1, 2, 3...
+            $dataPendapatan[] = Order::where('payment_status', 'paid')
+                ->whereMonth('created_at', Carbon::now()->month)
+                ->whereYear('created_at', Carbon::now()->year)
+                ->whereDay('created_at', $i)
+                ->sum('total_price');
+        }
+    } elseif ($filter == 'year') {
+        // 4. TAHUN INI: Januari - Desember
+        for ($m = 1; $m <= 12; $m++) {
+            $label[] = Carbon::create()->month($m)->translatedFormat('F'); // Januari, Februari...
+            $dataPendapatan[] = Order::where('payment_status', 'paid')
+                ->whereMonth('created_at', $m)
+                ->whereYear('created_at', Carbon::now()->year)
+                ->sum('total_price');
+        }
     }
+
+    // --- DATA RINGKASAN & TABEL (TIDAK BERUBAH) ---
+    $queryBase = Order::where('payment_status', 'paid');
+    if($filter == 'today') $queryBase->whereDate('created_at', Carbon::today());
+    if($filter == 'week') $queryBase->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+    if($filter == 'month') $queryBase->whereMonth('created_at', Carbon::now()->month);
+    if($filter == 'year') $queryBase->whereYear('created_at', Carbon::now()->year);
+
+    $totalOmset = $queryBase->sum('total_price');
+    $totalTransaksi = $queryBase->count();
+    $totalMitra = User::where('role', 'mitra')->count();
+
+    $pieData = [
+        Order::where('order_status', 'pending')->count(),
+        Order::where('order_status', 'processing')->count(),
+        Order::where('order_status', 'shipped')->count(),
+        Order::where('order_status', 'completed')->count(),
+        Order::where('order_status', 'cancelled')->count(),
+    ];
+
+    $orders = Order::with('user')->latest()->paginate(10);
+
+    return view('owner.reports.index', compact(
+        'filter', 'totalOmset', 'totalTransaksi', 'totalMitra', 
+        'label', 'dataPendapatan', 'pieData', 'orders'
+    ));
+}
 
     public function menuReport() {
         $menus = Menu::orderBy('loves', 'desc')->get();
