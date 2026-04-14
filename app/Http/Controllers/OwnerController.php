@@ -8,7 +8,6 @@ use App\Models\Order;
 use App\Models\Menu;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 
 class OwnerController extends Controller
 {
@@ -24,24 +23,23 @@ class OwnerController extends Controller
 
     public function reportIndex(Request $request)
     {
-        // 1. Ambil filter dari request, defaultnya 'week'
         $filter = $request->query('filter', 'week');
         $label = [];
         $dataPendapatan = [];
 
-        // 2. LOGIKA SMART FILTER UNTUK GRAFIK (DATA RIIL)
+        // --- LOGIKA FIX: MENGGUNAKAN WHERERAW AGAR TIDAK ERROR 'COLUMN NOT FOUND' ---
         if ($filter == 'today') {
-            // Tampilkan data per 4 jam hari ini
-            for ($i = 0; $i <= 23; $i += 4) {
+            for ($i = 0; $i <= 20; $i += 4) {
                 $label[] = str_pad($i, 2, '0', STR_PAD_LEFT) . ':00';
+                
+                // Gunakan whereRaw untuk mengambil JAM (HOUR) dari created_at
                 $dataPendapatan[] = Order::where('payment_status', 'paid')
                     ->whereDate('created_at', Carbon::today())
-                    ->whereHour('created_at', '>=', $i)
-                    ->whereHour('created_at', '<', $i + 4)
+                    ->whereRaw("HOUR(created_at) >= ?", [$i])
+                    ->whereRaw("HOUR(created_at) < ?", [$i + 4])
                     ->sum('total_price');
             }
         } elseif ($filter == 'month') {
-            // Tampilkan data per 5 hari dalam bulan ini
             for ($i = 25; $i >= 0; $i -= 5) {
                 $date = Carbon::now()->subDays($i);
                 $label[] = $date->format('d M');
@@ -50,7 +48,6 @@ class OwnerController extends Controller
                     ->sum('total_price');
             }
         } elseif ($filter == 'year') {
-            // Tampilkan data 6 bulan terakhir
             for ($i = 5; $i >= 0; $i--) {
                 $date = Carbon::now()->subMonths($i);
                 $label[] = $date->format('M');
@@ -60,7 +57,7 @@ class OwnerController extends Controller
                     ->sum('total_price');
             }
         } else {
-            // Default: 'week' (7 Hari Terakhir)
+            // Default: 'week'
             for ($i = 6; $i >= 0; $i--) {
                 $date = Carbon::now()->subDays($i);
                 $label[] = $date->format('d M');
@@ -70,7 +67,7 @@ class OwnerController extends Controller
             }
         }
 
-        // 3. DATA RINGKASAN (IKUT FILTER)
+        // 2. Data Ringkasan Atas
         $queryBase = Order::where('payment_status', 'paid');
         if($filter == 'today') $queryBase->whereDate('created_at', Carbon::today());
         if($filter == 'week') $queryBase->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
@@ -80,7 +77,7 @@ class OwnerController extends Controller
         $totalTransaksi = $queryBase->count();
         $totalMitra = User::where('role', 'mitra')->count();
 
-        // 4. GRAFIK STATUS (PIE DATA)
+        // 3. Grafik Lingkaran
         $pieData = [
             Order::where('order_status', 'pending')->count(),
             Order::where('order_status', 'processing')->count(),
@@ -91,7 +88,6 @@ class OwnerController extends Controller
 
         $orders = Order::with('user')->latest()->paginate(10);
 
-        // Kirim data dengan nama variabel yang konsisten dengan View
         return view('owner.reports.index', compact(
             'filter', 'totalOmset', 'totalTransaksi', 'totalMitra', 
             'label', 'dataPendapatan', 'pieData', 'orders'
