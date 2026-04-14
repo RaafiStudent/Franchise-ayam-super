@@ -11,21 +11,23 @@
             <div class="flex items-center gap-3">
                 
                 {{-- Form Filter --}}
-                <form action="{{ route('admin.reports.index') }}" method="GET" class="flex items-center gap-2">
+                {{-- PERBAIKAN: Ganti admin.reports.index menjadi owner.reports.index --}}
+                <form action="{{ route('owner.reports.index') }}" method="GET" class="flex items-center gap-2">
                     <label class="text-sm text-gray-600 font-bold hidden md:block">Periode:</label>
                     <select name="filter" onchange="this.form.submit()" class="border-gray-300 focus:border-red-500 focus:ring-red-500 rounded-md shadow-sm text-sm">
                         <option value="today" {{ $filter == 'today' ? 'selected' : '' }}>Hari Ini (Real-time)</option>
-                        <option value="day" {{ $filter == 'day' ? 'selected' : '' }}>Harian (7 Hari)</option>
-                        <option value="week" {{ $filter == 'week' ? 'selected' : '' }}>Mingguan (1 Bulan)</option>
-                        <option value="month" {{ $filter == 'month' ? 'selected' : '' }}>Bulanan (Tahun Ini)</option>
+                        <option value="week" {{ $filter == 'week' ? 'selected' : '' }}>Mingguan (7 Hari)</option>
+                        <option value="month" {{ $filter == 'month' ? 'selected' : '' }}>Bulanan (30 Hari)</option>
+                        <option value="year" {{ $filter == 'year' ? 'selected' : '' }}>Tahunan (Per Bulan)</option>
                     </select>
                 </form>
 
                 {{-- Tombol Download PDF --}}
-                <a href="{{ route('admin.reports.export', ['filter' => $filter]) }}" target="_blank" class="bg-red-600 hover:bg-red-700 text-white text-sm font-bold px-4 py-2 rounded-md shadow flex items-center gap-2 transition transform hover:scale-105">
+                {{-- PERBAIKAN: Ganti admin.reports.export menjadi owner.reports.export --}}
+                <a href="{{ route('owner.reports.export', ['filter' => $filter]) }}" target="_blank" class="bg-red-600 hover:bg-red-700 text-white text-sm font-bold px-4 py-2 rounded-md shadow flex items-center gap-2 transition transform hover:scale-105">
                     <i class="fas fa-file-pdf"></i> 
                     <span class="hidden md:inline">Download PDF</span>
-                    <span class="md:hidden">PDF</span> {{-- Teks pendek untuk HP --}}
+                    <span class="md:hidden">PDF</span>
                 </a>
 
             </div>
