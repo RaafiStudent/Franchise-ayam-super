@@ -39,9 +39,16 @@
                                 <td class="px-4 py-3 font-medium">{{ $order->user->name }}</td>
                                 <td class="px-4 py-3 text-red-700 font-bold">Rp {{ number_format($order->total_price, 0, ',', '.') }}</td>
                                 <td class="px-4 py-3">
-                                    <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase {{ $order->status == 'completed' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700' }}">
-                                        {{ $order->status }}
-                                    </span>
+                                    {{-- BAGIAN STATUS YANG DIBENARKAN --}}
+                                    @if($order->payment_status == 'paid')
+                                        <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-green-100 text-green-700">
+                                            PAID
+                                        </span>
+                                    @else
+                                        <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-blue-100 text-blue-700">
+                                            UNPAID
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="px-4 py-3 text-gray-500 text-sm">{{ $order->created_at->diffForHumans() }}</td>
                             </tr>
