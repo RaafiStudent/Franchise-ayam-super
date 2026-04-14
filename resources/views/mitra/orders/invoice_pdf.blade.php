@@ -3,253 +3,251 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Invoice #{{ $order->id }}</title>
+    <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Invoice #ORDER-{{ $order->id }}</title>
     <style>
-        /* 1. RESET & FONT UTAMA */
+        /* 1. RESET & FONT */
         body {
-            font-family: 'Helvetica', 'Arial', sans-serif; /* Font Modern */
-            color: #333;
-            line-height: 1.6;
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            color: #1e293b;
+            line-height: 1.5;
             font-size: 10pt;
             margin: 0;
-            padding: 0;
+            padding: 40px;
         }
 
-        /* 2. HEADER LOGO & JUDUL */
+        /* 2. AKSEN WARNA */
+        .text-red { color: #a51a1a; }
+        .bg-red { background-color: #a51a1a !important; }
+        .text-slate { color: #64748b; }
+
+        /* 3. HEADER */
         .header-table {
             width: 100%;
-            border-bottom: 2px solid #d32f2f; /* Garis Merah Ayam Super */
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-        }
-        .logo-img {
-            max-width: 120px; /* Ukuran Logo */
-            height: auto;
-        }
-        .company-info {
-            text-align: right;
+            margin-bottom: 40px;
         }
         .company-name {
-            font-size: 16pt;
-            font-weight: bold;
-            color: #d32f2f; /* Merah */
+            font-size: 18pt;
+            font-weight: 800;
             text-transform: uppercase;
+            letter-spacing: -1px;
             margin: 0;
         }
-        .company-address {
-            font-size: 9pt;
-            color: #555;
-            margin: 0;
+        .company-info {
+            font-size: 8pt;
+            color: #64748b;
+            margin-top: 5px;
         }
 
-        /* 3. INFO CUSTOMER & INVOICE */
-        .meta-table {
+        /* 4. INFO SECTION */
+        .info-table {
             width: 100%;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
-        .bill-to-title {
+        .section-title {
             font-size: 8pt;
-            color: #888;
+            font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 5px;
+            color: #94a3b8;
+            margin-bottom: 8px;
         }
-        .bill-to-name {
-            font-size: 12pt;
-            font-weight: bold;
-            color: #333;
-        }
-        .invoice-details {
-            text-align: right;
-        }
-        .invoice-title {
-            font-size: 18pt;
-            font-weight: bold;
-            color: #333;
-            letter-spacing: 2px;
-        }
-        .invoice-number {
-            font-size: 12pt;
-            color: #d32f2f;
-            font-weight: bold;
+        .info-content {
+            font-size: 10pt;
+            font-weight: 700;
+            color: #1e293b;
         }
 
-        /* 4. TABEL BARANG (STRIPED) */
+        /* 5. TABLE BARANG */
         .items-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
         .items-table th {
-            background-color: #d32f2f; /* Header Merah */
-            color: white;
-            padding: 10px;
+            padding: 12px 15px;
             text-align: left;
-            font-size: 9pt;
+            font-size: 8pt;
+            font-weight: 900;
             text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #e2e8f0;
+            color: #64748b;
         }
         .items-table td {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
+            padding: 15px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
         }
-        /* Zebra Striping (Baris Genap Abu-abu tipis) */
-        .items-table tr:nth-child(even) {
-            background-color: #f9f9f9;
+        .item-name {
+            font-weight: 700;
+            color: #1e293b;
+            display: block;
         }
-        .text-right { text-align: right; }
-        .text-center { text-align: center; }
+        .item-qty {
+            font-size: 9pt;
+            color: #64748b;
+        }
 
-        /* 5. TOTAL & STATUS */
-        .total-section {
-            width: 100%;
-            margin-top: 10px;
-        }
-        .total-table {
-            width: 40%;
-            float: right;
+        /* 6. SUMMARY SECTION */
+        .summary-table {
+            width: 35%;
+            margin-left: auto;
             border-collapse: collapse;
         }
-        .total-table td {
-            padding: 8px;
-            border-bottom: 1px solid #ddd;
+        .summary-table td {
+            padding: 8px 0;
+        }
+        .total-row td {
+            border-top: 2px solid #f1f5f9;
+            padding-top: 15px;
         }
         .grand-total {
-            background-color: #d32f2f;
-            color: white;
-            font-weight: bold;
-            font-size: 12pt;
+            font-size: 14pt;
+            font-weight: 900;
+            color: #a51a1a;
         }
 
-        /* 6. STATUS STAMPS */
-        .status-box {
-            border: 2px solid;
-            padding: 5px 15px;
-            font-weight: bold;
-            font-size: 10pt;
+        /* 7. STATUS BADGE */
+        .badge {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 8pt;
+            font-weight: 900;
             text-transform: uppercase;
             display: inline-block;
-            transform: rotate(-10deg); /* Miring dikit biar kayak stempel */
-            margin-top: 20px;
         }
-        .paid-stamp { border-color: green; color: green; }
-        .unpaid-stamp { border-color: red; color: red; }
+        .badge-paid { background-color: #ecfdf5; color: #059669; }
+        .badge-unpaid { background-color: #fef2f2; color: #dc2626; }
 
-        /* 7. FOOTER */
+        /* 8. FOOTER */
         .footer {
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 40px;
+            bottom: 30px;
+            left: 40px;
+            right: 40px;
             text-align: center;
             font-size: 8pt;
-            color: #aaa;
-            border-top: 1px solid #eee;
-            padding-top: 10px;
+            color: #94a3b8;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 20px;
         }
+
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
     </style>
 </head>
 <body>
 
-    {{-- HEADER: LOGO & ALAMAT --}}
+    {{-- HEADER --}}
     <table class="header-table">
         <tr>
-            <td width="30%">
-                {{-- Pastikan file public/images/logo.png ada. Gunakan public_path() --}}
-                <img src="{{ public_path('images/logo.png') }}" class="logo-img" alt="Logo">
+            <td width="50%">
+                {{-- Gunakan base64 untuk logo agar lebih aman di DomPDF --}}
+                <h1 class="company-name text-red">Ayam<span style="color: #1e293b">Super.</span></h1>
+                <div class="company-info">
+                    Sistem Manajemen Rantai Pasok (SCM)<br>
+                    Kota Tegal, Jawa Tengah, Indonesia
+                </div>
             </td>
-            <td width="70%" class="company-info">
-                <h1 class="company-name">Ayam Super Fried Chicken</h1>
-                <p class="company-address">
-                    Jl. Puter Gg. Bango No 20A, Tegal Selatan, Kota Tegal<br>
-                    WA: +62 812-3456-7890 | Email: admin@ayamsuper.com
-                </p>
+            <td width="50%" class="text-right">
+                <div style="font-size: 24pt; font-weight: 900; color: #e2e8f0; margin-bottom: -10px;">INVOICE</div>
+                <div class="info-content text-red" style="font-size: 12pt;">#ORDER-{{ $order->id }}</div>
             </td>
         </tr>
     </table>
 
-    {{-- INFO CUSTOMER & INVOICE --}}
-    <table class="meta-table">
+    {{-- INFO CUSTOMER --}}
+    <table class="info-table">
         <tr>
-            <td width="50%">
-                <div class="bill-to-title">DITAGIHKAN KEPADA:</div>
-                <div class="bill-to-name">{{ $order->user->name }}</div>
-                <div>{{ $order->user->alamat_lengkap }}</div>
-                <div>{{ $order->user->kota }}, {{ $order->user->provinsi }}</div>
-                <div>HP: {{ $order->user->no_hp }}</div>
+            <td width="33%">
+                <div class="section-title">Tagihan Untuk</div>
+                <div class="info-content">{{ $order->user->name }}</div>
+                <div class="company-info">
+                    {{ $order->user->no_hp }}<br>
+                    Cabang Mitra Ayam Super
+                </div>
             </td>
-            <td width="50%" class="invoice-details">
-                <div class="invoice-title">INVOICE</div>
-                <div class="invoice-number">#ORDER-{{ $order->id }}</div>
-                <br>
-                <div><strong>Tanggal Order:</strong> {{ $order->created_at->format('d M Y') }}</div>
-                <div>
-                    @if($order->payment_status == 'paid')
-                        <div class="status-box paid-stamp">LUNAS</div>
-                    @else
-                        <div class="status-box unpaid-stamp">BELUM LUNAS</div>
-                    @endif
+            <td width="33%">
+                <div class="section-title">Tanggal Terbit</div>
+                <div class="info-content">{{ $order->created_at->translatedFormat('d F Y') }}</div>
+                <div class="company-info">Waktu: {{ $order->created_at->format('H:i') }} WIB</div>
+            </td>
+            <td width="33%" class="text-right">
+                <div class="section-title">Status Pembayaran</div>
+                <div class="badge {{ $order->payment_status == 'paid' ? 'badge-paid' : 'badge-unpaid' }}">
+                    {{ $order->payment_status == 'paid' ? 'LUNAS / PAID' : 'BELUM BAYAR / UNPAID' }}
                 </div>
             </td>
         </tr>
     </table>
 
-    {{-- TABEL BARANG --}}
+    {{-- TABEL ITEM --}}
     <table class="items-table">
         <thead>
             <tr>
-                <th width="5%" class="text-center">No</th>
-                <th width="50%">Deskripsi Item</th>
-                <th width="10%" class="text-center">Qty</th>
-                <th width="15%" class="text-right">Harga</th>
+                <th width="45%">Deskripsi Item Produk</th>
+                <th width="15%" class="text-center">Jumlah</th>
+                <th width="20%" class="text-right">Harga Satuan</th>
                 <th width="20%" class="text-right">Total</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($order->items as $index => $item)
+            @foreach($order->items as $item)
             <tr>
-                <td class="text-center">{{ $index + 1 }}</td>
-                <td>{{ $item->product->name }}</td>
-                <td class="text-center">{{ $item->quantity }}</td>
-                <td class="text-right">Rp {{ number_format($item->price, 0, ',', '.') }}</td>
-                <td class="text-right">Rp {{ number_format($item->price * $item->quantity, 0, ',', '.') }}</td>
+                <td>
+                    <span class="item-name">{{ $item->product->name }}</span>
+                    <span class="company-info">Bahan Baku Berkualitas</span>
+                </td>
+                <td class="text-center font-bold text-slate">{{ $item->quantity }}</td>
+                <td class="text-right text-slate">Rp {{ number_format($item->price, 0, ',', '.') }}</td>
+                <td class="text-right info-content">Rp {{ number_format($item->price * $item->quantity, 0, ',', '.') }}</td>
             </tr>
             @endforeach
         </tbody>
     </table>
 
-    {{-- TOTAL HARGA --}}
-    <div class="total-section">
-        <table class="total-table">
+    {{-- SUMMARY --}}
+    <table class="summary-table">
+        <tr>
+            <td class="text-slate font-bold">Subtotal</td>
+            <td class="text-right info-content">Rp {{ number_format($order->total_price, 0, ',', '.') }}</td>
+        </tr>
+        <tr>
+            <td class="text-slate font-bold">Biaya Layanan</td>
+            <td class="text-right text-emerald-600 font-bold">GRATIS</td>
+        </tr>
+        <tr class="total-row">
+            <td class="text-red font-black" style="font-weight: 900;">TOTAL AKHIR</td>
+            <td class="text-right grand-total">Rp {{ number_format($order->total_price, 0, ',', '.') }}</td>
+        </tr>
+    </table>
+
+    {{-- PENGIRIMAN (OPTIONAL) --}}
+    @if($order->resi_number)
+    <div style="margin-top: 50px; padding: 20px; background-color: #f8fafc; border-radius: 15px; border: 1px solid #e2e8f0;">
+        <div class="section-title" style="color: #1e293b;"><i class="fas fa-truck"></i> Informasi Logistik</div>
+        <table width="100%">
             <tr>
-                <td><strong>Subtotal</strong></td>
-                <td class="text-right">Rp {{ number_format($order->total_price, 0, ',', '.') }}</td>
-            </tr>
-            <tr>
-                <td class="grand-total">TOTAL TAGIHAN</td>
-                <td class="grand-total text-right">Rp {{ number_format($order->total_price, 0, ',', '.') }}</td>
+                <td width="50%">
+                    <div style="font-size: 8pt; color: #64748b;">Kurir Pengirim</div>
+                    <div class="info-content">{{ $order->courier_name ?? 'Internal Delivery' }}</div>
+                </td>
+                <td width="50%" class="text-right">
+                    <div style="font-size: 8pt; color: #64748b;">Nomor Resi</div>
+                    <div class="info-content text-red">{{ $order->resi_number }}</div>
+                </td>
             </tr>
         </table>
-        <div style="clear: both;"></div>
-    </div>
-
-    {{-- INFO PENGIRIMAN (JIKA ADA) --}}
-    @if($order->order_status == 'shipped' || $order->order_status == 'completed')
-    <div style="margin-top: 30px; background: #f0f8ff; padding: 15px; border: 1px solid #b0c4de; border-radius: 5px;">
-        <strong>🚚 Informasi Pengiriman:</strong><br>
-        <span style="font-size: 11pt;">
-            Kurir: <strong>{{ $order->courier_name }}</strong> &nbsp;|&nbsp; 
-            No. Resi: <strong>{{ $order->resi_number }}</strong>
-        </span>
-        @if($order->order_status == 'completed')
-            <br><span style="color: green; font-weight: bold;">(BARANG SUDAH DITERIMA)</span>
-        @endif
     </div>
     @endif
 
-    {{-- FOOTER --}}
     <div class="footer">
-        Terima kasih atas kepercayaan Anda bermitra dengan Ayam Super Fried Chicken.<br>
-        Bukti ini sah dan digenerate otomatis oleh sistem komputer.
+        <strong>Ayam Super Fried Chicken</strong> &bull; Tegal, Jawa Tengah<br>
+        Dokumen ini sah dan diterbitkan secara digital. Terima kasih telah menjadi mitra setia kami.
     </div>
 
 </body>
