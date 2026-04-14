@@ -4,20 +4,21 @@
             
             {{-- 1. BAGIAN KIRI: JUDUL --}}
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Laporan & Analisis Bisnis') }}
+                {{ __('Laporan & Analisis Bisnis (Admin)') }}
             </h2>
             
             {{-- 2. BAGIAN KANAN: GROUP FILTER & TOMBOL PDF --}}
             <div class="flex items-center gap-3">
                 
                 {{-- Form Filter --}}
+                {{-- SINKRON: Mengarah ke rute admin dengan pilihan filter yang sama dengan Owner --}}
                 <form action="{{ route('admin.reports.index') }}" method="GET" class="flex items-center gap-2">
                     <label class="text-sm text-gray-600 font-bold hidden md:block">Periode:</label>
                     <select name="filter" onchange="this.form.submit()" class="border-gray-300 focus:border-red-500 focus:ring-red-500 rounded-md shadow-sm text-sm">
                         <option value="today" {{ $filter == 'today' ? 'selected' : '' }}>Hari Ini (Real-time)</option>
-                        <option value="day" {{ $filter == 'day' ? 'selected' : '' }}>Harian (7 Hari)</option>
-                        <option value="week" {{ $filter == 'week' ? 'selected' : '' }}>Mingguan (1 Bulan)</option>
-                        <option value="month" {{ $filter == 'month' ? 'selected' : '' }}>Bulanan (Tahun Ini)</option>
+                        <option value="week" {{ $filter == 'week' ? 'selected' : '' }}>Mingguan (7 Hari)</option>
+                        <option value="month" {{ $filter == 'month' ? 'selected' : '' }}>Bulanan (30 Hari)</option>
+                        <option value="year" {{ $filter == 'year' ? 'selected' : '' }}>Tahunan (Per Bulan)</option>
                     </select>
                 </form>
 
@@ -25,7 +26,7 @@
                 <a href="{{ route('admin.reports.export', ['filter' => $filter]) }}" target="_blank" class="bg-red-600 hover:bg-red-700 text-white text-sm font-bold px-4 py-2 rounded-md shadow flex items-center gap-2 transition transform hover:scale-105">
                     <i class="fas fa-file-pdf"></i> 
                     <span class="hidden md:inline">Download PDF</span>
-                    <span class="md:hidden">PDF</span> {{-- Teks pendek untuk HP --}}
+                    <span class="md:hidden">PDF</span>
                 </a>
 
             </div>
@@ -92,7 +93,7 @@
                 <div class="bg-white p-6 rounded-xl shadow-sm lg:col-span-2">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="font-bold text-gray-800 text-lg">Tren Pendapatan</h3>
-                        <span class="bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded">Graph View</span>
+                        <span class="bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded border border-red-100 uppercase tracking-widest">Live Analytics</span>
                     </div>
                     <div class="relative h-72 w-full">
                         <canvas id="revenueChart"></canvas>
@@ -101,16 +102,16 @@
 
                 {{-- Grafik Status (Doughnut Chart) --}}
                 <div class="bg-white p-6 rounded-xl shadow-sm">
-                    <h3 class="font-bold text-gray-800 text-lg mb-6">Komposisi Status Order</h3>
+                    <h3 class="font-bold text-gray-800 text-lg mb-6 text-center">Komposisi Status Order</h3>
                     <div class="relative h-64 w-full flex justify-center">
                         <canvas id="statusChart"></canvas>
                     </div>
                     {{-- Legenda Manual Biar Rapi --}}
-                    <div class="mt-6 grid grid-cols-2 gap-2 text-xs text-gray-500 text-center">
+                    <div class="mt-6 grid grid-cols-2 gap-2 text-[10px] text-gray-500 text-center uppercase font-bold">
                         <span><span class="inline-block w-2 h-2 rounded-full bg-yellow-400 mr-1"></span> Pending</span>
-                        <span><span class="inline-block w-2 h-2 rounded-full bg-blue-400 mr-1"></span> Processing</span>
+                        <span><span class="inline-block w-2 h-2 rounded-full bg-blue-400 mr-1"></span> Proccess</span>
                         <span><span class="inline-block w-2 h-2 rounded-full bg-purple-500 mr-1"></span> Shipped</span>
-                        <span><span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span> Completed</span>
+                        <span><span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span> Done</span>
                     </div>
                 </div>
 
@@ -125,8 +126,8 @@
         const ctxRevenue = document.getElementById('revenueChart').getContext('2d');
         
         let gradient = ctxRevenue.createLinearGradient(0, 0, 0, 400);
-        gradient.addColorStop(0, 'rgba(239, 68, 68, 0.5)'); 
-        gradient.addColorStop(1, 'rgba(239, 68, 68, 0.0)'); 
+        gradient.addColorStop(0, 'rgba(165, 26, 26, 0.4)'); 
+        gradient.addColorStop(1, 'rgba(165, 26, 26, 0.0)'); 
 
         new Chart(ctxRevenue, {
             type: 'line',
@@ -135,11 +136,11 @@
                 datasets: [{
                     label: 'Pendapatan (Rp)',
                     data: {!! json_encode($dataPendapatan) !!}, 
-                    borderColor: '#dc2626', 
+                    borderColor: '#a51a1a', 
                     backgroundColor: gradient,
                     borderWidth: 3,
                     pointBackgroundColor: '#ffffff',
-                    pointBorderColor: '#dc2626',
+                    pointBorderColor: '#a51a1a',
                     pointRadius: 5,
                     pointHoverRadius: 7,
                     fill: true,
@@ -151,7 +152,7 @@
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: {
-                    y: { beginAtZero: true, grid: { borderDash: [2, 4] } },
+                    y: { beginAtZero: true, grid: { borderDash: [2, 4], color: '#f1f5f9' } },
                     x: { grid: { display: false } }
                 }
             }
@@ -168,14 +169,15 @@
                     backgroundColor: [
                         '#facc15', '#60a5fa', '#a855f7', '#22c55e', '#ef4444'
                     ],
-                    borderWidth: 0,
-                    hoverOffset: 4
+                    borderWidth: 8,
+                    borderColor: '#ffffff',
+                    hoverOffset: 15
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '70%', 
+                cutout: '75%', 
                 plugins: { legend: { display: false } }
             }
         }); 
