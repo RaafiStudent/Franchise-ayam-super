@@ -14,17 +14,22 @@ use Illuminate\Support\Facades\DB;
 class OwnerController extends Controller
 {
     public function index()
-    {
-        $isOrderTableReady = Schema::hasTable('orders') && Schema::hasColumn('orders', 'order_status');
+{
+    // Kita cek kolom 'payment_status' sekarang, bukan 'status' yang lama
+    $isOrderTableReady = Schema::hasTable('orders') && Schema::hasColumn('orders', 'payment_status');
 
-        $data = [
-            'total_omset' => $isOrderTableReady ? Order::where('order_status', 'completed')->sum('total_price') : 0,
-            'total_mitra' => User::where('role', 'mitra')->count(),
-            'pesanan_terbaru' => $isOrderTableReady ? Order::with('user')->latest()->take(5)->get() : collect([]),
-        ];
+    $data = [
+        // PERBAIKAN DI SINI: Ganti 'order_status' atau 'status' menjadi 'payment_status'
+        // Dan cari yang nilainya 'paid' (Sudah Lunas)
+        'total_omset' => $isOrderTableReady ? Order::where('payment_status', 'paid')->sum('total_price') : 0,
+        
+        'total_mitra' => User::where('role', 'mitra')->count(),
+        
+        'pesanan_terbaru' => $isOrderTableReady ? Order::with('user')->latest()->take(5)->get() : collect([]),
+    ];
 
-        return view('owner.dashboard', $data);
-    }
+    return view('owner.dashboard', $data);
+}
 
     /**
      * LAPORAN KEUANGAN DENGAN DATA RIIL (UNTUK GRAFIK)
