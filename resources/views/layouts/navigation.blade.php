@@ -63,8 +63,6 @@
             </div>
 
             <div class="hidden sm:flex sm:items-center sm:ms-6 gap-3">
-                
-                {{-- 1. Icon Keranjang (Hanya Mitra) --}}
                 @if(Auth::user()->role === 'mitra')
                     @php
                         $cartCount = \App\Models\Cart::where('user_id', Auth::id())->sum('quantity');
@@ -79,12 +77,10 @@
                     </a>
                 @endif
 
-                {{-- 2. FITUR LONCENG DINAMIS (KODINGAN BARU) --}}
+                {{-- FITUR LONCENG DINAMIS --}}
                 <div class="relative" x-data="{ openNotif: false }" @click.outside="openNotif = false">
                     <button @click="openNotif = !openNotif" class="relative p-2 text-red-100 hover:text-white focus:outline-none transition-colors">
                         <i class="fas fa-bell text-xl"></i>
-                        
-                        {{-- Titik Merah --}}
                         @if(auth()->user()->unreadNotifications->count() > 0)
                             <span class="absolute top-1 right-1 flex h-3 w-3">
                                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
@@ -95,14 +91,7 @@
                         @endif
                     </button>
 
-                    <div x-show="openNotif" x-cloak style="display: none;" class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden"
-                         x-transition:enter="transition ease-out duration-200"
-                         x-transition:enter-start="opacity-0 scale-95"
-                         x-transition:enter-end="opacity-100 scale-100"
-                         x-transition:leave="transition ease-in duration-75"
-                         x-transition:leave-start="opacity-100 scale-100"
-                         x-transition:leave-end="opacity-0 scale-95">
-                        
+                    <div x-show="openNotif" x-cloak x-transition style="display: none;" class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
                         <div class="bg-slate-50 px-4 py-3 border-b border-gray-100 flex justify-between items-center">
                             <h3 class="text-sm font-bold text-gray-800">Notifikasi Sistem</h3>
                             <span class="bg-red-100 text-red-600 text-[10px] font-black px-2 py-1 rounded-full uppercase">
@@ -112,14 +101,14 @@
 
                         <div class="max-h-72 overflow-y-auto">
                             @forelse(auth()->user()->unreadNotifications as $notification)
-                                <a href="{{ route('notification.read', $notification->id) }}" class="block px-4 py-3 border-b border-gray-50 hover:bg-slate-50 transition-colors">
+                                <a href="{{ route('notification.read', $notification->id) }}" class="block px-4 py-3 border-b border-gray-50 hover:bg-slate-50 transition-colors text-left">
                                     <div class="flex items-start gap-3">
                                         <div class="mt-1 bg-red-100 p-2 rounded-full text-red-600 shrink-0">
                                             <i class="fas fa-info-circle"></i>
                                         </div>
-                                        <div>
+                                        <div class="min-w-0">
                                             <p class="text-xs font-bold text-gray-800">{{ $notification->data['title'] ?? 'Info Sistem' }}</p>
-                                            <p class="text-[10px] text-gray-500 mt-0.5 leading-tight">{{ $notification->data['message'] ?? 'Tidak ada pesan' }}</p>
+                                            <p class="text-[10px] text-gray-500 mt-0.5 leading-tight truncate">{{ $notification->data['message'] ?? 'Tidak ada pesan' }}</p>
                                             <p class="text-[9px] text-gray-400 mt-1 font-medium"><i class="far fa-clock mr-1"></i>{{ $notification->created_at->diffForHumans() }}</p>
                                         </div>
                                     </div>
@@ -134,7 +123,7 @@
                     </div>
                 </div>
 
-                {{-- 3. Profile Dropdown --}}
+                {{-- Profile Dropdown --}}
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-800 hover:bg-red-900 focus:outline-none transition shadow-sm">
