@@ -8,6 +8,8 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB; 
+// PENTING: Tambahkan ini di paling atas file AdminController.php
+use App\Notifications\SystemNotification;
 
 class AdminController extends Controller
 {
@@ -138,6 +140,16 @@ class AdminController extends Controller
             'courier_name' => $request->courier_name,
             'order_status' => 'shipped'
         ]);
+
+        // --- LOGIKA TEMBAK NOTIFIKASI KE MITRA ---
+    // Pastikan user mitra tersebut ada
+    if($order->user) {
+        $title = "Pesanan Dikirim! 🚚";
+        $message = "Pesanan #ORDER-{$order->id} sedang dikirim menggunakan {$request->courier_name}. No Resi: {$request->resi_number}.";
+        $url = url('/dashboard'); // Ganti dengan route riwayat pesanan mitra jika ada, misal: route('mitra.orders')
+        
+        $order->user->notify(new SystemNotification($title, $message, $url));
+    }
 
         return redirect()->back()->with('success', 'Resi berhasil diinput! Pesanan sedang dikirim.');
     }
