@@ -32,6 +32,59 @@
                 </div>
             </div>
 
+            {{-- ======================================================== --}}
+            {{-- FITUR BARU: BANNER INFORMASI STATUS LOGISTIK (DINAMIS) --}}
+            {{-- ======================================================== --}}
+            <div class="mb-8 px-4 md:px-0">
+                @if($order->payment_status === 'paid' && $order->order_status === 'processing')
+                    <div class="bg-blue-50 border border-blue-100 p-5 rounded-[1.5rem] shadow-sm">
+                        <div class="flex gap-4 items-center">
+                            <div class="w-12 h-12 bg-blue-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200 shrink-0">
+                                <i class="fas fa-box-open text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-blue-900 font-extrabold text-sm uppercase tracking-tight">Pesanan Sedang Disiapkan 📦</h4>
+                                <p class="text-blue-700/80 text-xs font-medium leading-relaxed mt-0.5">
+                                    Tim Admin Ayam Super sedang menyiapkan dan mengemas paket Anda agar aman selama perjalanan. Mohon ditunggu ya!
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                @elseif($order->order_status === 'shipped')
+                    <div class="bg-amber-50 border border-amber-100 p-5 rounded-[1.5rem] shadow-sm">
+                        <div class="flex gap-4 items-center">
+                            <div class="w-12 h-12 bg-amber-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-amber-200 shrink-0 animate-bounce">
+                                <i class="fas fa-truck-moving text-xl"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="text-amber-900 font-extrabold text-sm uppercase tracking-tight">Pesanan Dalam Perjalanan 🚚</h4>
+                                <p class="text-amber-800/80 text-xs font-medium leading-relaxed mt-0.5">
+                                    Paket Anda sedang dikirim oleh <strong>{{ $order->courier_name }}</strong> (Resi: {{ $order->resi_number }}).
+                                    Jika barang sudah sampai, mohon klik <strong>Tombol Centang Hijau (Selesai)</strong> di halaman Riwayat Pesanan.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                @elseif($order->order_status === 'completed')
+                    <div class="bg-emerald-50 border border-emerald-100 p-5 rounded-[1.5rem] shadow-sm">
+                        <div class="flex gap-4 items-center">
+                            <div class="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-200 shrink-0">
+                                <i class="fas fa-check-double text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-emerald-900 font-extrabold text-sm uppercase tracking-tight">Pesanan Diterima ✅</h4>
+                                <p class="text-emerald-800/80 text-xs font-medium leading-relaxed mt-0.5">
+                                    Terima kasih telah melakukan restock! Barang telah sampai dan diterima dengan baik. Stok cabang Anda otomatis terupdate.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            </div>
+            {{-- ======================================================== --}}
+
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 
                 {{-- KOLOM KIRI: RINCIAN PRODUK --}}
@@ -84,7 +137,7 @@
                 </div>
 
                 {{-- KOLOM KANAN: RINGKASAN PEMBAYARAN (STICKY) --}}
-                <div class="lg:col-span-1">
+                <div class="lg:col-span-1 px-4 md:px-0">
                     <div class="sticky top-8 space-y-4">
                         <div class="bg-white rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/50 border border-slate-50 relative overflow-hidden">
                             {{-- Dekorasi Gradient --}}
