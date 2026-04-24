@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Notifications\SystemNotification;
+use Illuminate\Support\Facades\Notification; // Tambahan wajib untuk kirim ke banyak user (Owner)
 
 class AdminController extends Controller
 {
@@ -87,13 +88,25 @@ class AdminController extends Controller
         $mitra->save();
 
         // ========================================================
-        // KODE BARU: TEMBAK NOTIFIKASI KE MITRA BAHWA AKUN AKTIF
+        // 1. TEMBAK NOTIFIKASI KE MITRA BAHWA AKUN AKTIF
         // ========================================================
         $title = "Akun Diaktifkan! 🎉";
         $message = "Selamat datang, {$mitra->name}! Akun Anda telah disetujui Admin. Anda sekarang bisa mulai belanja stok.";
         $url = route('mitra.shop'); 
         
         $mitra->notify(new SystemNotification($title, $message, $url));
+
+        // ========================================================
+        // 2. KODE BARU: TEMBAK NOTIFIKASI KE OWNER (CABANG BARU)
+        // ========================================================
+        $owners = User::where('role', 'owner')->get();
+        if($owners->count() > 0) {
+            $titleOwner = "Cabang Baru Bergabung! 🏪";
+            $messageOwner = "Mitra baru bernama {$mitra->name} telah resmi diaktifkan oleh Admin. Total cabang kita bertambah!";
+            $urlOwner = route('owner.dashboard'); 
+            
+            Notification::send($owners, new SystemNotification($titleOwner, $messageOwner, $urlOwner));
+        }
         // ========================================================
 
         return redirect()->back()->with('success', 'Akun Mitra berhasil diaktifkan!');
