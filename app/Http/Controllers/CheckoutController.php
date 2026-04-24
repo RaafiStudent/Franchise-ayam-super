@@ -10,6 +10,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Midtrans\Config;
 use Midtrans\Snap;
+// --- TAMBAHAN UNTUK NOTIFIKASI ---
+use App\Models\User;
+use App\Notifications\SystemNotification;
+use Illuminate\Support\Facades\Notification;
 
 class CheckoutController extends Controller
 {
@@ -83,6 +87,19 @@ class CheckoutController extends Controller
             $order->save();
 
             DB::commit();
+
+            // ========================================================
+            // KODE BARU: TEMBAK NOTIFIKASI KE ADMIN ADA PESANAN MASUK
+            // ========================================================
+            $admins = User::where('role', 'admin')->get();
+            if($admins->count() > 0) {
+                $title = "Pesanan Baru Masuk! 🛒";
+                $message = "Mitra {$user->name} baru saja membuat pesanan (#ORDER-{$order->id}). Segera cek!";
+                $url = route('admin.orders.index');
+                
+                Notification::send($admins, new SystemNotification($title, $message, $url));
+            }
+            // ========================================================
 
             return redirect()->route('checkout.show', $order->id);
 
