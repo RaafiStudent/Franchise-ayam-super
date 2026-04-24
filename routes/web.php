@@ -12,6 +12,7 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\MenuReportController;
 use App\Http\Controllers\OwnerController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Admin\UserManagementController; 
 use App\Models\Menu;
 use Illuminate\Support\Facades\Route;
@@ -114,6 +115,8 @@ Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+Route::get('/notification/read/{id}', [NotificationController::class, 'read'])->name('notification.read');
 
 // 3. CALLBACK PEMBAYARAN
 Route::post('midtrans-callback', [PaymentCallbackController::class, 'receive']);
