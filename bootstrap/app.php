@@ -11,11 +11,19 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // Daftarkan alias middleware di sini
+        
+        // 1. BERI IZIN KHUSUS UNTUK MIDTRANS (PENTING!)
+        // Supaya tidak muncul error 419 di Ngrok
+        $middleware->validateCsrfTokens(except: [
+            'midtrans-callback', // Sesuaikan dengan route di dashboard Midtrans kamu
+        ]);
+
+        // 2. DAFTARKAN ALIAS MIDDLEWARE (Punya kamu sudah benar)
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureUserHasRole::class,
-            'is_active' => \App\Http\Middleware\IsActive::class, // INI YANG TERLEWAT, SEKARANG SUDAH DITAMBAHKAN
+            'is_active' => \App\Http\Middleware\IsActive::class, 
         ]);
+        
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

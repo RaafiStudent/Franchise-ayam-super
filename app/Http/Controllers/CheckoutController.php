@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Midtrans\Config;
 use Midtrans\Snap;
-// --- TAMBAHAN UNTUK NOTIFIKASI ---
 use App\Models\User;
 use App\Notifications\SystemNotification;
 use Illuminate\Support\Facades\Notification;
@@ -65,7 +64,6 @@ class CheckoutController extends Controller
             Config::$isSanitized = config('midtrans.is_sanitized');
             Config::$is3ds = config('midtrans.is_3ds');
 
-            // Ganti URL ini sesuai link Ngrok Anda yang sedang aktif
             Config::$overrideNotifUrl = 'https://sandie-retractible-semimagnetically.ngrok-free.dev/midtrans-callback';
 
             $params = [
@@ -88,18 +86,15 @@ class CheckoutController extends Controller
 
             DB::commit();
 
-            // ========================================================
-            // KODE BARU: TEMBAK NOTIFIKASI KE ADMIN ADA PESANAN MASUK
-            // ========================================================
+            // FIX: Menggunakan path relatif agar tidak memicu ngrok warning
             $admins = User::where('role', 'admin')->get();
             if($admins->count() > 0) {
                 $title = "Pesanan Baru Masuk! 🛒";
                 $message = "Mitra {$user->name} baru saja membuat pesanan (#ORDER-{$order->id}). Segera cek!";
-                $url = route('admin.orders.index');
+                $url = '/admin/orders'; // Path relatif
                 
                 Notification::send($admins, new SystemNotification($title, $message, $url));
             }
-            // ========================================================
 
             return redirect()->route('checkout.show', $order->id);
 
@@ -112,8 +107,6 @@ class CheckoutController extends Controller
     public function show($id)
     {
         $order = Order::with('items.product')->where('user_id', Auth::id())->findOrFail($id);
-        
-        // PERBAIKAN ALAMAT VIEW: mitra/orders/show.blade.php
         return view('mitra.orders.show', compact('order'));
     }
 }
