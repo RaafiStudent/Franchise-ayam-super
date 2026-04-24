@@ -85,6 +85,17 @@ class AdminController extends Controller
         $mitra = User::findOrFail($id);
         $mitra->status = 'active'; 
         $mitra->save();
+
+        // ========================================================
+        // KODE BARU: TEMBAK NOTIFIKASI KE MITRA BAHWA AKUN AKTIF
+        // ========================================================
+        $title = "Akun Diaktifkan! 🎉";
+        $message = "Selamat datang, {$mitra->name}! Akun Anda telah disetujui Admin. Anda sekarang bisa mulai belanja stok.";
+        $url = route('mitra.shop'); 
+        
+        $mitra->notify(new SystemNotification($title, $message, $url));
+        // ========================================================
+
         return redirect()->back()->with('success', 'Akun Mitra berhasil diaktifkan!');
     }
 
