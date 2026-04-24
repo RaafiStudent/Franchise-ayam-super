@@ -92,7 +92,7 @@ class AdminController extends Controller
         // ========================================================
         $title = "Akun Diaktifkan! 🎉";
         $message = "Selamat datang, {$mitra->name}! Akun Anda telah disetujui Admin. Anda sekarang bisa mulai belanja stok.";
-        $url = route('mitra.shop'); 
+        $url = '/mitra/shop'; 
         
         $mitra->notify(new SystemNotification($title, $message, $url));
 
@@ -103,7 +103,7 @@ class AdminController extends Controller
         if($owners->count() > 0) {
             $titleOwner = "Cabang Baru Bergabung! 🏪";
             $messageOwner = "Mitra baru bernama {$mitra->name} telah resmi diaktifkan oleh Admin. Total cabang kita bertambah!";
-            $urlOwner = route('owner.dashboard'); 
+            $urlOwner = '/owner/dashboard'; 
             
             Notification::send($owners, new SystemNotification($titleOwner, $messageOwner, $urlOwner));
         }
@@ -126,7 +126,7 @@ class AdminController extends Controller
         return redirect()->back()->with('error', 'Akun Mitra dibekukan.');
     }
 
-    // --- MANAJEMEN PESANAN (ORDER) ---
+    // --- FIX: MANAJEMEN PESANAN (FITUR CARI SUDAH DIBENARKAN) ---
     public function manageOrders(Request $request)
     {
         $search = $request->input('search');
@@ -134,12 +134,17 @@ class AdminController extends Controller
 
         $orders = Order::with('user')
             ->when($search, function ($query, $search) {
-                return $query->where('id', 'like', "%{$search}%")
-                    ->orWhere('resi_number', 'like', "%{$search}%")
-                    ->orWhereHas('user', function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%")
-                          ->orWhere('kota', 'like', "%{$search}%");
-                    });
+                // LOGIKA PEMBERSIH: Jika user cari "#ORDER-849", kita ambil angka "849" nya saja
+                $searchId = str_replace('#ORDER-', '', $search);
+
+                return $query->where(function($q) use ($search, $searchId) {
+                    $q->where('id', 'like', "%{$searchId}%")
+                      ->orWhere('resi_number', 'like', "%{$search}%")
+                      ->orWhereHas('user', function ($u) use ($search) {
+                          $u->where('name', 'like', "%{$search}%")
+                            ->orWhere('kota', 'like', "%{$search}%");
+                      });
+                });
             })
             ->orderByRaw("FIELD(order_status, 'processing', 'pending', 'shipped', 'completed', 'cancelled')")
             ->latest()
@@ -168,7 +173,7 @@ class AdminController extends Controller
         if($order->user) {
             $title = "Pesanan Dikirim! 🚚";
             $message = "Pesanan #ORDER-{$order->id} sedang dikirim menggunakan {$request->courier_name}. No Resi: {$request->resi_number}.";
-            $url = url('/my-orders'); 
+            $url = '/my-orders'; 
             
             $order->user->notify(new SystemNotification($title, $message, $url));
         }
