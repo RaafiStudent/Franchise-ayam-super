@@ -7,8 +7,7 @@ use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB; 
-// PENTING: Tambahkan ini di paling atas file AdminController.php
+use Illuminate\Support\Facades\DB;
 use App\Notifications\SystemNotification;
 
 class AdminController extends Controller
@@ -33,7 +32,7 @@ class AdminController extends Controller
 
         // Order Hari Ini (Hanya yang sudah bayar agar sinkron dengan nominal omset)
         $orderHariIni = Order::whereDate('created_at', $today)
-            ->where('payment_status', 'paid') // PERBAIKAN: Tambahkan filter paid
+            ->where('payment_status', 'paid') 
             ->count();
 
         // Pesanan yang masuk tapi belum dibayar hari ini
@@ -56,11 +55,11 @@ class AdminController extends Controller
         // E. WIDGET: Grafik Mingguan (SINKRON DENGAN LAPORAN MINGGUAN: SENIN - MINGGU)
         $chartLabels = [];
         $chartValues = [];
-        $startOfWeek = Carbon::now()->startOfWeek(); // Mulai dari hari Senin
+        $startOfWeek = Carbon::now()->startOfWeek(); 
 
         for ($i = 0; $i < 7; $i++) {
             $date = $startOfWeek->copy()->addDays($i);
-            $chartLabels[] = $date->translatedFormat('l'); // Senin, Selasa, dst
+            $chartLabels[] = $date->translatedFormat('l'); 
             
             $chartValues[] = Order::where('payment_status', 'paid')
                 ->whereDate('created_at', $date)
@@ -142,14 +141,13 @@ class AdminController extends Controller
         ]);
 
         // --- LOGIKA TEMBAK NOTIFIKASI KE MITRA ---
-    // Pastikan user mitra tersebut ada
-    if($order->user) {
-        $title = "Pesanan Dikirim! 🚚";
-        $message = "Pesanan #ORDER-{$order->id} sedang dikirim menggunakan {$request->courier_name}. No Resi: {$request->resi_number}.";
-        $url = url('/dashboard'); // Ganti dengan route riwayat pesanan mitra jika ada, misal: route('mitra.orders')
-        
-        $order->user->notify(new SystemNotification($title, $message, $url));
-    }
+        if($order->user) {
+            $title = "Pesanan Dikirim! 🚚";
+            $message = "Pesanan #ORDER-{$order->id} sedang dikirim menggunakan {$request->courier_name}. No Resi: {$request->resi_number}.";
+            $url = url('/my-orders'); 
+            
+            $order->user->notify(new SystemNotification($title, $message, $url));
+        }
 
         return redirect()->back()->with('success', 'Resi berhasil diinput! Pesanan sedang dikirim.');
     }
