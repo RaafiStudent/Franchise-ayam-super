@@ -105,8 +105,10 @@ class CheckoutController extends Controller
     }
 
     public function show($id)
-    {
-        $order = Order::with('items.product')->where('user_id', Auth::id())->findOrFail($id);
-        return view('mitra.orders.show', compact('order'));
-    }
+{
+    // Tambahkan 'user' di dalam with() agar alamatnya bisa kita ambil
+    $order = Order::with(['user', 'items.product'])->where('user_id', Auth::id())->findOrFail($id);
+    
+    return view('mitra.orders.show', compact('order'));
+}
 }

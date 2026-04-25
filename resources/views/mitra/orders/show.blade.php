@@ -32,9 +32,7 @@
                 </div>
             </div>
 
-            {{-- ======================================================== --}}
-            {{-- FITUR: BANNER INFORMASI STATUS LOGISTIK (LENGKAP) --}}
-            {{-- ======================================================== --}}
+            {{-- BANNER INFORMASI STATUS LOGISTIK --}}
             <div class="mb-8 px-4 md:px-0">
                 @if($order->payment_status === 'unpaid')
                     <div class="bg-red-50 border border-red-100 p-5 rounded-[1.5rem] shadow-sm">
@@ -91,14 +89,13 @@
                             <div>
                                 <h4 class="text-emerald-900 font-extrabold text-sm uppercase tracking-tight">Pesanan Diterima ✅</h4>
                                 <p class="text-emerald-800/80 text-xs font-medium leading-relaxed mt-0.5">
-                                    Terima kasih telah melakukan restock! Barang telah sampai dan diterima dengan baik. Stok cabang Anda otomatis terupdate di sistem.
+                                    Yuhuu! Pasokan Ayam Super sudah mendarat dengan aman di outlet kamu nih! 🚚✨ Jualan makin semangat, omset makin melesat. Gaspol terus, ditunggu orderan seru berikutnya ya, Boss! 🔥
                                 </p>
                             </div>
                         </div>
                     </div>
                 @endif
             </div>
-            {{-- ======================================================== --}}
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 
@@ -135,17 +132,20 @@
                             </div>
                             <div>
                                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Penerima</p>
-                                <p class="text-slate-800 font-extrabold mt-1">{{ Auth::user()->name }}</p>
+                                <p class="text-slate-800 font-extrabold mt-1">{{ $order->user->name }}</p>
                             </div>
                         </div>
                         <div class="h-10 w-[1px] bg-slate-100 hidden md:block"></div>
-                        <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-400">
+                        <div class="flex items-center gap-4 flex-1">
+                            <div class="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-400 shrink-0">
                                 <i class="fas fa-map-marker-alt text-2xl"></i>
                             </div>
                             <div>
                                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Lokasi Pengiriman</p>
-                                <p class="text-slate-800 font-extrabold mt-1 italic text-sm">Alamat Terdaftar di Cabang</p>
+                                {{-- FIX: Menampilkan Alamat Lengkap, Kota, dan Provinsi Mitra --}}
+                                <p class="text-slate-800 font-extrabold mt-1 text-sm leading-snug">
+                                    {{ $order->user->alamat_lengkap }}, {{ $order->user->kota }}, {{ $order->user->provinsi }}
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -155,12 +155,9 @@
                 <div class="lg:col-span-1 px-4 md:px-0">
                     <div class="sticky top-8 space-y-4">
                         <div class="bg-white rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/50 border border-slate-50 relative overflow-hidden">
-                            {{-- Dekorasi Gradient --}}
                             <div class="absolute -top-10 -right-10 w-32 h-32 bg-red-50 rounded-full blur-2xl"></div>
-                            
                             <div class="relative z-10">
                                 <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-6">Ringkasan Tagihan</h3>
-                                
                                 <div class="space-y-3 mb-6">
                                     <div class="flex justify-between text-sm font-medium text-slate-500">
                                         <span>Subtotal</span>
@@ -188,7 +185,6 @@
                             </div>
                         </div>
 
-                        {{-- Info Tambahan --}}
                         <div class="bg-red-50/50 rounded-2xl p-4 border border-red-100/50">
                             <p class="text-[10px] text-red-700/70 font-medium leading-relaxed">
                                 <i class="fas fa-info-circle mr-1"></i> Pembayaran menggunakan Midtrans akan terverifikasi secara otomatis oleh sistem.
