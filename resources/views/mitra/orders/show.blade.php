@@ -142,9 +142,13 @@
                             </div>
                             <div>
                                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Lokasi Pengiriman</p>
-                                {{-- FIX: Menampilkan Alamat Lengkap, Kota, dan Provinsi Mitra --}}
+                                {{-- FIX: Menampilkan Alamat Lengkap atau Pesan Peringatan jika Kosong --}}
                                 <p class="text-slate-800 font-extrabold mt-1 text-sm leading-snug">
-                                    {{ $order->user->alamat_lengkap }}, {{ $order->user->kota }}, {{ $order->user->provinsi }}
+                                    @if($order->user->alamat_lengkap)
+                                        {{ $order->user->alamat_lengkap }}, {{ $order->user->kota }}, {{ $order->user->provinsi }}
+                                    @else
+                                        <span class="text-red-500 italic font-medium text-xs">Alamat belum dilengkapi di profil.</span>
+                                    @endif
                                 </p>
                             </div>
                         </div>
