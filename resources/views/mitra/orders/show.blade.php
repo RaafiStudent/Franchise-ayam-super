@@ -33,10 +33,25 @@
             </div>
 
             {{-- ======================================================== --}}
-            {{-- FITUR BARU: BANNER INFORMASI STATUS LOGISTIK (DINAMIS) --}}
+            {{-- FITUR: BANNER INFORMASI STATUS LOGISTIK (LENGKAP) --}}
             {{-- ======================================================== --}}
             <div class="mb-8 px-4 md:px-0">
-                @if($order->payment_status === 'paid' && $order->order_status === 'processing')
+                @if($order->payment_status === 'unpaid')
+                    <div class="bg-red-50 border border-red-100 p-5 rounded-[1.5rem] shadow-sm">
+                        <div class="flex gap-4 items-center">
+                            <div class="w-12 h-12 bg-red-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-red-200 shrink-0">
+                                <i class="fas fa-wallet text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-red-900 font-extrabold text-sm uppercase tracking-tight">Segera Selesaikan Pembayaran! 💳</h4>
+                                <p class="text-red-700/80 text-xs font-medium leading-relaxed mt-0.5">
+                                    Silakan selesaikan pembayaran Anda agar tim Admin kami bisa langsung menyiapkan paket bahan baku untuk dikirim ke cabang Anda.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                @elseif($order->payment_status === 'paid' && $order->order_status === 'processing')
                     <div class="bg-blue-50 border border-blue-100 p-5 rounded-[1.5rem] shadow-sm">
                         <div class="flex gap-4 items-center">
                             <div class="w-12 h-12 bg-blue-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200 shrink-0">
@@ -45,7 +60,7 @@
                             <div>
                                 <h4 class="text-blue-900 font-extrabold text-sm uppercase tracking-tight">Pesanan Sedang Disiapkan 📦</h4>
                                 <p class="text-blue-700/80 text-xs font-medium leading-relaxed mt-0.5">
-                                    Tim Admin Ayam Super sedang menyiapkan dan mengemas paket Anda agar aman selama perjalanan. Mohon ditunggu ya!
+                                    Pembayaran terverifikasi! Tim Admin sedang menyiapkan dan mengemas paket Anda agar aman selama perjalanan. Mohon ditunggu ya!
                                 </p>
                             </div>
                         </div>
@@ -61,7 +76,7 @@
                                 <h4 class="text-amber-900 font-extrabold text-sm uppercase tracking-tight">Pesanan Dalam Perjalanan 🚚</h4>
                                 <p class="text-amber-800/80 text-xs font-medium leading-relaxed mt-0.5">
                                     Paket Anda sedang dikirim oleh <strong>{{ $order->courier_name }}</strong> (Resi: {{ $order->resi_number }}).
-                                    Jika barang sudah sampai, mohon klik <strong>Tombol Centang Hijau (Selesai)</strong> di halaman Riwayat Pesanan.
+                                    Jika barang sudah sampai, mohon klik <strong>Tombol Centang Hijau</strong> di halaman Riwayat Pesanan.
                                 </p>
                             </div>
                         </div>
@@ -76,7 +91,7 @@
                             <div>
                                 <h4 class="text-emerald-900 font-extrabold text-sm uppercase tracking-tight">Pesanan Diterima ✅</h4>
                                 <p class="text-emerald-800/80 text-xs font-medium leading-relaxed mt-0.5">
-                                    Terima kasih telah melakukan restock! Barang telah sampai dan diterima dengan baik. Stok cabang Anda otomatis terupdate.
+                                    Terima kasih telah melakukan restock! Barang telah sampai dan diterima dengan baik. Stok cabang Anda otomatis terupdate di sistem.
                                 </p>
                             </div>
                         </div>
