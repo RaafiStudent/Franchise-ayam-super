@@ -13,15 +13,14 @@
     <div class="py-8 pb-20">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
-            {{-- MAIN CONTAINER PREMIUM --}}
             <div class="bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
                 <div class="p-6 md:p-8">
 
-                    {{-- === PANEL KONTROL: FILTER & PENCARIAN === --}}
+                    {{-- === PANEL KONTROL: FILTER & PENCARIAN (FIXED ROUTE) === --}}
                     <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-8">
-                        <form method="GET" action="{{ route('owner.logs') }}" class="flex flex-col md:flex-row justify-between items-center gap-4">
+                        {{-- FIX: Route diarahkan ke admin.logs, bukan owner.logs --}}
+                        <form method="GET" action="{{ route('admin.logs') }}" class="flex flex-col md:flex-row justify-between items-center gap-4">
                             
-                            {{-- Tampilkan Berapa Data --}}
                             <div class="flex items-center gap-3 w-full md:w-auto">
                                 <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tampilkan</span>
                                 <select name="per_page" onchange="this.form.submit()" class="border-transparent focus:ring-0 rounded-xl shadow-sm text-sm font-bold text-slate-700 bg-white cursor-pointer px-4">
@@ -31,7 +30,6 @@
                                 </select>
                             </div>
 
-                            {{-- Kotak Cari Premium --}}
                             <div class="flex w-full md:w-auto gap-2">
                                 <div class="relative w-full md:w-80">
                                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -43,7 +41,7 @@
                                     Cari
                                 </button>
                                 @if(request('search'))
-                                    <a href="{{ route('owner.logs') }}" class="bg-red-50 text-red-600 px-4 py-2.5 rounded-xl hover:bg-red-100 transition-all shadow-sm flex items-center justify-center" title="Reset">
+                                    <a href="{{ route('admin.logs') }}" class="bg-red-50 text-red-600 px-4 py-2.5 rounded-xl hover:bg-red-100 transition-all shadow-sm flex items-center justify-center" title="Reset">
                                         <i class="fas fa-times"></i>
                                     </a>
                                 @endif
@@ -66,7 +64,6 @@
                             <tbody class="divide-y divide-slate-50 font-medium text-slate-600">
                                 @forelse($logs as $log)
                                 <tr class="hover:bg-slate-50/50 transition-colors group">
-                                    {{-- Waktu --}}
                                     <td class="py-4 px-6 whitespace-nowrap">
                                         <div class="flex items-center gap-2">
                                             <i class="far fa-calendar-alt text-slate-300"></i>
@@ -75,7 +72,6 @@
                                         <div class="text-[10px] text-slate-400 mt-0.5 ml-5">{{ $log->created_at->format('H:i') }} WIB</div>
                                     </td>
 
-                                    {{-- Pelaku --}}
                                     <td class="py-4 px-6">
                                         <div class="flex items-center gap-2">
                                             <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-500 uppercase">
@@ -86,7 +82,6 @@
                                         <div class="text-[10px] text-slate-400 mt-1 font-mono">IP: {{ $log->ip_address }}</div>
                                     </td>
 
-                                    {{-- Tindakan Badge --}}
                                     <td class="py-4 px-6 text-center">
                                         @php
                                             $action = strtoupper($log->action);
@@ -100,14 +95,12 @@
                                         </span>
                                     </td>
 
-                                    {{-- Target --}}
                                     <td class="py-4 px-6">
                                         <span class="bg-slate-50 px-2 py-1 rounded text-xs font-bold text-slate-700 border border-slate-100">
                                             {{ $log->target_user ?? '-' }}
                                         </span>
                                     </td>
 
-                                    {{-- Detail --}}
                                     <td class="py-4 px-6">
                                         <p class="text-xs italic text-slate-400 max-w-xs leading-relaxed">
                                             "{{ $log->description }}"
@@ -129,7 +122,6 @@
                         </table>
                     </div>
 
-                    {{-- PAGINATION --}}
                     <div class="mt-8">
                         {{ $logs->links() }}
                     </div>
