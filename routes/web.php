@@ -83,11 +83,19 @@ Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
         Route::post('/cart/decrease/{id}', [ShopController::class, 'decreaseCart'])->name('cart.decrease');
         
         // =========================================================
-        // FIX: RUTE HAPUS TONG SAMPAH (Anti Refresh)
+        // FIX: Rute Hapus Tong Sampah (Anti Refresh & Mengirim JSON)
         // =========================================================
         Route::delete('/cart/remove/{id}', function($id) {
             \App\Models\Cart::where('id', $id)->where('user_id', Auth::id())->delete();
-            return response()->json(['status' => 'success']); // Dibuat format JSON murni
+            $carts = \App\Models\Cart::with('product')->where('user_id', Auth::id())->get();
+            $totalPrice = 0;
+            foreach($carts as $cart) { $totalPrice += $cart->product->price * $cart->quantity; }
+            
+            return response()->json([
+                'status' => 'success',
+                'total_price' => number_format($totalPrice, 0, ',', '.'),
+                'total_qty' => $carts->sum('quantity')
+            ]);
         })->name('cart.remove');
         // =========================================================
 
@@ -104,7 +112,6 @@ Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     
-    // Rute Notifikasi HARUS DI SINI (Dalam grup auth)
     Route::get('/notification/read/{id}', [NotificationController::class, 'read'])->name('notification.read');
 });
 
