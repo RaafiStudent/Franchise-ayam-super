@@ -46,6 +46,13 @@
                         <x-nav-link :href="route('admin.logs')" :active="request()->routeIs('admin.logs')">
                             <i class="fas fa-history mr-2"></i> {{ __('Audit Log') }}
                         </x-nav-link>
+                        
+                        {{-- TAMBAHAN: MENU KATALOG MENU (DINAMIS) --}}
+                        <x-nav-link :href="route('admin.menus.index')" :active="request()->routeIs('admin.menus.*')">
+                            <i class="fas fa-utensils mr-2"></i> {{ __('Katalog Menu') }}
+                        </x-nav-link>
+                        {{-- AKHIR TAMBAHAN --}}
+
                         <x-nav-link :href="route('admin.products.index')" :active="request()->routeIs('admin.products.*')">
                             <i class="fas fa-box mr-2"></i> {{ __('Produk') }}
                         </x-nav-link>
@@ -179,6 +186,11 @@
                 <x-responsive-nav-link :href="route('admin.dashboard')"> {{ __('Dashboard') }} </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.users.index')"> {{ __('Manajemen User') }} </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.logs')"> {{ __('Audit Log') }} </x-responsive-nav-link>
+                
+                {{-- TAMBAHAN MOBILE: MENU KATALOG MENU (DINAMIS) --}}
+                <x-responsive-nav-link :href="route('admin.menus.index')"> {{ __('Katalog Menu') }} </x-responsive-nav-link>
+                {{-- AKHIR TAMBAHAN --}}
+
                 <x-responsive-nav-link :href="route('admin.products.index')"> {{ __('Produk') }} </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.orders.index')"> {{ __('Pesanan') }} </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.reports.index')"> {{ __('Laporan') }} </x-responsive-nav-link>
