@@ -7,7 +7,9 @@ use Illuminate\Http\Request;
 
 class MessageController extends Controller
 {
-    // 1. Simpan Pesan dari Pengunjung (Public)
+    /**
+     * Simpan Pesan dari Pengunjung (Public)
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -21,29 +23,34 @@ class MessageController extends Controller
         return redirect()->back()->with('success', 'Pesan Anda berhasil dikirim! Terima kasih.');
     }
 
-    // 2. Admin Melihat Daftar Pesan (Admin Only)
+    /**
+     * Admin Melihat Daftar Pesan (Admin Only)
+     */
     public function index(Request $request)
-{
-    $search = $request->input('search');
-    $perPage = $request->input('per_page', 10);
+    {
+        $search = $request->input('search');
+        $perPage = $request->input('per_page', 10); // Default 10 data
 
-    $messages = \App\Models\Message::when($search, function ($query, $search) {
-            return $query->where('name', 'like', "%{$search}%")
-                         // UBAH DISINI: dari 'email' jadi 'contact' sesuai migration kamu
-                         ->orWhere('contact', 'like', "%{$search}%") 
-                         ->orWhere('message', 'like', "%{$search}%");
-        })
-        ->latest()
-        ->paginate($perPage)
-        ->withQueryString();
+        $messages = Message::when($search, function ($query, $search) {
+                return $query->where(function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('contact', 'like', "%{$search}%") // Gunakan 'contact' sesuai migration
+                      ->orWhere('message', 'like', "%{$search}%");
+                });
+            })
+            ->latest()
+            ->paginate($perPage)
+            ->withQueryString();
 
-    return view('admin.messages.index', compact('messages'));
-}
+        return view('admin.messages.index', compact('messages'));
+    }
 
-    // 3. Admin Hapus Pesan
+    /**
+     * Admin Hapus Pesan
+     */
     public function destroy($id)
     {
         Message::findOrFail($id)->delete();
-        return redirect()->back()->with('success', 'Pesan dihapus.');
+        return redirect()->back()->with('success', 'Pesan berhasil dihapus dari sistem.');
     }
 }
