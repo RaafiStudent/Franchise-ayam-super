@@ -26,7 +26,7 @@
 
             <div class="menu-item min-w-[85vw] sm:min-w-[300px] md:min-w-[350px] flex-none snap-center bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 group relative">
                 <div class="h-56 md:h-64 overflow-hidden relative rounded-t-3xl">
-                    <img src="{{ $menu->image }}" alt="{{ $menu->name }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                    <img src="{{ str_contains($menu->image, 'http') ? $menu->image : asset('storage/' . $menu->image) }}" alt="{{ $menu->name }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
                     
                     @if($menu->badge)
                         <div class="absolute top-4 left-4 bg-{{ $menu->badge_color ?? 'red' }}-600 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-md uppercase tracking-wider">

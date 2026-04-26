@@ -2,63 +2,68 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Menu; // Panggil Model Menu
+use App\Models\Menu;
 
 class MenuSeeder extends Seeder
 {
     public function run(): void
     {
-        // Data Menu Lengkap (6 Item)
+        // Data Menu Ala Fried Chicken Umum (Loves & Hates direset ke 0)
         $menus = [
             [
-                'name' => 'Paket Hemat Pelajar',
-                'description' => 'Sayap/Paha Bawah Crispy + Nasi + Es Teh Manis.',
-                'image' => 'https://placehold.co/400x300/orange/white?text=Paket+Hemat',
+                'name' => 'Ayam Crispy (Dada / Paha Atas)',
+                'description' => 'Ayam goreng tepung renyah dengan potongan besar, daging juicy dan kulit super krispi.',
+                'image' => 'https://placehold.co/400x300/ff9800/white?text=Ayam+Dada',
                 'loves' => 0,
+                'hates' => 0,
+                'badge' => 'FAVORIT',
+                'badge_color' => 'orange',
+            ],
+            [
+                'name' => 'Ayam Crispy (Sayap / Paha Bawah)',
+                'description' => 'Potongan ayam goreng tepung yang gurih bumbunya meresap sampai ke tulang.',
+                'image' => 'https://placehold.co/400x300/f44336/white?text=Ayam+Sayap',
+                'loves' => 0,
+                'hates' => 0,
+                'badge' => null,
+                'badge_color' => null,
+            ],
+            [
+                'name' => 'Paket Super Hemat',
+                'description' => '1 Nasi + 1 Ayam Crispy (Sayap/Paha Bawah) + 1 Es Teh Manis.',
+                'image' => 'https://placehold.co/400x300/4caf50/white?text=Paket+Hemat',
+                'loves' => 0,
+                'hates' => 0,
                 'badge' => 'HEMAT',
                 'badge_color' => 'green',
             ],
             [
-                'name' => 'Ayam Geprek Level',
-                'description' => 'Ayam crispy digeprek dengan sambal bawang super pedas.',
-                'image' => 'https://placehold.co/400x300/d32f2f/white?text=Ayam+Geprek',
+                'name' => 'Paket Super Mantap',
+                'description' => '1 Nasi + 1 Ayam Crispy (Dada/Paha Atas) + 1 Es Teh Manis.',
+                'image' => 'https://placehold.co/400x300/f44336/white?text=Paket+Mantap',
                 'loves' => 0,
+                'hates' => 0,
                 'badge' => 'BEST SELLER',
-                'badge_color' => 'yellow',
-            ],
-            [
-                'name' => 'Chicken Wings BBQ',
-                'description' => 'Sayap ayam gurih dengan saus BBQ manis dan smoky.',
-                'image' => 'https://placehold.co/400x300/brown/white?text=BBQ+Wings',
-                'loves' => 0,
-                'badge' => 'FAVORIT',
-                'badge_color' => 'purple',
-            ],
-            [
-                'name' => 'Ayam Sambal Matah',
-                'description' => 'Ayam crispy disajikan dengan sambal matah segar khas Bali.',
-                'image' => 'https://placehold.co/400x300/purple/white?text=Sambal+Matah',
-                'loves' => 0,
-                'badge' => 'PEDAS',
                 'badge_color' => 'red',
             ],
             [
-                'name' => 'Burger Ayam Crispy',
-                'description' => 'Burger isi ayam crispy, selada, dan saus spesial.',
-                'image' => 'https://placehold.co/400x300/green/white?text=Burger+Ayam',
+                'name' => 'Burger Ayam Super',
+                'description' => 'Burger lembut dengan isian fillet ayam krispi tanpa tulang, selada segar, dan saus mayo.',
+                'image' => 'https://placehold.co/400x300/2196f3/white?text=Burger+Ayam',
                 'loves' => 0,
+                'hates' => 0,
                 'badge' => 'BARU',
                 'badge_color' => 'blue',
             ],
             [
-                'name' => 'Paket Keluarga',
-                'description' => '4 Ayam crispy + 2 Nasi + 2 Kentang + 2 Es Teh Jumbo.',
-                'image' => 'https://placehold.co/400x300/blue/white?text=Paket+Keluarga',
+                'name' => 'Kentang Goreng (French Fries)',
+                'description' => 'Kentang goreng renyah dengan taburan bumbu gurih, cocok untuk cemilan santai.',
+                'image' => 'https://placehold.co/400x300/ffc107/white?text=Kentang+Goreng',
                 'loves' => 0,
-                'badge' => 'FAMILY',
-                'badge_color' => 'indigo',
+                'hates' => 0,
+                'badge' => 'SNACK',
+                'badge_color' => 'yellow',
             ],
         ];
 
