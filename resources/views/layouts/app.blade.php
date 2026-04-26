@@ -146,9 +146,6 @@
                         </button>
                     @endif
 
-                    {{-- ============================================== --}}
-                    {{-- FIX: LONCENG NOTIFIKASI DINAMIS DI HEADER --}}
-                    {{-- ============================================== --}}
                     <div class="relative" x-data="{ openNotif: false }" @click.outside="openNotif = false">
                         <button @click="openNotif = !openNotif" class="w-10 h-10 rounded-full bg-white text-slate-500 hover:bg-slate-100 hover:text-slate-700 flex items-center justify-center transition-all border border-slate-200 relative shadow-sm">
                             <i class="fas fa-bell"></i>
@@ -207,6 +204,17 @@
     </div>
 
     @if(Auth::user()->role == 'mitra')
+        {{-- ======================================================== --}}
+        {{-- KODE BARU: LACI KERANJANG (SIDEBAR) YANG SUDAH HIDUP (DINAMIS) --}}
+        {{-- ======================================================== --}}
+        @php
+            $cartSidebar = \App\Models\Cart::with('product')->where('user_id', Auth::id())->get();
+            $totalSidebar = 0;
+            foreach($cartSidebar as $c) {
+                $totalSidebar += $c->product->price * $c->quantity;
+            }
+        @endphp
+
         <div id="cartBackdrop" onclick="toggleOffcanvasCart()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] opacity-0 pointer-events-none transition-opacity duration-300"></div>
         <div id="cartOffcanvas" class="fixed top-0 right-0 h-full w-full sm:w-[420px] bg-white shadow-2xl z-[70] transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
             <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-10">
@@ -217,31 +225,56 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <div class="flex-1 overflow-y-auto p-6 bg-white">
-                <div class="flex gap-4 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-4 relative group hover:border-slate-200 transition-colors">
-                    <div class="w-20 h-20 rounded-xl bg-slate-50 overflow-hidden shrink-0 flex items-center justify-center text-slate-400">
-                        <i class="fas fa-drumstick-bite text-2xl"></i>
-                    </div>
-                    <div class="flex-1 flex flex-col justify-center">
-                        <h4 class="text-sm font-bold text-slate-800 mb-1 leading-tight">Ayam Marinasi (Pre-Cut)</h4>
-                        <p class="text-xs font-black text-red-600 mb-3">Rp 45.000 <span class="text-slate-400 font-normal">/ Pack</span></p>
-                        <div class="flex items-center gap-3 w-fit">
-                            <button class="w-7 h-7 rounded-lg bg-white border border-slate-200 text-slate-500 shadow-sm hover:text-red-600 flex items-center justify-center text-xs"><i class="fas fa-minus"></i></button>
-                            <span class="text-xs font-bold text-slate-800 w-4 text-center">10</span>
-                            <button class="w-7 h-7 rounded-lg bg-white border border-slate-200 text-slate-500 shadow-sm hover:text-red-600 flex items-center justify-center text-xs"><i class="fas fa-plus"></i></button>
+            
+            <div class="flex-1 overflow-y-auto p-6 bg-slate-50 pb-32">
+                @if($cartSidebar->count() > 0)
+                    @foreach($cartSidebar as $item)
+                        <div class="flex gap-4 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-4 relative group hover:border-slate-200 transition-colors">
+                            <div class="w-20 h-20 rounded-xl bg-slate-50 overflow-hidden shrink-0 flex items-center justify-center text-slate-400">
+                                <img src="{{ asset('storage/' . $item->product->image) }}" class="w-full h-full object-cover">
+                            </div>
+                            <div class="flex-1 flex flex-col justify-center">
+                                <h4 class="text-sm font-bold text-slate-800 mb-1 leading-tight line-clamp-2">{{ $item->product->name }}</h4>
+                                <p class="text-xs font-black text-red-600 mb-3">Rp {{ number_format($item->product->price, 0, ',', '.') }} <span class="text-slate-400 font-normal">/ Pack</span></p>
+                                <div class="flex items-center gap-3 w-fit bg-slate-50 rounded-lg p-1 border border-slate-100">
+                                    <form action="{{ url('/cart/decrease/'.$item->product_id) }}" method="POST" class="m-0 p-0">
+                                        @csrf
+                                        <button type="submit" class="w-7 h-7 rounded bg-white border border-slate-200 text-slate-500 shadow-sm hover:text-red-600 flex items-center justify-center text-xs"><i class="fas fa-minus"></i></button>
+                                    </form>
+                                    <span class="text-xs font-bold text-slate-800 w-4 text-center">{{ $item->quantity }}</span>
+                                    <form action="{{ url('/cart/add/'.$item->product_id) }}" method="POST" class="m-0 p-0">
+                                        @csrf
+                                        <button type="submit" class="w-7 h-7 rounded bg-white border border-slate-200 text-slate-500 shadow-sm hover:text-red-600 flex items-center justify-center text-xs"><i class="fas fa-plus"></i></button>
+                                    </form>
+                                </div>
+                            </div>
+                            <form action="{{ route('cart.remove', $item->id) }}" method="POST" class="m-0 p-0 absolute top-4 right-4">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="text-slate-300 hover:text-red-600 transition-colors"><i class="fas fa-trash-alt text-sm"></i></button>
+                            </form>
                         </div>
+                    @endforeach
+                @else
+                    <div class="text-center mt-20">
+                        <i class="fas fa-shopping-cart text-5xl text-slate-200 mb-4"></i>
+                        <p class="text-slate-400 font-bold">Keranjang Anda masih kosong</p>
+                        <p class="text-xs text-slate-400 mt-1">Silakan belanja stok bahan baku di katalog.</p>
                     </div>
-                    <button class="absolute top-4 right-4 text-slate-300 hover:text-red-600 transition-colors"><i class="fas fa-trash-alt text-sm"></i></button>
-                </div>
+                @endif
             </div>
-            <div class="p-6 bg-white border-t border-slate-100 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
+
+            <div class="p-6 bg-white border-t border-slate-100 shadow-[0_-10px_20px_rgba(0,0,0,0.02)] absolute bottom-0 left-0 w-full">
                 <div class="flex items-center justify-between mb-5">
                     <span class="text-sm font-semibold text-slate-500">Estimasi Total</span>
-                    <span class="text-2xl font-black text-slate-900 tracking-tight">Rp 590.000</span>
+                    <span class="text-2xl font-black text-slate-900 tracking-tight">Rp {{ number_format($totalSidebar, 0, ',', '.') }}</span>
                 </div>
-                <a href="{{ route('checkout.show', Auth::user()->id) ?? '#' }}" class="w-full py-3.5 bg-[#b91c1c] hover:bg-[#991b1b] text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md transition-all">
-                    Lanjutkan Pembayaran <i class="fas fa-arrow-right ml-1"></i>
-                </a>
+                
+                <form action="{{ route('checkout.process') }}" method="POST">
+                    @csrf
+                    <button type="submit" class="w-full py-3.5 bg-[#b91c1c] hover:bg-[#991b1b] text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md transition-all {{ $cartSidebar->count() == 0 ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $cartSidebar->count() == 0 ? 'disabled' : '' }}>
+                        Lanjutkan Pembayaran <i class="fas fa-arrow-right ml-1"></i>
+                    </button>
+                </form>
             </div>
         </div>
 
