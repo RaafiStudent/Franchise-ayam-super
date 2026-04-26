@@ -34,7 +34,6 @@
                 <h3 class="text-xl font-bold text-gray-800 border-l-4 border-red-600 pl-3">Katalog Bahan Baku</h3>
             </div>
 
-            {{-- Diberi ID 'product-grid' agar mudah diperbarui JS --}}
             <div id="product-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 @foreach($products as $product)
                 
@@ -70,21 +69,22 @@
                                 <span class="text-red-600 font-extrabold text-lg">Rp{{ number_format($product->price, 0, ',', '.') }}</span>
                             </div>
                             
+                            {{-- LOGIKA TOMBOL GRID (SANGAT CEPAT) --}}
                             <div class="product-action-container" data-id="{{ $product->id }}">
-                                <button type="button" onclick="executeCartAction('/cart/add/{{ $product->id }}', 'POST')" 
+                                <button type="button" onclick="instantCartAction(event, 'add', {{ $product->id }})" 
                                         class="btn-add {{ $qty > 0 ? 'hidden' : '' }} bg-red-600 text-white border border-red-600 px-4 py-2 rounded-full text-xs font-bold hover:bg-red-700 hover:shadow-md transition flex items-center gap-1">
                                     <i class="fas fa-plus"></i> Pesan
                                 </button>
 
                                 <div class="btn-counter {{ $qty > 0 ? 'flex' : 'hidden' }} items-center bg-red-50 rounded-full px-1 border border-red-100 shadow-sm">
-                                    <button type="button" onclick="executeCartAction('/cart/decrease/{{ $product->id }}', 'POST')" 
+                                    <button type="button" onclick="instantCartAction(event, 'decrease', {{ $product->id }})" 
                                             class="w-8 h-8 flex items-center justify-center text-red-600 font-bold hover:bg-red-200 rounded-full transition">
                                         -
                                     </button>
                                     
-                                    <span id="qty-{{ $product->id }}" class="text-sm font-bold text-red-900 w-6 text-center">{{ $qty }}</span>
+                                    <span class="qty-text text-sm font-bold text-red-900 w-6 text-center">{{ $qty }}</span>
                                     
-                                    <button type="button" onclick="executeCartAction('/cart/add/{{ $product->id }}', 'POST')" 
+                                    <button type="button" onclick="instantCartAction(event, 'add', {{ $product->id }})" 
                                             class="w-8 h-8 flex items-center justify-center text-red-600 font-bold hover:bg-red-200 rounded-full transition">
                                         +
                                     </button>
@@ -99,7 +99,7 @@
     </div>
 
     {{-- STICKY FOOTER (Melayang) --}}
-    <div id="cart-footer" class="{{ $cartItems->count() > 0 ? '' : 'hidden' }} fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] p-4 z-50 animate-bounce-in">
+    <div id="cart-footer" class="{{ $cartItems->count() > 0 ? '' : 'hidden' }} fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] p-4 z-50">
         <div class="max-w-7xl mx-auto flex items-center justify-between">
             <div class="flex items-center gap-4">
                 <div class="bg-red-100 p-3 rounded-full text-red-600 relative">
@@ -110,7 +110,7 @@
                 </div>
                 <div class="flex flex-col">
                     <span class="text-gray-500 text-xs font-medium">Total Tagihan</span>
-                    <span id="total-price-display" class="text-xl md:text-2xl font-extrabold text-gray-900">
+                    <span class="estimasi-total-text text-xl md:text-2xl font-extrabold text-gray-900">
                         Rp {{ number_format($totalPrice, 0, ',', '.') }}
                     </span>
                 </div>
@@ -118,7 +118,7 @@
 
             <form action="{{ route('checkout.process') }}" method="POST">
                 @csrf
-                <button type="submit" class="bg-red-600 text-white font-bold py-3 px-6 md:px-10 rounded-full shadow-lg hover:bg-red-700 transition transform active:scale-95 flex items-center gap-2">
+                <button type="submit" id="btn-lanjutkan" class="bg-red-600 text-white font-bold py-3 px-6 md:px-10 rounded-full shadow-lg hover:bg-red-700 transition transform active:scale-95 flex items-center gap-2 {{ $cartItems->count() == 0 ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $cartItems->count() == 0 ? 'disabled' : '' }}>
                     Bayar <i class="fas fa-arrow-right"></i>
                 </button>
             </form>
@@ -127,7 +127,7 @@
 
     @if(Auth::user()->role == 'mitra')
         {{-- ======================================================== --}}
-        {{-- LACI KERANJANG (SIDEBAR) --}}
+        {{-- LACI KERANJANG (SIDEBAR) - TANPA FORM & SUPER CEPAT --}}
         {{-- ======================================================== --}}
         @php
             $cartSidebar = \App\Models\Cart::with('product')->where('user_id', Auth::id())->get();
@@ -149,11 +149,11 @@
                 </button>
             </div>
             
-            {{-- Bagian List Item (Akan direplace JS saat klik tanpa refresh) --}}
             <div id="cart-items-container" class="flex-1 overflow-y-auto p-6 bg-slate-50 pb-32">
                 @if($cartSidebar->count() > 0)
                     @foreach($cartSidebar as $item)
-                        <div class="flex gap-4 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-4 relative group hover:border-slate-200 transition-colors">
+                        {{-- ID khusus untuk mencari elemen ini secara instan --}}
+                        <div id="sidebar-item-{{ $item->product_id }}" class="flex gap-4 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-4 relative hover:border-slate-200 transition-colors">
                             <div class="w-20 h-20 rounded-xl bg-slate-50 overflow-hidden shrink-0 flex items-center justify-center text-slate-400">
                                 <img src="{{ asset('storage/' . $item->product->image) }}" class="w-full h-full object-cover">
                             </div>
@@ -161,22 +161,21 @@
                                 <h4 class="text-sm font-bold text-slate-800 mb-1 leading-tight line-clamp-2">{{ $item->product->name }}</h4>
                                 <p class="text-xs font-black text-red-600 mb-3">Rp {{ number_format($item->product->price, 0, ',', '.') }} <span class="text-slate-400 font-normal">/ Pack</span></p>
                                 <div class="flex items-center gap-3 w-fit bg-slate-50 rounded-lg p-1 border border-slate-100">
-                                    {{-- FIX: Tombol kurang menggunakan button biasa + JS, BUKAN Form --}}
-                                    <button type="button" onclick="executeCartAction('{{ url('/cart/decrease/'.$item->product_id) }}', 'POST')" class="w-7 h-7 rounded bg-white border border-slate-200 text-slate-500 shadow-sm hover:text-red-600 flex items-center justify-center text-xs">
+                                    {{-- BUTTON HTML MURNI - TIDAK BIKIN PINDAH HALAMAN --}}
+                                    <button type="button" onclick="instantCartAction(event, 'decrease', {{ $item->product_id }})" class="w-7 h-7 rounded bg-white border border-slate-200 text-slate-500 hover:text-red-600 flex items-center justify-center text-xs">
                                         <i class="fas fa-minus"></i>
                                     </button>
                                     
-                                    <span class="text-xs font-bold text-slate-800 w-4 text-center">{{ $item->quantity }}</span>
+                                    <span class="sidebar-qty-text text-xs font-bold text-slate-800 w-4 text-center">{{ $item->quantity }}</span>
                                     
-                                    {{-- FIX: Tombol tambah menggunakan button biasa + JS, BUKAN Form --}}
-                                    <button type="button" onclick="executeCartAction('{{ url('/cart/add/'.$item->product_id) }}', 'POST')" class="w-7 h-7 rounded bg-white border border-slate-200 text-slate-500 shadow-sm hover:text-red-600 flex items-center justify-center text-xs">
+                                    <button type="button" onclick="instantCartAction(event, 'add', {{ $item->product_id }})" class="w-7 h-7 rounded bg-white border border-slate-200 text-slate-500 hover:text-red-600 flex items-center justify-center text-xs">
                                         <i class="fas fa-plus"></i>
                                     </button>
                                 </div>
                             </div>
                             
-                            {{-- FIX: Tombol Hapus (Tong Sampah) menggunakan button biasa + JS, BUKAN Form --}}
-                            <button type="button" onclick="executeCartAction('{{ route('cart.remove', $item->id) }}', 'DELETE')" class="m-0 p-0 absolute top-4 right-4 text-slate-300 hover:text-red-600 transition-colors">
+                            {{-- BUTTON TONG SAMPAH MURNI --}}
+                            <button type="button" onclick="instantCartAction(event, 'remove', {{ $item->product_id }}, {{ $item->id }})" class="absolute top-4 right-4 text-slate-300 hover:text-red-600 transition-colors">
                                 <i class="fas fa-trash-alt text-sm"></i>
                             </button>
                         </div>
@@ -190,22 +189,22 @@
                 @endif
             </div>
 
-            <div id="cart-sidebar-footer" class="p-6 bg-white border-t border-slate-100 shadow-[0_-10px_20px_rgba(0,0,0,0.02)] absolute bottom-0 left-0 w-full">
+            <div class="p-6 bg-white border-t border-slate-100 shadow-[0_-10px_20px_rgba(0,0,0,0.02)] absolute bottom-0 left-0 w-full">
                 <div class="flex items-center justify-between mb-5">
                     <span class="text-sm font-semibold text-slate-500">Estimasi Total</span>
-                    <span class="text-2xl font-black text-slate-900 tracking-tight">Rp {{ number_format($totalSidebar, 0, ',', '.') }}</span>
+                    <span class="estimasi-total-text text-2xl font-black text-slate-900 tracking-tight">Rp {{ number_format($totalSidebar, 0, ',', '.') }}</span>
                 </div>
                 
                 <form action="{{ route('checkout.process') }}" method="POST">
                     @csrf
-                    <button type="submit" class="w-full py-3.5 bg-[#b91c1c] hover:bg-[#991b1b] text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md transition-all {{ $cartSidebar->count() == 0 ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $cartSidebar->count() == 0 ? 'disabled' : '' }}>
+                    <button type="submit" id="btn-lanjutkan-sidebar" class="w-full py-3.5 bg-[#b91c1c] hover:bg-[#991b1b] text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md transition-all {{ $cartSidebar->count() == 0 ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $cartSidebar->count() == 0 ? 'disabled' : '' }}>
                         Lanjutkan Pembayaran <i class="fas fa-arrow-right ml-1"></i>
                     </button>
                 </form>
             </div>
         </div>
 
-        {{-- SCRIPT JAVASCRIPT AJAX TINGKAT TINGGI (SEAMLESS DOM REPLACEMENT) --}}
+        {{-- SCRIPT JAVASCRIPT: OPTIMISTIC UI (SUPER INSTAN & ANTI KEDIP) --}}
         <script>
             function toggleOffcanvasCart() {
                 const offcanvas = document.getElementById('cartOffcanvas');
@@ -219,10 +218,56 @@
                 }
             }
 
-            // Fungsi Siluman: Bekerja dalam diam tanpa memuat ulang layar!
-            async function executeCartAction(url, method) {
+            // Fungsi ini akan mengubah angka di layar DALAM WAKTU 0 DETIK!
+            async function instantCartAction(event, action, productId, cartId = null) {
+                // Cegah browser pindah halaman atau reload!
+                event.preventDefault(); 
+
+                let url = '';
+                let method = '';
+                if(action === 'add') { url = '/cart/add/' + productId; method = 'POST'; }
+                else if(action === 'decrease') { url = '/cart/decrease/' + productId; method = 'POST'; }
+                else if(action === 'remove') { url = '/cart/remove/' + cartId; method = 'DELETE'; }
+
+                // 1. CARI ELEMEN DI LAYAR
+                let gridContainer = document.querySelector(`.product-action-container[data-id="${productId}"]`);
+                let sidebarItem = document.getElementById('sidebar-item-' + productId);
+
+                let qtyDisplayGrid = gridContainer ? gridContainer.querySelector('.qty-text') : null;
+                let qtyDisplaySidebar = sidebarItem ? sidebarItem.querySelector('.sidebar-qty-text') : null;
+
+                // Ambil angka saat ini
+                let currentQty = qtyDisplayGrid ? parseInt(qtyDisplayGrid.innerText) : (qtyDisplaySidebar ? parseInt(qtyDisplaySidebar.innerText) : 0);
+
+                // 2. HITUNG MATEMATIKA INSTAN
+                if(action === 'add') currentQty++;
+                else if(action === 'decrease' && currentQty > 0) currentQty--;
+                else if(action === 'remove') currentQty = 0;
+
+                // 3. UBAH TAMPILAN LAYAR SECARA INSTAN TANPA MENUNGGU SERVER
+                if(gridContainer) {
+                    let btnAdd = gridContainer.querySelector('.btn-add');
+                    let btnCounter = gridContainer.querySelector('.btn-counter');
+                    if(currentQty > 0) {
+                        btnAdd.classList.add('hidden');
+                        btnCounter.classList.remove('hidden'); btnCounter.classList.add('flex');
+                        qtyDisplayGrid.innerText = currentQty;
+                    } else {
+                        btnAdd.classList.remove('hidden');
+                        btnCounter.classList.add('hidden'); btnCounter.classList.remove('flex');
+                    }
+                }
+
+                if(sidebarItem) {
+                    if(currentQty > 0) {
+                        qtyDisplaySidebar.innerText = currentQty;
+                    } else {
+                        sidebarItem.remove(); // Hapus item dari laci seketika itu juga!
+                    }
+                }
+
+                // 4. KIRIM DATA KE DATABASE DI LATAR BELAKANG SECARA DIAM-DIAM
                 try {
-                    // 1. Eksekusi API secara diam-diam (Background)
                     let response = await fetch(url, {
                         method: method,
                         headers: {
@@ -231,45 +276,46 @@
                         }
                     });
 
-                    if (response.ok) {
-                        // 2. Ambil HTML halaman terbaru di background
-                        let pageResponse = await fetch(window.location.href);
-                        let pageHtml = await pageResponse.text();
-                        let doc = new DOMParser().parseFromString(pageHtml, 'text/html');
+                    let data = await response.json();
 
-                        // 3. TIMPA ELEMEN TANPA REFRESH (Sangat Mulus)
+                    if (data.status === 'success') {
+                        // Update Harga Total di layar seketika
+                        let formattedPrice = 'Rp ' + data.total_price;
+                        document.querySelectorAll('.estimasi-total-text').forEach(el => el.innerText = formattedPrice);
                         
-                        // Update grid produk (angka di bawah foto)
-                        let oldGrid = document.getElementById('product-grid');
-                        let newGrid = doc.getElementById('product-grid');
-                        if (oldGrid && newGrid) oldGrid.innerHTML = newGrid.innerHTML;
+                        // Update Angka Merah (Badge) di Keranjang Atas
+                        let badge = document.getElementById('total-qty-badge');
+                        if(badge) badge.innerText = data.total_qty;
 
-                        // Update isi laci keranjang
-                        let oldCartItems = document.getElementById('cart-items-container');
-                        let newCartItems = doc.getElementById('cart-items-container');
-                        if (oldCartItems && newCartItems) oldCartItems.innerHTML = newCartItems.innerHTML;
+                        // Jika Total Keranjang = 0 (Kosong Melompong)
+                        let container = document.getElementById('cart-items-container');
+                        let stickyFooter = document.getElementById('cart-footer');
+                        let btnSidebar = document.getElementById('btn-lanjutkan-sidebar');
+                        let btnUtama = document.getElementById('btn-lanjutkan');
 
-                        // Update total harga di footer laci
-                        let oldSidebarFooter = document.getElementById('cart-sidebar-footer');
-                        let newSidebarFooter = doc.getElementById('cart-sidebar-footer');
-                        if (oldSidebarFooter && newSidebarFooter) oldSidebarFooter.innerHTML = newSidebarFooter.innerHTML;
-
-                        // Update Sticky Footer Utama
-                        let oldFooter = document.getElementById('cart-footer');
-                        let newFooter = doc.getElementById('cart-footer');
-                        if (oldFooter && newFooter) {
-                            oldFooter.innerHTML = newFooter.innerHTML;
-                            oldFooter.className = newFooter.className;
+                        if (data.total_qty === 0) {
+                            if(container) container.innerHTML = `<div class="text-center mt-20"><i class="fas fa-shopping-cart text-5xl text-slate-200 mb-4"></i><p class="text-slate-400 font-bold">Keranjang Anda masih kosong</p><p class="text-xs text-slate-400 mt-1">Silakan belanja stok bahan baku di katalog.</p></div>`;
+                            if(stickyFooter) stickyFooter.classList.add('hidden');
+                            if(btnUtama) { btnUtama.disabled = true; btnUtama.classList.add('opacity-50', 'cursor-not-allowed'); }
+                            if(btnSidebar) { btnSidebar.disabled = true; btnSidebar.classList.add('opacity-50', 'cursor-not-allowed'); }
+                        } else {
+                            if(stickyFooter) stickyFooter.classList.remove('hidden');
+                            if(btnUtama) { btnUtama.disabled = false; btnUtama.classList.remove('opacity-50', 'cursor-not-allowed'); }
+                            if(btnSidebar) { btnSidebar.disabled = false; btnSidebar.classList.remove('opacity-50', 'cursor-not-allowed'); }
                         }
 
-                        // Update Badge Keranjang di Navigasi Atas
-                        let oldBadgeBtn = document.querySelector('button[onclick="toggleOffcanvasCart()"]');
-                        let newBadgeBtn = doc.querySelector('button[onclick="toggleOffcanvasCart()"]');
-                        if (oldBadgeBtn && newBadgeBtn) oldBadgeBtn.innerHTML = newBadgeBtn.innerHTML;
-
+                        // Jika ini barang BARU yang belum ada gambarnya di laci, minta tolong HTML untuk menggambarnya di belakang layar
+                        if(action === 'add' && currentQty === 1 && !sidebarItem) {
+                            let pageResponse = await fetch(window.location.href);
+                            let pageHtml = await pageResponse.text();
+                            let doc = new DOMParser().parseFromString(pageHtml, 'text/html');
+                            let oldCartItems = document.getElementById('cart-items-container');
+                            let newCartItems = doc.getElementById('cart-items-container');
+                            if (oldCartItems && newCartItems) oldCartItems.innerHTML = newCartItems.innerHTML;
+                        }
                     }
                 } catch (error) {
-                    console.error('Error:', error);
+                    console.error('Koneksi terputus:', error);
                 }
             }
         </script>
