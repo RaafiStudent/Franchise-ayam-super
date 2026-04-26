@@ -12,14 +12,11 @@
             $dislikedMenus = session('disliked_menus', []);
         @endphp
 
-        {{-- Hapus class 'snap-x', 'snap-mandatory' agar scrolling mulus --}}
-<div id="menu-slider" class="flex overflow-x-hidden gap-5 md:gap-8 pb-10 px-2">
-    {{-- Isinya tetap sama (Looping foreach) --}}
-    
+        <div id="menu-slider" class="flex overflow-x-hidden gap-5 md:gap-8 pb-10 px-2">
             @foreach($menus as $menu)
-                {{-- LOGIKA HITUNG RATING --}}
+                {{-- LOGIKA HITUNG RATING (SUDAH DIPERBAIKI MENGGUNAKAN HATES) --}}
                 @php
-                    $totalVotes = $menu->loves + $menu->dislikes;
+                    $totalVotes = $menu->loves + $menu->hates; 
                     $rating = $totalVotes > 0 ? ($menu->loves / $totalVotes) * 5 : 0;
                     $ratingFormatted = number_format($rating, 1);
                 @endphp
@@ -70,9 +67,6 @@
             @endforeach
 
         </div>
-        
-        {{-- CATATAN: DIV TOMBOL NAVIGASI SUDAH SAYA HAPUS DI SINI --}}
-
     </div>
 
     <style>.no-scrollbar::-webkit-scrollbar { display: none; } .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }</style>
@@ -80,73 +74,57 @@
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const slider = document.getElementById('menu-slider');
-            let isPaused = false; // Status Pause saat hover
+            let isPaused = false; 
 
-            // 1. FUNGSI AUTO SCROLL (ROTASI)
+            // FUNGSI AUTO SCROLL (ROTASI)
             function autoScroll() {
                 if (isPaused || !slider) return;
 
-                // Hitung lebar kartu pertama + gap
                 const firstCard = slider.firstElementChild;
                 if (!firstCard) return;
 
-                // Gap di Tailwind: gap-5 (20px) atau md:gap-8 (32px)
                 const gap = window.innerWidth < 768 ? 20 : 32; 
                 const scrollAmount = firstCard.offsetWidth + gap;
 
-                // A. Geser Smooth ke Kanan
                 slider.scrollBy({ left: scrollAmount, behavior: 'smooth' });
 
-                // B. Setelah animasi selesai (600ms), pindahkan kartu pertama ke belakang
                 setTimeout(() => {
-                    // Pindahkan elemen pertama ke urutan terakhir (Rotasi DOM)
                     slider.appendChild(firstCard); 
-                    
-                    // Reset scroll bar ke posisi 0 seketika (tanpa animasi)
-                    // Ini triknya! Karena elemen pertama sudah pindah ke belakang,
-                    // elemen kedua sekarang jadi pertama. Kita reset scroll biar pas.
                     slider.scrollLeft -= scrollAmount; 
-                    
-                    // Paksa scroll ke 0 biar tidak ada gap error (safeguard)
                     slider.scrollTo({ left: 0, behavior: 'auto' });
-                }, 600); // Waktu ini harus sedikit lebih lama dari durasi animasi smooth scroll
+                }, 600); 
             }
 
-            // Jalankan setiap 3.5 Detik
             let scrollInterval = setInterval(autoScroll, 3500);
 
-            // Fitur Pause saat Mouse Hover
             slider.addEventListener('mouseenter', () => isPaused = true);
             slider.addEventListener('mouseleave', () => isPaused = false);
         });
 
-        // 2. FUNGSI HITUNG RATING (MATEMATIKA)
-        function updateRatingUI(id, likes, dislikes) {
+        // FUNGSI HITUNG RATING (MATEMATIKA) - SESUAIKAN DENGAN LOVES DAN HATES
+        function updateRatingUI(id, loves, hates) {
             const ratingSpan = document.getElementById(`rating-text-${id}`);
             const totalVotesSpan = document.getElementById(`total-votes-${id}`);
             
-            likes = parseInt(likes);
-            dislikes = parseInt(dislikes);
-            const total = likes + dislikes;
+            loves = parseInt(loves);
+            hates = parseInt(hates);
+            const total = loves + hates;
             let rating = 0.0;
 
             if (total > 0) {
-                rating = (likes / total) * 5;
+                rating = (loves / total) * 5;
             }
 
             if(ratingSpan) ratingSpan.innerText = rating.toFixed(1); 
             if(totalVotesSpan) totalVotesSpan.innerText = total;
         }
 
-        // 3. FUNGSI LIKE
+        // FUNGSI LIKE
         function toggleLove(id) {
             const btnLove = document.getElementById(`btn-love-${id}`);
             const btnDislike = document.getElementById(`btn-dislike-${id}`);
-            const countLove = document.getElementById(`count-love-${id}`);
-            const countDislike = document.getElementById(`count-dislike-${id}`);
 
             if (!btnLove) return;
-            // Simpan icon asli
             const originalIcon = btnLove.innerHTML;
             btnLove.disabled = true;
 
@@ -172,14 +150,16 @@
                         btnDislike.classList.remove('text-slate-800');
                         btnDislike.classList.add('text-gray-400', 'hover:text-slate-800');
                     }
-                    updateRatingUI(id, data.likes, data.dislikes);
+                    
+                    // FIX: Masukkan parameter loves dan hates yang dikirim dari controller
+                    updateRatingUI(id, data.loves, data.hates);
                 }
             })
             .catch(err => { console.error(err); btnLove.innerHTML = originalIcon; })
             .finally(() => { btnLove.disabled = false; });
         }
 
-        // 4. FUNGSI DISLIKE
+        // FUNGSI DISLIKE
         function toggleDislike(id) {
             const btnDislike = document.getElementById(`btn-dislike-${id}`);
             const btnLove = document.getElementById(`btn-love-${id}`);
@@ -206,10 +186,11 @@
                     if(btnLove) {
                         btnLove.classList.remove('text-red-600');
                         btnLove.classList.add('text-gray-400', 'hover:text-red-500');
-                        // Reset icon love jika perlu
                         if(!btnLove.innerHTML.includes('fa-heart')) { btnLove.innerHTML = '<i class="fas fa-heart"></i>'; }
                     }
-                    updateRatingUI(id, data.likes, data.dislikes);
+                    
+                    // FIX: Masukkan parameter loves dan hates yang dikirim dari controller
+                    updateRatingUI(id, data.loves, data.hates);
                 }
             })
             .catch(err => { console.error(err); btnDislike.innerHTML = originalIcon; })
