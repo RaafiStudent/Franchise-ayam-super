@@ -28,7 +28,7 @@
 <body class="font-sans antialiased text-slate-900 bg-slate-50 overflow-hidden selection:bg-red-500 selection:text-white relative">
     
     <div class="flex h-screen w-full">
-
+        {{-- SIDEBAR KIRI (MENU NAVIGASI) --}}
         <aside class="w-64 bg-[#a51a1a] text-white flex-shrink-0 hidden md:flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.05)] z-20">
             <div class="h-[88px] flex items-center px-6 border-b border-red-900/30">
                 <div class="flex items-center gap-3">
@@ -122,6 +122,7 @@
             </div>
         </aside>
 
+        {{-- AREA UTAMA --}}
         <div class="flex-1 flex flex-col overflow-hidden bg-slate-50 relative">
             <header class="h-[88px] glass-nav border-b border-slate-200/60 flex items-center justify-between px-8 z-10 sticky top-0">
                 <div class="flex items-center gap-4">
@@ -141,7 +142,7 @@
                                 $cartCount = \App\Models\Cart::where('user_id', Auth::user()->id)->sum('quantity') ?? 0;
                             @endphp
                             @if($cartCount > 0)
-                                <span class="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full ring-2 ring-white">{{ $cartCount }}</span>
+                                <span id="header-qty-badge" class="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full ring-2 ring-white">{{ $cartCount }}</span>
                             @endif
                         </button>
                     @endif
@@ -205,7 +206,7 @@
 
     @if(Auth::user()->role == 'mitra')
         {{-- ======================================================== --}}
-        {{-- KODE BARU: LACI KERANJANG (SIDEBAR) YANG SUDAH HIDUP (DINAMIS) --}}
+        {{-- LACI KERANJANG (SIDEBAR GLOBAL) - TANPA FORM & SUPER CEPAT --}}
         {{-- ======================================================== --}}
         @php
             $cartSidebar = \App\Models\Cart::with('product')->where('user_id', Auth::id())->get();
@@ -217,6 +218,7 @@
 
         <div id="cartBackdrop" onclick="toggleOffcanvasCart()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] opacity-0 pointer-events-none transition-opacity duration-300"></div>
         <div id="cartOffcanvas" class="fixed top-0 right-0 h-full w-full sm:w-[420px] bg-white shadow-2xl z-[70] transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
+            
             <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-10">
                 <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
                     <i class="fas fa-shopping-basket text-red-600"></i> Keranjang Anda
@@ -226,10 +228,10 @@
                 </button>
             </div>
             
-            <div class="flex-1 overflow-y-auto p-6 bg-slate-50 pb-32">
+            <div id="cart-items-container" class="flex-1 overflow-y-auto p-6 bg-slate-50 pb-32">
                 @if($cartSidebar->count() > 0)
                     @foreach($cartSidebar as $item)
-                        <div class="flex gap-4 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-4 relative group hover:border-slate-200 transition-colors">
+                        <div id="sidebar-item-{{ $item->product_id }}" class="flex gap-4 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-4 relative hover:border-slate-200 transition-colors">
                             <div class="w-20 h-20 rounded-xl bg-slate-50 overflow-hidden shrink-0 flex items-center justify-center text-slate-400">
                                 <img src="{{ asset('storage/' . $item->product->image) }}" class="w-full h-full object-cover">
                             </div>
@@ -237,21 +239,20 @@
                                 <h4 class="text-sm font-bold text-slate-800 mb-1 leading-tight line-clamp-2">{{ $item->product->name }}</h4>
                                 <p class="text-xs font-black text-red-600 mb-3">Rp {{ number_format($item->product->price, 0, ',', '.') }} <span class="text-slate-400 font-normal">/ Pack</span></p>
                                 <div class="flex items-center gap-3 w-fit bg-slate-50 rounded-lg p-1 border border-slate-100">
-                                    <form action="{{ url('/cart/decrease/'.$item->product_id) }}" method="POST" class="m-0 p-0">
-                                        @csrf
-                                        <button type="submit" class="w-7 h-7 rounded bg-white border border-slate-200 text-slate-500 shadow-sm hover:text-red-600 flex items-center justify-center text-xs"><i class="fas fa-minus"></i></button>
-                                    </form>
-                                    <span class="text-xs font-bold text-slate-800 w-4 text-center">{{ $item->quantity }}</span>
-                                    <form action="{{ url('/cart/add/'.$item->product_id) }}" method="POST" class="m-0 p-0">
-                                        @csrf
-                                        <button type="submit" class="w-7 h-7 rounded bg-white border border-slate-200 text-slate-500 shadow-sm hover:text-red-600 flex items-center justify-center text-xs"><i class="fas fa-plus"></i></button>
-                                    </form>
+                                    <button type="button" onclick="instantCartAction(event, 'decrease', {{ $item->product_id }})" class="w-7 h-7 rounded bg-white border border-slate-200 text-slate-500 hover:text-red-600 flex items-center justify-center text-xs">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                    
+                                    <span class="sidebar-qty-text text-xs font-bold text-slate-800 w-4 text-center">{{ $item->quantity }}</span>
+                                    
+                                    <button type="button" onclick="instantCartAction(event, 'add', {{ $item->product_id }})" class="w-7 h-7 rounded bg-white border border-slate-200 text-slate-500 hover:text-red-600 flex items-center justify-center text-xs">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
                                 </div>
                             </div>
-                            <form action="{{ route('cart.remove', $item->id) }}" method="POST" class="m-0 p-0 absolute top-4 right-4">
-                                @csrf @method('DELETE')
-                                <button type="submit" class="text-slate-300 hover:text-red-600 transition-colors"><i class="fas fa-trash-alt text-sm"></i></button>
-                            </form>
+                            <button type="button" onclick="instantCartAction(event, 'remove', {{ $item->product_id }}, {{ $item->id }})" class="absolute top-4 right-4 text-slate-300 hover:text-red-600 transition-colors">
+                                <i class="fas fa-trash-alt text-sm"></i>
+                            </button>
                         </div>
                     @endforeach
                 @else
@@ -263,21 +264,22 @@
                 @endif
             </div>
 
-            <div class="p-6 bg-white border-t border-slate-100 shadow-[0_-10px_20px_rgba(0,0,0,0.02)] absolute bottom-0 left-0 w-full">
+            <div id="cart-sidebar-footer" class="p-6 bg-white border-t border-slate-100 shadow-[0_-10px_20px_rgba(0,0,0,0.02)] absolute bottom-0 left-0 w-full">
                 <div class="flex items-center justify-between mb-5">
                     <span class="text-sm font-semibold text-slate-500">Estimasi Total</span>
-                    <span class="text-2xl font-black text-slate-900 tracking-tight">Rp {{ number_format($totalSidebar, 0, ',', '.') }}</span>
+                    <span class="estimasi-total-text text-2xl font-black text-slate-900 tracking-tight">Rp {{ number_format($totalSidebar, 0, ',', '.') }}</span>
                 </div>
                 
                 <form action="{{ route('checkout.process') }}" method="POST">
                     @csrf
-                    <button type="submit" class="w-full py-3.5 bg-[#b91c1c] hover:bg-[#991b1b] text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md transition-all {{ $cartSidebar->count() == 0 ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $cartSidebar->count() == 0 ? 'disabled' : '' }}>
+                    <button type="submit" id="btn-lanjutkan-sidebar" class="w-full py-3.5 bg-[#b91c1c] hover:bg-[#991b1b] text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md transition-all {{ $cartSidebar->count() == 0 ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $cartSidebar->count() == 0 ? 'disabled' : '' }}>
                         Lanjutkan Pembayaran <i class="fas fa-arrow-right ml-1"></i>
                     </button>
                 </form>
             </div>
         </div>
 
+        {{-- SCRIPT JAVASCRIPT: OPTIMISTIC UI (SUPER INSTAN & ANTI KEDIP) GLOBAL --}}
         <script>
             function toggleOffcanvasCart() {
                 const offcanvas = document.getElementById('cartOffcanvas');
@@ -288,6 +290,98 @@
                 } else {
                     offcanvas.classList.add('translate-x-full');
                     backdrop.classList.add('opacity-0', 'pointer-events-none');
+                }
+            }
+
+            async function instantCartAction(event, action, productId, cartId = null) {
+                event.preventDefault(); 
+
+                let url = '';
+                let method = '';
+                if(action === 'add') { url = '/cart/add/' + productId; method = 'POST'; }
+                else if(action === 'decrease') { url = '/cart/decrease/' + productId; method = 'POST'; }
+                else if(action === 'remove') { url = '/cart/remove/' + cartId; method = 'DELETE'; }
+
+                let gridContainer = document.querySelector(`.product-action-container[data-id="${productId}"]`);
+                let sidebarItem = document.getElementById('sidebar-item-' + productId);
+
+                let qtyDisplayGrid = gridContainer ? gridContainer.querySelector('.qty-text') : null;
+                let qtyDisplaySidebar = sidebarItem ? sidebarItem.querySelector('.sidebar-qty-text') : null;
+
+                let currentQty = qtyDisplayGrid ? parseInt(qtyDisplayGrid.innerText) : (qtyDisplaySidebar ? parseInt(qtyDisplaySidebar.innerText) : 0);
+
+                if(action === 'add') currentQty++;
+                else if(action === 'decrease' && currentQty > 0) currentQty--;
+                else if(action === 'remove') currentQty = 0;
+
+                if(gridContainer) {
+                    let btnAdd = gridContainer.querySelector('.btn-add');
+                    let btnCounter = gridContainer.querySelector('.btn-counter');
+                    if(currentQty > 0) {
+                        btnAdd.classList.add('hidden');
+                        btnCounter.classList.remove('hidden'); btnCounter.classList.add('flex');
+                        qtyDisplayGrid.innerText = currentQty;
+                    } else {
+                        btnAdd.classList.remove('hidden');
+                        btnCounter.classList.add('hidden'); btnCounter.classList.remove('flex');
+                    }
+                }
+
+                if(sidebarItem) {
+                    if(currentQty > 0) {
+                        qtyDisplaySidebar.innerText = currentQty;
+                    } else {
+                        sidebarItem.remove(); 
+                    }
+                }
+
+                try {
+                    let response = await fetch(url, {
+                        method: method,
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    let data = await response.json();
+
+                    if (data.status === 'success') {
+                        let formattedPrice = 'Rp ' + data.total_price;
+                        document.querySelectorAll('.estimasi-total-text').forEach(el => el.innerText = formattedPrice);
+                        
+                        let headerBadge = document.getElementById('header-qty-badge');
+                        let stickyBadge = document.getElementById('total-qty-badge');
+                        if(headerBadge) headerBadge.innerText = data.total_qty;
+                        if(stickyBadge) stickyBadge.innerText = data.total_qty;
+
+                        let container = document.getElementById('cart-items-container');
+                        let stickyFooter = document.getElementById('cart-footer');
+                        let btnSidebar = document.getElementById('btn-lanjutkan-sidebar');
+                        let btnUtama = document.getElementById('btn-lanjutkan');
+
+                        if (data.total_qty === 0) {
+                            if(container) container.innerHTML = `<div class="text-center mt-20"><i class="fas fa-shopping-cart text-5xl text-slate-200 mb-4"></i><p class="text-slate-400 font-bold">Keranjang Anda masih kosong</p><p class="text-xs text-slate-400 mt-1">Silakan belanja stok bahan baku di katalog.</p></div>`;
+                            if(stickyFooter) stickyFooter.classList.add('hidden');
+                            if(btnUtama) { btnUtama.disabled = true; btnUtama.classList.add('opacity-50', 'cursor-not-allowed'); }
+                            if(btnSidebar) { btnSidebar.disabled = true; btnSidebar.classList.add('opacity-50', 'cursor-not-allowed'); }
+                        } else {
+                            if(stickyFooter) stickyFooter.classList.remove('hidden');
+                            if(btnUtama) { btnUtama.disabled = false; btnUtama.classList.remove('opacity-50', 'cursor-not-allowed'); }
+                            if(btnSidebar) { btnSidebar.disabled = false; btnSidebar.classList.remove('opacity-50', 'cursor-not-allowed'); }
+                        }
+
+                        if(action === 'add' && currentQty === 1 && !sidebarItem) {
+                            let pageResponse = await fetch(window.location.href);
+                            let pageHtml = await pageResponse.text();
+                            let doc = new DOMParser().parseFromString(pageHtml, 'text/html');
+                            let oldCartItems = document.getElementById('cart-items-container');
+                            let newCartItems = doc.getElementById('cart-items-container');
+                            if (oldCartItems && newCartItems) oldCartItems.innerHTML = newCartItems.innerHTML;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Koneksi terputus:', error);
                 }
             }
         </script>
