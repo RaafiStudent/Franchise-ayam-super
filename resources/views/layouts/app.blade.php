@@ -43,7 +43,7 @@
                 </div>
             </div>
 
-            <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-1.5">
+            <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-1.5 custom-scrollbar">
                 @if(Auth::user()->role == 'admin')
                     <p class="px-3 text-[10px] font-black text-red-200 uppercase tracking-widest mb-3 mt-2">Menu Utama Admin</p>
                     <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 {{ request()->routeIs('admin.dashboard') ? 'bg-white text-red-800 shadow-sm font-bold' : 'text-red-100 hover:bg-red-800/50 hover:text-white font-medium group' }}">
@@ -61,12 +61,10 @@
                     
                     <p class="px-3 text-[10px] font-black text-red-200 uppercase tracking-widest mb-3 mt-6">Bisnis & Operasional</p>
                     
-                    {{-- TAMBAHAN: MENU KATALOG MENU (DINAMIS) --}}
                     <a href="{{ route('admin.menus.index') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 {{ request()->routeIs('admin.menus.*') ? 'bg-white text-red-800 shadow-sm font-bold' : 'text-red-100 hover:bg-red-800/50 hover:text-white font-medium group' }}">
                         <i class="fas fa-utensils w-5 text-center {{ request()->routeIs('admin.menus.*') ? 'text-red-700' : 'text-red-300 group-hover:text-white' }} transition-colors"></i>
                         Katalog Menu
                     </a>
-                    {{-- AKHIR TAMBAHAN --}}
 
                     <a href="{{ route('admin.products.index') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 {{ request()->routeIs('admin.products.*') ? 'bg-white text-red-800 shadow-sm font-bold' : 'text-red-100 hover:bg-red-800/50 hover:text-white font-medium group' }}">
                         <i class="fas fa-box-open w-5 text-center {{ request()->routeIs('admin.products.*') ? 'text-red-700' : 'text-red-300 group-hover:text-white' }} transition-colors"></i>
@@ -77,7 +75,6 @@
                         Pesanan
                     </a>
                     
-                    {{-- FIX: Menambahkan </a> penutup pada Laporan yang hilang di kodingan aslimu --}}
                     <a href="{{ route('admin.reports.index') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 {{ request()->routeIs('admin.reports.*') ? 'bg-white text-red-800 shadow-sm font-bold' : 'text-red-100 hover:bg-red-800/50 hover:text-white font-medium group' }}">
                         <i class="fas fa-chart-pie w-5 text-center {{ request()->routeIs('admin.reports.*') ? 'text-red-700' : 'text-red-300 group-hover:text-white' }} transition-colors"></i>
                         Laporan
@@ -406,7 +403,6 @@
     <div x-data="{
             showGuide: false,
             init() {
-                // Menggunakan sessionStorage agar pop-up hanya muncul sekali setiap sesi browser
                 const isSeen = sessionStorage.getItem('guide_seen_{{ Auth::id() }}');
                 if(!isSeen) {
                     setTimeout(() => { this.showGuide = true; }, 400); 
@@ -439,7 +435,7 @@
              x-transition:leave="transition ease-in duration-200 transform"
              x-transition:leave-start="opacity-100 translate-y-0 scale-100"
              x-transition:leave-end="opacity-0 translate-y-8 scale-95"
-             class="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]"
+             class="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh]"
         >
             <div class="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50 relative overflow-hidden shrink-0">
                 <div class="absolute top-0 left-0 w-full h-1 {{ Auth::user()->role == 'owner' ? 'bg-yellow-400' : (Auth::user()->role == 'admin' ? 'bg-red-600' : 'bg-blue-600') }}"></div>
@@ -464,7 +460,7 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     
-                    {{-- PANDUAN KHUSUS ADMIN --}}
+                    {{-- PANDUAN KHUSUS ADMIN (8 MENU LENGKAP) --}}
                     @if(Auth::user()->role == 'admin')
                         <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-red-200 transition-colors group">
                             <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-2">
@@ -482,31 +478,45 @@
                         </div>
                         <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-red-200 transition-colors group">
                             <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fas fa-history"></i></div>
+                                Audit Log
+                            </h4>
+                            <p class="text-xs text-slate-500 leading-relaxed">Memantau seluruh rekam jejak aktivitas Admin lain (tambah/hapus data) demi menjaga keamanan sistem.</p>
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-red-200 transition-colors group">
+                            <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-2">
                                 <div class="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fas fa-utensils"></i></div>
                                 Katalog Menu
                             </h4>
-                            <p class="text-xs text-slate-500 leading-relaxed">Menambah atau mengubah foto menu hidangan ayam yang akan langsung tampil di halaman publik (Landing Page).</p>
+                            <p class="text-xs text-slate-500 leading-relaxed">Menambah atau mengubah foto menu hidangan ayam yang akan langsung tampil di halaman Landing Page publik.</p>
                         </div>
                         <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-red-200 transition-colors group">
                             <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-2">
                                 <div class="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fas fa-box-open"></i></div>
                                 Produk Bahan Baku
                             </h4>
-                            <p class="text-xs text-slate-500 leading-relaxed">Menambah atau memperbarui harga dan stok bumbu marinasi, packaging, dan lainnya untuk dibeli oleh Mitra.</p>
+                            <p class="text-xs text-slate-500 leading-relaxed">Mengelola harga dan mengatur jumlah ketersediaan stok bumbu marinasi, packaging, dll untuk dibeli oleh Mitra.</p>
                         </div>
                         <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-red-200 transition-colors group">
                             <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-2">
                                 <div class="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fas fa-shopping-cart"></i></div>
                                 Pesanan Mitra
                             </h4>
-                            <p class="text-xs text-slate-500 leading-relaxed">Memproses orderan bahan baku yang masuk dari Mitra dan memasukkan Nomor Resi pengiriman (Kurir).</p>
+                            <p class="text-xs text-slate-500 leading-relaxed">Memproses orderan bahan baku yang masuk dari Mitra cabang dan memasukkan Nomor Resi pengiriman kurir.</p>
                         </div>
                         <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-red-200 transition-colors group">
                             <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-2">
                                 <div class="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fas fa-chart-pie"></i></div>
-                                Laporan & Pesan
+                                Laporan
                             </h4>
-                            <p class="text-xs text-slate-500 leading-relaxed">Mencetak rekap laporan penjualan berformat PDF dan membaca pesan masuk dari pelanggan di halaman kontak.</p>
+                            <p class="text-xs text-slate-500 leading-relaxed">Melihat dan mencetak rekap laporan penjualan keseluruhan berformat PDF untuk diserahkan kepada Owner.</p>
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-red-200 transition-colors group">
+                            <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fas fa-inbox"></i></div>
+                                Kotak Masuk
+                            </h4>
+                            <p class="text-xs text-slate-500 leading-relaxed">Membaca pesan, kritik, dan saran yang dikirim oleh pengunjung melalui halaman Hubungi Kami di Landing Page.</p>
                         </div>
                     @endif
 
