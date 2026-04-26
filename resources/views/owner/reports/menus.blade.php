@@ -1,138 +1,202 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            📊 Laporan Popularitas Menu
-        </h2>
+        <div class="flex items-center gap-3">
+            <div class="w-12 h-12 bg-red-600 rounded-2xl flex items-center justify-center shadow-lg shadow-red-200">
+                <i class="fas fa-utensils text-white text-xl"></i>
+            </div>
+            <div>
+                <h2 class="font-extrabold text-2xl text-slate-800 leading-tight tracking-tight">
+                    {{ __('Laporan Popularitas Menu') }}
+                </h2>
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest px-1">Analisis Minat Pelanggan</p>
+            </div>
+        </div>
     </x-slot>
 
-    <div class="py-12">
+    <div class="py-8 pb-24">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            
-            {{-- Kartu Ringkasan Atas --}}
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                {{-- Kartu 1: Menu Terfavorit --}}
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 border-l-4 border-green-500">
-                    <div class="text-gray-500 text-sm">Menu Paling Disukai</div>
-                    <div class="text-2xl font-bold text-gray-800 truncate">
-                        {{ $menus->first()->name ?? '-' }}
-                    </div>
-                    <div class="text-xs text-green-600 font-bold flex items-center gap-1">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" /></svg>
-                        {{ $menus->first()->loves ?? 0 }} Likes
-                    </div>
-                </div>
+
+            {{-- === BAGIAN 1: KARTU STATISTIK PREMIUM === --}}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                 
-                {{-- Kartu 2: Total Varian --}}
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 border-l-4 border-blue-500">
-                    <div class="text-gray-500 text-sm">Total Varian Menu</div>
-                    <div class="text-2xl font-bold text-gray-800">{{ $menus->count() }}</div>
-                    <div class="text-xs text-blue-600">Item Tersedia</div>
+                {{-- Menu Paling Disukai --}}
+                <div class="bg-white rounded-[2rem] p-7 border border-slate-100 shadow-sm relative overflow-hidden group">
+                    <div class="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:scale-110 transition-transform duration-700">
+                        <i class="fas fa-heart text-[8rem] text-red-600"></i>
+                    </div>
+                    <div class="relative z-10">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Menu Paling Disukai</p>
+                        <h3 class="text-xl font-black text-slate-800 leading-tight mb-1">
+                            {{ $bestMenu->name ?? 'Belum Ada Data' }}
+                        </h3>
+                        <div class="flex items-center gap-2 text-emerald-500 font-bold text-xs">
+                            <i class="fas fa-thumbs-up"></i>
+                            <span>{{ $bestMenu->loves ?? 0 }} Likes dari User</span>
+                        </div>
+                    </div>
+                    <div class="absolute top-0 left-0 h-full w-1.5 bg-emerald-500"></div>
                 </div>
 
-                {{-- Kartu 3: Total Voting --}}
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 border-l-4 border-yellow-500">
-                    <div class="text-gray-500 text-sm">Total Partisipasi User</div>
-                    <div class="text-2xl font-bold text-gray-800">
-                        {{ $menus->sum('loves') + $menus->sum('dislikes') }}
+                {{-- Total Varian Menu --}}
+                <div class="bg-white rounded-[2rem] p-7 border border-slate-100 shadow-sm relative overflow-hidden group">
+                    <div class="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:scale-110 transition-transform duration-700">
+                        <i class="fas fa-list text-[8rem] text-blue-600"></i>
                     </div>
-                    <div class="text-xs text-yellow-600">Suara Masuk (Like + Dislike)</div>
+                    <div class="relative z-10">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Total Varian Menu</p>
+                        <h3 class="text-4xl font-black text-slate-800 tracking-tighter">
+                            {{ $totalVariants }} <span class="text-sm text-slate-400 font-bold ml-1 uppercase">Item</span>
+                        </h3>
+                        <p class="text-[10px] font-bold text-slate-400 italic mt-2">Tersedia di Katalog Publik</p>
+                    </div>
+                    <div class="absolute top-0 left-0 h-full w-1.5 bg-blue-500"></div>
                 </div>
+
+                {{-- Total Partisipasi --}}
+                <div class="bg-white rounded-[2rem] p-7 border border-slate-100 shadow-sm relative overflow-hidden group">
+                    <div class="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:scale-110 transition-transform duration-700">
+                        <i class="fas fa-users text-[8rem] text-amber-600"></i>
+                    </div>
+                    <div class="relative z-10">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Total Partisipasi User</p>
+                        <h3 class="text-4xl font-black text-slate-800 tracking-tighter">
+                            {{ $totalParticipation }} <span class="text-sm text-slate-400 font-bold ml-1 uppercase">Suara</span>
+                        </h3>
+                        <p class="text-[10px] font-bold text-slate-400 italic mt-2">Total Akumulasi Like + Dislike</p>
+                    </div>
+                    <div class="absolute top-0 left-0 h-full w-1.5 bg-amber-500"></div>
+                </div>
+
             </div>
 
-            {{-- Tabel Statistik Utama --}}
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4">Peringkat Menu Berdasarkan Like</h3>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full leading-normal">
-                            <thead>
-                                <tr class="bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                    <th class="px-5 py-3 border-b-2 border-gray-200">Rank</th>
-                                    <th class="px-5 py-3 border-b-2 border-gray-200">Menu</th>
-                                    <th class="px-5 py-3 border-b-2 border-gray-200 text-center">👍 Suka</th>
-                                    <th class="px-5 py-3 border-b-2 border-gray-200 text-center">👎 Gak Suka</th>
-                                    <th class="px-5 py-3 border-b-2 border-gray-200 text-center">⭐ Rating</th>
-                                    <th class="px-5 py-3 border-b-2 border-gray-200 text-center">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($menus as $index => $menu)
-                                    @php
-                                        // Hitung Rating di PHP untuk Laporan
-                                        $total = $menu->loves + $menu->dislikes;
-                                        $rating = $total > 0 ? ($menu->loves / $total) * 5 : 0;
-                                        $ratingFormatted = number_format($rating, 1);
-                                    @endphp
-                                <tr class="hover:bg-gray-50 transition">
-                                    <td class="px-5 py-5 border-b border-gray-200 text-sm">
-                                        @if($index == 0) 
-                                            <span class="text-2xl" title="Juara 1">🥇</span> 
-                                        @elseif($index == 1) 
-                                            <span class="text-2xl" title="Juara 2">🥈</span>
-                                        @elseif($index == 2) 
-                                            <span class="text-2xl" title="Juara 3">🥉</span>
+            {{-- === BAGIAN 2: PERINGKAT MENU (MODERN LIST) === --}}
+            <div class="bg-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-slate-100 overflow-hidden">
+                <div class="p-8 md:p-10 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
+                    <div>
+                        <h3 class="font-black text-xl text-slate-800 tracking-tight">Peringkat Menu Berdasarkan Like</h3>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Data kepuasan pelanggan real-time</p>
+                    </div>
+                    <div class="hidden md:flex items-center gap-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        <span class="flex items-center gap-1.5"><i class="fas fa-thumbs-up text-emerald-400"></i> Suka</span>
+                        <span class="flex items-center gap-1.5"><i class="fas fa-thumbs-down text-rose-400"></i> Gak Suka</span>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50/50">
+                                <th class="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center w-20">Rank</th>
+                                <th class="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Menu Informasi</th>
+                                <th class="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Respon</th>
+                                <th class="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Rating</th>
+                                <th class="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Status Analisis</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            @forelse($menus as $index => $menu)
+                                <tr class="group hover:bg-slate-50/80 transition-all duration-300">
+                                    {{-- Kolom Rank --}}
+                                    <td class="px-8 py-6 text-center">
+                                        @if($index == 0)
+                                            <div class="w-10 h-10 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-full flex items-center justify-center text-white shadow-md shadow-yellow-200 mx-auto">
+                                                <i class="fas fa-crown text-sm"></i>
+                                            </div>
+                                        @elseif($index == 1)
+                                            <div class="w-9 h-9 bg-slate-300 rounded-full flex items-center justify-center text-white shadow-md mx-auto">
+                                                <span class="font-black text-xs">2</span>
+                                            </div>
+                                        @elseif($index == 2)
+                                            <div class="w-9 h-9 bg-orange-300 rounded-full flex items-center justify-center text-white shadow-md mx-auto">
+                                                <span class="font-black text-xs">3</span>
+                                            </div>
                                         @else
-                                            <span class="font-bold text-gray-500 pl-2">#{{ $index + 1 }}</span>
+                                            <span class="font-bold text-slate-300">#{{ $index + 1 }}</span>
                                         @endif
                                     </td>
-                                    <td class="px-5 py-5 border-b border-gray-200 text-sm">
-                                        <div class="flex items-center">
-                                            <div class="flex-shrink-0 w-12 h-12">
-                                                <img class="w-full h-full rounded-lg object-cover border"
-                                                    src="{{ $menu->image }}"
-                                                    alt="{{ $menu->name }}" />
+
+                                    {{-- Info Menu --}}
+                                    <td class="px-8 py-6">
+                                        <div class="flex items-center gap-4">
+                                            <div class="w-14 h-14 rounded-2xl overflow-hidden shadow-sm border border-slate-100 shrink-0">
+                                                <img src="{{ asset('storage/' . $menu->image) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                                             </div>
-                                            <div class="ml-3">
-                                                <p class="text-gray-900 whitespace-no-wrap font-bold">
-                                                    {{ $menu->name }}
-                                                </p>
-                                                @if($menu->badge)
-                                                <span class="bg-gray-200 text-gray-600 py-0.5 px-2 rounded-full text-[10px]">
-                                                    {{ $menu->badge }}
+                                            <div class="flex flex-col">
+                                                <span class="font-black text-slate-800 text-base leading-tight">{{ $menu->name }}</span>
+                                                <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1 bg-slate-100 px-2 py-0.5 rounded w-fit">
+                                                    {{ $menu->label ?? 'Katalog Menu' }}
                                                 </span>
-                                                @endif
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="px-5 py-5 border-b border-gray-200 text-center">
-                                        <span class="bg-green-100 text-green-800 py-1 px-3 rounded-full text-xs font-bold">
-                                            {{ $menu->loves }}
-                                        </span>
-                                    </td>
-                                    <td class="px-5 py-5 border-b border-gray-200 text-center">
-                                        <span class="bg-red-100 text-red-800 py-1 px-3 rounded-full text-xs font-bold">
-                                            {{ $menu->dislikes }}
-                                        </span>
-                                    </td>
-                                    <td class="px-5 py-5 border-b border-gray-200 text-center">
-                                        <div class="flex items-center justify-center space-x-1 text-yellow-500 font-bold">
-                                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
-                                            <span>{{ $ratingFormatted }}</span>
+
+                                    {{-- Respon Like/Dislike --}}
+                                    <td class="px-8 py-6 text-center">
+                                        <div class="inline-flex items-center gap-3">
+                                            <div class="flex flex-col items-center">
+                                                <span class="text-xs font-black text-emerald-500">{{ $menu->loves }}</span>
+                                                <div class="w-8 h-1 bg-emerald-100 rounded-full mt-1 overflow-hidden">
+                                                    <div class="bg-emerald-500 h-full" style="width: 100%"></div>
+                                                </div>
+                                            </div>
+                                            <div class="flex flex-col items-center">
+                                                <span class="text-xs font-black text-rose-400">{{ $menu->hates }}</span>
+                                                <div class="w-8 h-1 bg-rose-100 rounded-full mt-1 overflow-hidden">
+                                                    <div class="bg-rose-400 h-full" style="width: 100%"></div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="text-[10px] text-gray-400">({{ $total }} vote)</div>
                                     </td>
-                                    <td class="px-5 py-5 border-b border-gray-200 text-center text-sm">
-                                        @if($rating >= 4.5)
-                                            <span class="text-green-600 font-bold flex items-center justify-center gap-1 bg-green-50 px-2 py-1 rounded-lg border border-green-200">
-                                                <i class="fas fa-fire"></i> Populer
-                                            </span>
-                                        @elseif($rating >= 3.0)
-                                            <span class="text-blue-600 font-semibold bg-blue-50 px-2 py-1 rounded-lg border border-blue-200">
-                                                ✅ Aman
+
+                                    {{-- Rating Bintang --}}
+                                    <td class="px-8 py-6 text-center">
+                                        @php
+                                            $totalFeedback = $menu->loves + $menu->hates;
+                                            $rating = $totalFeedback > 0 ? round(($menu->loves / $totalFeedback) * 5, 1) : 0;
+                                        @endphp
+                                        <div class="flex flex-col items-center">
+                                            <div class="flex items-center gap-1 text-yellow-400 text-[10px]">
+                                                @for($i = 1; $i <= 5; $i++)
+                                                    <i class="{{ $i <= $rating ? 'fas' : 'far' }} fa-star"></i>
+                                                @endfor
+                                            </div>
+                                            <span class="text-[10px] font-black text-slate-700 mt-1">{{ $rating }} / 5.0</span>
+                                            <span class="text-[8px] font-bold text-slate-400 uppercase italic">({{ $totalFeedback }} votes)</span>
+                                        </div>
+                                    </td>
+
+                                    {{-- Status Analisis --}}
+                                    <td class="px-8 py-6 text-right">
+                                        @if($rating >= 3.0)
+                                            <span class="inline-flex items-center bg-emerald-50 text-emerald-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-emerald-100 shadow-sm">
+                                                <i class="fas fa-check-circle mr-2"></i> Performa Aman
                                             </span>
                                         @else
-                                            <span class="text-red-500 font-semibold flex items-center justify-center gap-1 bg-red-50 px-2 py-1 rounded-lg border border-red-200">
-                                                ⚠️ Evaluasi
+                                            <span class="inline-flex items-center bg-rose-50 text-rose-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-rose-100 shadow-sm">
+                                                <i class="fas fa-exclamation-triangle mr-2"></i> Perlu Evaluasi
                                             </span>
                                         @endif
                                     </td>
                                 </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="px-8 py-20 text-center">
+                                        <div class="flex flex-col items-center">
+                                            <i class="fas fa-layer-group text-6xl text-slate-100 mb-4"></i>
+                                            <p class="text-slate-400 font-bold">Belum ada data menu untuk dianalisis.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="p-8 bg-slate-50/50 border-t border-slate-50 text-center">
+                    <p class="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">Menu Performance Insights v1.0</p>
                 </div>
             </div>
+
         </div>
     </div>
 </x-app-layout>
