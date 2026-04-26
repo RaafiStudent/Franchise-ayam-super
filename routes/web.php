@@ -14,6 +14,7 @@ use App\Http\Controllers\MenuReportController;
 use App\Http\Controllers\OwnerController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Admin\UserManagementController;
+use App\Http\Controllers\Admin\MenuController; // TAMBAHAN IMPORT UNTUK MENU
 use App\Models\Menu;
 use Illuminate\Support\Facades\Route;
 
@@ -57,6 +58,10 @@ Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
         Route::get('/audit-logs', [AdminController::class, 'viewLogs'])->name('logs');
         Route::patch('/mitra/{id}/approve', [AdminController::class, 'approve'])->name('mitra.approve');
         Route::patch('/mitra/{id}/reject', [AdminController::class, 'reject'])->name('mitra.reject');
+        
+        // TAMBAHAN: Rute Manajemen Menu (Satu Baris, Langsung Rapih)
+        Route::resource('menus', MenuController::class);
+        
         Route::resource('products', ProductController::class);
         Route::get('/orders', [AdminController::class, 'manageOrders'])->name('orders.index');
         Route::patch('/orders/{id}/ship', [AdminController::class, 'shipOrder'])->name('orders.ship');
@@ -65,9 +70,7 @@ Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
         Route::get('/reports/export', [ReportController::class, 'exportPdf'])->name('reports.export');
         Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
         Route::delete('/messages/{id}', [MessageController::class, 'destroy'])->name('messages.destroy');
-        Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function () {
-    Route::resource('menus', MenuController::class);
-});
+    }); // <-- FIX: Penutup Grup Admin yang sebelumnya hilang / rusak
 
     // C. GRUP ROLE: OWNER (Monitoring Khusus)
     Route::middleware(['role:owner'])->prefix('owner')->name('owner.')->group(function () {
