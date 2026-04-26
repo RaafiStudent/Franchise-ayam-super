@@ -11,34 +11,40 @@ use Illuminate\Support\Facades\DB;
 
 class OwnerController extends Controller
 {
+    /**
+     * 1. Dashboard Utama (SINKRON DENGAN DESAIN PREMIUM)
+     */
     public function index()
     {
-        $data = [
-            // 1. Omset Seluruh Masa (Sejarah Bisnis)
-            'total_omset' => Order::where('payment_status', 'paid')->sum('total_price'),
-            
-            // 2. Omset Tahun Ini Saja (Performa Berjalan)
-            'omset_tahun_ini' => Order::where('payment_status', 'paid')
-                                      ->whereYear('created_at', Carbon::now()->year)
-                                      ->sum('total_price'),
-            
-            // 3. Total Cabang / Mitra
-            'total_mitra' => User::where('role', 'mitra')->count(),
-            
-            // 4. Tabel Transaksi Terakhir (5 Data)
-            'pesanan_terbaru' => Order::with('user')->latest()->take(5)->get(),
-        ];
+        // Penamaan variabel di bawah ini disesuaikan agar cocok dengan file Blade
+        $totalOmsetAllTime = Order::where('payment_status', 'paid')->sum('total_price');
         
-        return view('owner.dashboard', $data);
+        $omsetYear = Order::where('payment_status', 'paid')
+                            ->whereYear('created_at', Carbon::now()->year)
+                            ->sum('total_price');
+        
+        $totalMitra = User::where('role', 'mitra')->count();
+        
+        $recentTransactions = Order::with('user')->latest()->take(5)->get();
+        
+        return view('owner.dashboard', compact(
+            'totalOmsetAllTime', 
+            'omsetYear', 
+            'totalMitra', 
+            'recentTransactions'
+        ));
     }
 
+    /**
+     * 2. Laporan Keuangan Lengkap dengan Grafik Smart
+     */
     public function reportIndex(Request $request)
     {
         $filter = $request->query('filter', 'today');
         $label = [];
         $dataPendapatan = [];
 
-        // --- LOGIKA SMART KALENDER ---
+        // --- LOGIKA SMART KALENDER (GRAFIK) ---
         if ($filter == 'today') {
             for ($i = 0; $i <= 23; $i++) {
                 $label[] = str_pad($i, 2, '0', STR_PAD_LEFT) . ':00';
@@ -87,6 +93,7 @@ class OwnerController extends Controller
         $totalTransaksi = $queryBase->count();
         $totalMitra = User::where('role', 'mitra')->count();
 
+        // Data untuk Grafik Lingkaran (Status Pesanan)
         $pieData = [
             Order::where('order_status', 'pending')->count(),
             Order::where('order_status', 'processing')->count(),
@@ -103,11 +110,17 @@ class OwnerController extends Controller
         ));
     }
 
+    /**
+     * 3. Laporan Menu Terpopuler
+     */
     public function menuReport() {
         $menus = Menu::orderBy('loves', 'desc')->get();
         return view('owner.reports.menus', compact('menus'));
     }
 
+    /**
+     * 4. Log Aktivitas Sistem
+     */
     public function viewLogs() {
         $logs = \App\Models\ActivityLog::with('user')->latest()->paginate(20);
         return view('owner.logs.index', compact('logs'));
