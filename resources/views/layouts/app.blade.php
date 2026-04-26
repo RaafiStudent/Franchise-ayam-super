@@ -23,6 +23,10 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         .glass-nav { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f8fafc; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
 <body class="font-sans antialiased text-slate-900 bg-slate-50 overflow-hidden selection:bg-red-500 selection:text-white relative">
@@ -213,7 +217,7 @@
         </div>
     </div>
 
-    @if(Auth::user()->role == 'mitra')
+    @if(Auth::check() && Auth::user()->role == 'mitra')
         {{-- ======================================================== --}}
         {{-- LACI KERANJANG (SIDEBAR GLOBAL) - TANPA FORM & SUPER CEPAT --}}
         {{-- ======================================================== --}}
@@ -237,7 +241,7 @@
                 </button>
             </div>
             
-            <div id="cart-items-container" class="flex-1 overflow-y-auto p-6 bg-slate-50 pb-32">
+            <div id="cart-items-container" class="flex-1 overflow-y-auto p-6 bg-slate-50 pb-32 custom-scrollbar">
                 @if($cartSidebar->count() > 0)
                     @foreach($cartSidebar as $item)
                         <div id="sidebar-item-{{ $item->product_id }}" class="flex gap-4 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-4 relative hover:border-slate-200 transition-colors">
@@ -288,7 +292,6 @@
             </div>
         </div>
 
-        {{-- SCRIPT JAVASCRIPT: OPTIMISTIC UI (SUPER INSTAN & ANTI KEDIP) GLOBAL --}}
         <script>
             function toggleOffcanvasCart() {
                 const offcanvas = document.getElementById('cartOffcanvas');
@@ -395,6 +398,188 @@
             }
         </script>
     @endif
+
+    {{-- ======================================================== --}}
+    {{-- MODAL PANDUAN PENGGUNA (USER ONBOARDING) PREMIUM         --}}
+    {{-- ======================================================== --}}
+    @if(Auth::check())
+    <div x-data="{
+            showGuide: false,
+            init() {
+                // Menggunakan sessionStorage agar pop-up hanya muncul sekali setiap sesi browser
+                const isSeen = sessionStorage.getItem('guide_seen_{{ Auth::id() }}');
+                if(!isSeen) {
+                    setTimeout(() => { this.showGuide = true; }, 400); 
+                }
+            },
+            closeGuide() {
+                this.showGuide = false;
+                sessionStorage.setItem('guide_seen_{{ Auth::id() }}', 'true');
+            }
+        }"
+        x-show="showGuide"
+        x-cloak
+        class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
+    >
+        <div x-show="showGuide" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
+             @click="closeGuide()">
+        </div>
+
+        <div x-show="showGuide"
+             x-transition:enter="transition ease-out duration-300 transform"
+             x-transition:enter-start="opacity-0 translate-y-8 scale-95"
+             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+             x-transition:leave="transition ease-in duration-200 transform"
+             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+             x-transition:leave-end="opacity-0 translate-y-8 scale-95"
+             class="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]"
+        >
+            <div class="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50 relative overflow-hidden shrink-0">
+                <div class="absolute top-0 left-0 w-full h-1 {{ Auth::user()->role == 'owner' ? 'bg-yellow-400' : (Auth::user()->role == 'admin' ? 'bg-red-600' : 'bg-blue-600') }}"></div>
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl text-white shadow-md {{ Auth::user()->role == 'owner' ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' : (Auth::user()->role == 'admin' ? 'bg-gradient-to-br from-red-500 to-red-700' : 'bg-gradient-to-br from-blue-500 to-blue-700') }}">
+                        <i class="fas fa-hands-helping"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-extrabold text-slate-800 tracking-tight">Selamat Datang, {{ explode(' ', Auth::user()->name)[0] }}! 👋</h3>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Panduan Cepat Dashboard {{ ucfirst(Auth::user()->role) }}</p>
+                    </div>
+                </div>
+                <button @click="closeGuide()" class="w-8 h-8 rounded-full bg-slate-200 text-slate-500 hover:bg-red-100 hover:text-red-600 flex items-center justify-center transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="p-8 overflow-y-auto custom-scrollbar bg-white">
+                <p class="text-sm font-medium text-slate-500 mb-6 leading-relaxed">
+                    Agar Anda dapat menggunakan sistem ini dengan maksimal, berikut adalah penjelasan singkat mengenai fungsi-fungsi utama yang ada di sebelah kiri layar Anda:
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    
+                    {{-- PANDUAN KHUSUS ADMIN --}}
+                    @if(Auth::user()->role == 'admin')
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-red-200 transition-colors group">
+                            <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fas fa-layer-group"></i></div>
+                                Dashboard
+                            </h4>
+                            <p class="text-xs text-slate-500 leading-relaxed">Melihat ringkasan statistik harian, omset masuk, dan peringatan stok bahan baku yang hampir habis.</p>
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-red-200 transition-colors group">
+                            <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fas fa-users-cog"></i></div>
+                                Manajemen User
+                            </h4>
+                            <p class="text-xs text-slate-500 leading-relaxed">Mendaftarkan Mitra/Cabang baru, mengaktifkan akun, atau menonaktifkan pengguna yang bermasalah.</p>
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-red-200 transition-colors group">
+                            <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fas fa-utensils"></i></div>
+                                Katalog Menu
+                            </h4>
+                            <p class="text-xs text-slate-500 leading-relaxed">Menambah atau mengubah foto menu hidangan ayam yang akan langsung tampil di halaman publik (Landing Page).</p>
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-red-200 transition-colors group">
+                            <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fas fa-box-open"></i></div>
+                                Produk Bahan Baku
+                            </h4>
+                            <p class="text-xs text-slate-500 leading-relaxed">Menambah atau memperbarui harga dan stok bumbu marinasi, packaging, dan lainnya untuk dibeli oleh Mitra.</p>
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-red-200 transition-colors group">
+                            <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fas fa-shopping-cart"></i></div>
+                                Pesanan Mitra
+                            </h4>
+                            <p class="text-xs text-slate-500 leading-relaxed">Memproses orderan bahan baku yang masuk dari Mitra dan memasukkan Nomor Resi pengiriman (Kurir).</p>
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-red-200 transition-colors group">
+                            <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fas fa-chart-pie"></i></div>
+                                Laporan & Pesan
+                            </h4>
+                            <p class="text-xs text-slate-500 leading-relaxed">Mencetak rekap laporan penjualan berformat PDF dan membaca pesan masuk dari pelanggan di halaman kontak.</p>
+                        </div>
+                    @endif
+
+                    {{-- PANDUAN KHUSUS OWNER --}}
+                    @if(Auth::user()->role == 'owner')
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-yellow-200 transition-colors group">
+                            <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 rounded-lg bg-yellow-100 text-yellow-600 flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fas fa-chart-line"></i></div>
+                                Monitoring Utama
+                            </h4>
+                            <p class="text-xs text-slate-500 leading-relaxed">Memantau kesehatan bisnis secara keseluruhan melalui grafik penjualan bulanan dan total omset real-time.</p>
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-yellow-200 transition-colors group">
+                            <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 rounded-lg bg-yellow-100 text-yellow-600 flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fas fa-file-invoice-dollar"></i></div>
+                                Laporan Keuangan
+                            </h4>
+                            <p class="text-xs text-slate-500 leading-relaxed">Melihat daftar detail transaksi yang masuk, mengecek status pembayaran, dan mengunduh laporan PDF bulanan.</p>
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-yellow-200 transition-colors group">
+                            <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 rounded-lg bg-yellow-100 text-yellow-600 flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fas fa-utensils"></i></div>
+                                Laporan Menu (Rating)
+                            </h4>
+                            <p class="text-xs text-slate-500 leading-relaxed">Menganalisis performa setiap menu hidangan berdasarkan respon Suka/Tidak Suka dari pelanggan di halaman depan.</p>
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-yellow-200 transition-colors group">
+                            <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 rounded-lg bg-yellow-100 text-yellow-600 flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fas fa-shield-alt"></i></div>
+                                Audit Log Keamanan
+                            </h4>
+                            <p class="text-xs text-slate-500 leading-relaxed">Melacak seluruh tindakan yang dilakukan oleh Admin (siapa mengubah, menambah, atau menghapus data apa).</p>
+                        </div>
+                    @endif
+
+                    {{-- PANDUAN KHUSUS MITRA --}}
+                    @if(Auth::user()->role == 'mitra')
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-blue-200 transition-colors group">
+                            <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fas fa-store"></i></div>
+                                Belanja Stok Bahan
+                            </h4>
+                            <p class="text-xs text-slate-500 leading-relaxed">Katalog online untuk Anda membeli stok ayam marinasi, tepung bumbu, kemasan box, dan keperluan outlet lainnya.</p>
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-blue-200 transition-colors group">
+                            <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fas fa-shopping-basket"></i></div>
+                                Fitur Keranjang
+                            </h4>
+                            <p class="text-xs text-slate-500 leading-relaxed">Klik ikon keranjang di pojok kanan atas layar setiap saat untuk melihat rincian belanja dan melanjutkan pembayaran.</p>
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-blue-200 transition-colors group md:col-span-2">
+                            <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fas fa-clipboard-list"></i></div>
+                                Riwayat & Lacak Pesanan
+                            </h4>
+                            <p class="text-xs text-slate-500 leading-relaxed">Memantau status pengiriman belanjaan Anda dari pusat secara real-time. Anda juga dapat melihat nomor resi kurir dan mengunduh struk pembayaran (Invoice) di dalam menu ini.</p>
+                        </div>
+                    @endif
+
+                </div>
+            </div>
+
+            <div class="px-8 py-5 border-t border-slate-100 bg-slate-50 flex items-center justify-between shrink-0">
+                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest"><i class="fas fa-info-circle mr-1"></i> Sistem Manajemen v1.0</span>
+                <button @click="closeGuide()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs uppercase tracking-widest py-3 px-7 rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-2">
+                    Siap, Saya Mengerti! <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    @endif
+    {{-- ======================================================== --}}
 
     @stack('scripts')
 </body>
