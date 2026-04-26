@@ -113,11 +113,18 @@ class OwnerController extends Controller
     /**
      * 3. Laporan Menu Terpopuler
      */
-    public function menuReport() {
-        $menus = Menu::orderBy('loves', 'desc')->get();
-        return view('owner.reports.menus', compact('menus'));
-    }
+    public function menuReport() 
+{
+    // Ambil semua menu diurutkan dari yang paling banyak disukai
+    $menus = \App\Models\Menu::orderBy('loves', 'desc')->get();
 
+    // Data untuk Kartu Statistik (Dinamis)
+    $bestMenu = \App\Models\Menu::orderBy('loves', 'desc')->first();
+    $totalVariants = \App\Models\Menu::count();
+    $totalParticipation = \App\Models\Menu::sum('loves') + \App\Models\Menu::sum('hates');
+
+    return view('owner.reports.menus', compact('menus', 'bestMenu', 'totalVariants', 'totalParticipation'));
+}
     /**
      * 4. Log Aktivitas Sistem
      */
