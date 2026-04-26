@@ -121,8 +121,28 @@ class OwnerController extends Controller
     /**
      * 4. Log Aktivitas Sistem
      */
-    public function viewLogs() {
-        $logs = \App\Models\ActivityLog::with('user')->latest()->paginate(20);
+    public function viewLogs(Request $request)
+    {
+        // 1. Tangkap input pencarian dan jumlah data per halaman
+        $search = $request->input('search');
+        $perPage = $request->input('per_page', 10);
+
+        // 2. Tarik data dari ActivityLog dengan fitur filter dinamis
+        $logs = \App\Models\ActivityLog::with('user')
+            ->when($search, function ($query, $search) {
+                return $query->where(function($q) use ($search) {
+                    $q->where('action', 'like', "%{$search}%")
+                      ->orWhere('target_user', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%")
+                      ->orWhereHas('user', function ($u) use ($search) {
+                          $u->where('name', 'like', "%{$search}%");
+                      });
+                });
+            })
+            ->latest()
+            ->paginate($perPage)
+            ->withQueryString();
+
         return view('owner.logs.index', compact('logs'));
     }
 }
