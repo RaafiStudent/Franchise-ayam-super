@@ -22,11 +22,23 @@ class MessageController extends Controller
     }
 
     // 2. Admin Melihat Daftar Pesan (Admin Only)
-    public function index()
-    {
-        $messages = Message::latest()->paginate(10);
-        return view('admin.messages.index', compact('messages'));
-    }
+    public function index(Request $request)
+{
+    $search = $request->input('search');
+    $perPage = $request->input('per_page', 10);
+
+    $messages = \App\Models\Message::when($search, function ($query, $search) {
+            return $query->where('name', 'like', "%{$search}%")
+                         // UBAH DISINI: dari 'email' jadi 'contact' sesuai migration kamu
+                         ->orWhere('contact', 'like', "%{$search}%") 
+                         ->orWhere('message', 'like', "%{$search}%");
+        })
+        ->latest()
+        ->paginate($perPage)
+        ->withQueryString();
+
+    return view('admin.messages.index', compact('messages'));
+}
 
     // 3. Admin Hapus Pesan
     public function destroy($id)
