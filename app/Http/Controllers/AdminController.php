@@ -112,9 +112,26 @@ class AdminController extends Controller
         return redirect()->back()->with('success', 'Akun Mitra berhasil diaktifkan!');
     }
 
-    public function viewLogs() {
-        $logs = \App\Models\ActivityLog::with('user')->latest()->paginate(20);
-        return view('admin.logs.index', compact('logs'));
+    public function viewLogs(Request $request)
+    {
+        $search = $request->input('search');
+        $perPage = $request->input('per_page', 10);
+
+        $logs = \App\Models\ActivityLog::with('user') 
+            ->when($search, function ($query, $search) {
+                return $query->where('action', 'like', "%{$search}%")
+                             ->orWhere('target_user', 'like', "%{$search}%")
+                             ->orWhere('description', 'like', "%{$search}%")
+                             ->orWhereHas('user', function ($q) use ($search) {
+                                 $q->where('name', 'like', "%{$search}%");
+                             });
+            })
+            ->latest() 
+            ->paginate($perPage)
+            ->withQueryString(); 
+
+        // FIX: Ubah pemanggilan view sesuai struktur folder kamu!
+        return view('admin.logs.index', compact('logs')); 
     }
     
     // 3. Proses Blokir / Tolak
