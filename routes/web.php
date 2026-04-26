@@ -83,11 +83,11 @@ Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
         Route::post('/cart/decrease/{id}', [ShopController::class, 'decreaseCart'])->name('cart.decrease');
         
         // =========================================================
-        // FIX: RUTE BARU UNTUK TONG SAMPAH DI LACI KERANJANG
+        // FIX: RUTE HAPUS TONG SAMPAH (Anti Refresh)
         // =========================================================
         Route::delete('/cart/remove/{id}', function($id) {
             \App\Models\Cart::where('id', $id)->where('user_id', Auth::id())->delete();
-            return back()->with('success', 'Barang dihapus dari keranjang');
+            return response()->json(['status' => 'success']); // Dibuat format JSON murni
         })->name('cart.remove');
         // =========================================================
 
