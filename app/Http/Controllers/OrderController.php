@@ -9,14 +9,26 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class OrderController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $orders = Order::where('user_id', Auth::id())
-                    ->orderBy('created_at', 'desc')
-                    ->get();
+        // Tangkap request pencarian dan filter jumlah data (default 10)
+        $search = $request->input('search');
+        $perPage = $request->input('per_page', 10);
 
-        // PERBAIKAN ALAMAT VIEW: mitra/orders/index.blade.php
-        return view('mitra.orders.index', compact('orders'));
+        // Ambil data pesanan khusus untuk Mitra yang sedang login
+        $orders = \App\Models\Order::where('user_id', \Illuminate\Support\Facades\Auth::id())
+            ->when($search, function ($query, $search) {
+                // Bersihkan kata #ORDER- jika user mengetik itu di pencarian
+                $searchId = str_replace('#ORDER-', '', $search);
+                return $query->where('id', 'like', "%{$searchId}%")
+                             ->orWhere('resi_number', 'like', "%{$search}%");
+            })
+            ->latest()
+            ->paginate($perPage)
+            ->withQueryString();
+
+        // FIX: Alamat view diarahkan ke dalam folder mitra
+        return view('mitra.orders.index', compact('orders')); 
     }
 
     public function show($id)
@@ -25,7 +37,6 @@ class OrderController extends Controller
                     ->where('user_id', Auth::id())
                     ->findOrFail($id);
 
-        // PERBAIKAN ALAMAT VIEW: mitra/orders/show.blade.php
         return view('mitra.orders.show', compact('order'));
     }
     
@@ -51,7 +62,6 @@ class OrderController extends Controller
                     ->where('user_id', Auth::id())
                     ->findOrFail($id);
 
-        // PERBAIKAN ALAMAT VIEW: mitra/orders/invoice_pdf.blade.php
         $pdf = Pdf::loadView('mitra.orders.invoice_pdf', compact('order'));
 
         return $pdf->stream('Invoice-AyamSuper-ORDER-'.$order->id.'.pdf');
