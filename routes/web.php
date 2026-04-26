@@ -65,7 +65,9 @@ Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
         Route::get('/reports/export', [ReportController::class, 'exportPdf'])->name('reports.export');
         Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
         Route::delete('/messages/{id}', [MessageController::class, 'destroy'])->name('messages.destroy');
-    });
+        Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function () {
+    Route::resource('menus', MenuController::class);
+});
 
     // C. GRUP ROLE: OWNER (Monitoring Khusus)
     Route::middleware(['role:owner'])->prefix('owner')->name('owner.')->group(function () {
