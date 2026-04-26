@@ -23,9 +23,20 @@ class UserManagementController extends Controller
         ]);
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::latest()->paginate(10);
+        // 1. Tangkap kata kunci dari form pencarian
+        $search = $request->input('search');
+
+        // 2. Tarik data dari database dengan fitur filter
+        $users = User::when($search, function ($query, $search) {
+                return $query->where('name', 'like', "%{$search}%")
+                             ->orWhere('email', 'like', "%{$search}%");
+            })
+            ->latest() // Urutkan dari yang terbaru
+            ->paginate(10) // Batasi 10 per halaman
+            ->withQueryString(); // Jaga kata kunci agar tidak hilang saat pindah halaman (pagination)
+
         return view('admin.users.index', compact('users'));
     }
 
