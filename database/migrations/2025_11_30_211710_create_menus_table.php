@@ -16,11 +16,9 @@ return new class extends Migration
         $table->string('name');
         $table->string('description');
         $table->string('image')->nullable();
-        
-        $table->integer('loves')->default(0);    // Kolom Like
-        $table->integer('dislikes')->default(0); // <--- TAMBAHKAN INI (Kolom Dislike)
-        
-        $table->string('badge')->nullable();
+        $table->integer('loves')->default(0);  // Suka
+        $table->integer('hates')->default(0);  // Gak Suka
+        $table->string('badge')->nullable();   // Contoh: 'HEMAT', 'NEW'
         $table->string('badge_color')->nullable();
         $table->timestamps();
     });
