@@ -9,11 +9,22 @@ use Illuminate\Support\Facades\Storage;
 class ProductController extends Controller
 {
     // 1. Tampilkan Daftar Produk
-    public function index()
-    {
-        $products = Product::latest()->get();
-        return view('admin.products.index', compact('products'));
-    }
+    public function index(Request $request)
+{
+    // 1. Tangkap kata kunci pencarian
+    $search = $request->input('search');
+
+    // 2. Ambil data dengan fitur Search & Pagination
+    $products = Product::when($search, function ($query, $search) {
+            return $query->where('name', 'like', "%{$search}%")
+                         ->orWhere('description', 'like', "%{$search}%");
+        })
+        ->latest()
+        ->paginate(10) // Gunakan paginate agar total() bisa terbaca
+        ->withQueryString();
+
+    return view('admin.products.index', compact('products'));
+}
 
     // 2. Tampilkan Form Tambah
     public function create()
