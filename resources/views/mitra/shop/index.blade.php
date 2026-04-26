@@ -5,6 +5,11 @@
         </h2>
     </x-slot>
 
+    <head>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <meta name="csrf-token" content="{{ csrf_token() }}"> 
+    </head>
+
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
         @if(session('error'))
             <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative shadow-md">
