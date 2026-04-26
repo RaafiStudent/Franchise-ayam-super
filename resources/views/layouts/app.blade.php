@@ -54,7 +54,16 @@
                         <i class="fas fa-history w-5 text-center {{ request()->routeIs('admin.logs') ? 'text-red-700' : 'text-red-300 group-hover:text-white' }} transition-colors"></i>
                         Audit Log
                     </a>
+                    
                     <p class="px-3 text-[10px] font-black text-red-200 uppercase tracking-widest mb-3 mt-6">Bisnis & Operasional</p>
+                    
+                    {{-- TAMBAHAN: MENU KATALOG MENU (DINAMIS) --}}
+                    <a href="{{ route('admin.menus.index') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 {{ request()->routeIs('admin.menus.*') ? 'bg-white text-red-800 shadow-sm font-bold' : 'text-red-100 hover:bg-red-800/50 hover:text-white font-medium group' }}">
+                        <i class="fas fa-utensils w-5 text-center {{ request()->routeIs('admin.menus.*') ? 'text-red-700' : 'text-red-300 group-hover:text-white' }} transition-colors"></i>
+                        Katalog Menu
+                    </a>
+                    {{-- AKHIR TAMBAHAN --}}
+
                     <a href="{{ route('admin.products.index') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 {{ request()->routeIs('admin.products.*') ? 'bg-white text-red-800 shadow-sm font-bold' : 'text-red-100 hover:bg-red-800/50 hover:text-white font-medium group' }}">
                         <i class="fas fa-box-open w-5 text-center {{ request()->routeIs('admin.products.*') ? 'text-red-700' : 'text-red-300 group-hover:text-white' }} transition-colors"></i>
                         Produk
@@ -63,9 +72,13 @@
                         <i class="fas fa-shopping-cart w-5 text-center {{ request()->routeIs('admin.orders.*') ? 'text-red-700' : 'text-red-300 group-hover:text-white' }} transition-colors"></i>
                         Pesanan
                     </a>
+                    
+                    {{-- FIX: Menambahkan </a> penutup pada Laporan yang hilang di kodingan aslimu --}}
                     <a href="{{ route('admin.reports.index') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 {{ request()->routeIs('admin.reports.*') ? 'bg-white text-red-800 shadow-sm font-bold' : 'text-red-100 hover:bg-red-800/50 hover:text-white font-medium group' }}">
                         <i class="fas fa-chart-pie w-5 text-center {{ request()->routeIs('admin.reports.*') ? 'text-red-700' : 'text-red-300 group-hover:text-white' }} transition-colors"></i>
                         Laporan
+                    </a>
+
                     <a href="{{ route('admin.messages.index') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 {{ request()->routeIs('admin.messages.*') ? 'bg-white text-red-800 shadow-sm font-bold' : 'text-red-100 hover:bg-red-800/50 hover:text-white font-medium group' }} mt-2">
                         <i class="fas fa-inbox w-5 text-center {{ request()->routeIs('admin.messages.*') ? 'text-red-700' : 'text-red-300 group-hover:text-white' }} transition-colors"></i>
                          Kotak Masuk
