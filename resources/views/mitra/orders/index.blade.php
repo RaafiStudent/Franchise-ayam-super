@@ -55,7 +55,7 @@
                                         @endif
                                     </td>
 
-                                    {{-- Status Pengiriman (DIPERBAIKI) --}}
+                                    {{-- Status Pengiriman --}}
                                     <td class="py-3 px-6 text-center">
                                         @if($order->order_status == 'pending')
                                             <span class="bg-gray-200 text-gray-600 py-1 px-3 rounded-full text-xs font-bold">
