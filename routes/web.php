@@ -81,6 +81,16 @@ Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
         Route::get('/shop', [ShopController::class, 'index'])->name('mitra.shop');
         Route::post('/cart/add/{id}', [ShopController::class, 'addToCart'])->name('cart.add');
         Route::post('/cart/decrease/{id}', [ShopController::class, 'decreaseCart'])->name('cart.decrease');
+        
+        // =========================================================
+        // FIX: RUTE BARU UNTUK TONG SAMPAH DI LACI KERANJANG
+        // =========================================================
+        Route::delete('/cart/remove/{id}', function($id) {
+            \App\Models\Cart::where('id', $id)->where('user_id', Auth::id())->delete();
+            return back()->with('success', 'Barang dihapus dari keranjang');
+        })->name('cart.remove');
+        // =========================================================
+
         Route::post('/checkout', [CheckoutController::class, 'process'])->name('checkout.process');
         Route::get('/checkout/{id}', [CheckoutController::class, 'show'])->name('checkout.show');
         Route::get('/my-orders', [OrderController::class, 'index'])->name('orders.index');
