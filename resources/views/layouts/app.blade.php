@@ -66,13 +66,9 @@
                     <a href="{{ route('admin.reports.index') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 {{ request()->routeIs('admin.reports.*') ? 'bg-white text-red-800 shadow-sm font-bold' : 'text-red-100 hover:bg-red-800/50 hover:text-white font-medium group' }}">
                         <i class="fas fa-chart-pie w-5 text-center {{ request()->routeIs('admin.reports.*') ? 'text-red-700' : 'text-red-300 group-hover:text-white' }} transition-colors"></i>
                         Laporan
-                    </a>
-                    <a href="{{ route('admin.messages.index') }}" class="flex items-center justify-between px-4 py-2.5 rounded-xl transition-all duration-300 {{ request()->routeIs('admin.messages.*') ? 'bg-white text-red-800 shadow-sm font-bold' : 'text-red-100 hover:bg-red-800/50 hover:text-white font-medium group' }} mt-2">
-                        <div class="flex items-center gap-3">
-                            <i class="fas fa-inbox w-5 text-center {{ request()->routeIs('admin.messages.*') ? 'text-red-700' : 'text-red-300 group-hover:text-white' }} transition-colors"></i>
-                            Kotak Masuk
-                        </div>
-                        <span class="bg-yellow-400 text-yellow-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">3</span>
+                    <a href="{{ route('admin.messages.index') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 {{ request()->routeIs('admin.messages.*') ? 'bg-white text-red-800 shadow-sm font-bold' : 'text-red-100 hover:bg-red-800/50 hover:text-white font-medium group' }} mt-2">
+                        <i class="fas fa-inbox w-5 text-center {{ request()->routeIs('admin.messages.*') ? 'text-red-700' : 'text-red-300 group-hover:text-white' }} transition-colors"></i>
+                         Kotak Masuk
                     </a>
                 @endif
 
