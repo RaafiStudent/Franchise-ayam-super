@@ -18,15 +18,14 @@ class HomeController extends Controller
         // SKENARIO 1: SUDAH LIKE -> MAU UN-LIKE (CANCEL)
         if (in_array($id, $likedMenus)) {
             $menu->decrement('loves');
-            // Hapus dari session
             $likedMenus = array_diff($likedMenus, [$id]);
             Session::put('liked_menus', $likedMenus);
         } 
         // SKENARIO 2: BELUM LIKE -> MAU LIKE
         else {
-            // Cek dulu, apakah dia lagi Dislike? Kalau iya, matikan Dislike-nya (Switching)
+            // Cek dulu, apakah dia lagi Dislike? Kalau iya, matikan Dislike-nya
             if (in_array($id, $dislikedMenus)) {
-                $menu->decrement('dislikes');
+                $menu->decrement('hates'); // FIX: Gunakan hates
                 $dislikedMenus = array_diff($dislikedMenus, [$id]);
                 Session::put('disliked_menus', $dislikedMenus);
             }
@@ -36,17 +35,15 @@ class HomeController extends Controller
             Session::push('liked_menus', $id);
         }
 
-        // PENTING: Refresh data dari database agar angka yang dikirim ke JS akurat
-        // Tanpa ini, hitungan rating di JS bakal ngaco
+        // Refresh data dari database agar angka yang dikirim akurat
         $menu->refresh(); 
 
         return response()->json([
             'success' => true,
-            'likes' => $menu->loves,
-            'dislikes' => $menu->dislikes,
-            // Kirim status terbaru (apakah sekarang sedang dilike atau tidak)
+            'loves' => $menu->loves,   // FIX: Kirim data loves
+            'hates' => $menu->hates,   // FIX: Kirim data hates
             'is_liked' => in_array($id, Session::get('liked_menus', [])),
-            'is_disliked' => false // Karena kalau masuk sini, pasti dislike mati
+            'is_disliked' => false 
         ]);
     }
 
@@ -59,13 +56,13 @@ class HomeController extends Controller
 
         // SKENARIO 1: SUDAH DISLIKE -> MAU UN-DISLIKE (CANCEL)
         if (in_array($id, $dislikedMenus)) {
-            $menu->decrement('dislikes');
+            $menu->decrement('hates'); // FIX: Gunakan hates
             $dislikedMenus = array_diff($dislikedMenus, [$id]);
             Session::put('disliked_menus', $dislikedMenus);
         } 
         // SKENARIO 2: BELUM DISLIKE -> MAU DISLIKE
         else {
-            // Cek dulu, apakah dia lagi Like? Kalau iya, matikan Like-nya (Switching)
+            // Cek dulu, apakah dia lagi Like? Kalau iya, matikan Like-nya
             if (in_array($id, $likedMenus)) {
                 $menu->decrement('loves');
                 $likedMenus = array_diff($likedMenus, [$id]);
@@ -73,18 +70,17 @@ class HomeController extends Controller
             }
 
             // Baru tambahkan Dislike
-            $menu->increment('dislikes');
+            $menu->increment('hates'); // FIX: Gunakan hates
             Session::push('disliked_menus', $id);
         }
 
-        // PENTING: Refresh data
         $menu->refresh();
 
         return response()->json([
             'success' => true,
-            'likes' => $menu->loves,
-            'dislikes' => $menu->dislikes,
-            'is_liked' => false, // Karena kalau masuk sini, pasti like mati
+            'loves' => $menu->loves,   // FIX: Kirim data loves
+            'hates' => $menu->hates,   // FIX: Kirim data hates
+            'is_liked' => false, 
             'is_disliked' => in_array($id, Session::get('disliked_menus', []))
         ]);
     }
