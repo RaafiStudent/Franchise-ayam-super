@@ -143,14 +143,12 @@
         </div>
     </div>
 
-    {{-- SCRIPT JAVASCRIPT AJAX (OTAKNYA ADA DI SINI) --}}
+    {{-- SCRIPT JAVASCRIPT AJAX (DIPERBAIKI) --}}
     <script>
         async function updateCart(productId, action) {
-            // Tentukan URL berdasarkan aksi (add / decrease)
             let url = action === 'add' ? '/cart/add/' + productId : '/cart/decrease/' + productId;
             
             try {
-                // Kirim request ke server tanpa refresh halaman (Fetch API)
                 let response = await fetch(url, {
                     method: 'POST',
                     headers: {
@@ -162,41 +160,9 @@
                 let data = await response.json();
 
                 if (data.status === 'success') {
-                    // 1. Update Tampilan Footer
-                    document.getElementById('total-price-display').innerText = 'Rp ' + data.total_price;
-                    document.getElementById('total-qty-badge').innerText = data.total_qty;
-
-                    // Show/Hide Footer berdasarkan jumlah item
-                    let footer = document.getElementById('cart-footer');
-                    if (data.total_qty > 0) {
-                        footer.classList.remove('hidden');
-                    } else {
-                        footer.classList.add('hidden');
-                    }
-
-                    // 2. Update Angka di Produk Spesifik
-                    let container = document.querySelector(`.product-action-container[data-id="${productId}"]`);
-                    let btnAdd = container.querySelector('.btn-add');
-                    let btnCounter = container.querySelector('.btn-counter');
-                    let qtyDisplay = container.querySelector(`#qty-${productId}`);
-
-                    // Ambil qty terbaru produk ini dari respon server
-                    // Jika tidak ada di list cart_items, berarti qty = 0
-                    let newQty = data.cart_items[productId] || 0;
-
-                    // Update angka di tengah tombol
-                    qtyDisplay.innerText = newQty;
-
-                    // Logika Ganti Tombol (Pesan <-> Counter)
-                    if (newQty > 0) {
-                        btnAdd.classList.add('hidden');
-                        btnCounter.classList.remove('hidden');
-                        btnCounter.classList.add('flex');
-                    } else {
-                        btnAdd.classList.remove('hidden');
-                        btnCounter.classList.add('hidden');
-                        btnCounter.classList.remove('flex');
-                    }
+                    // FIX: Reload halaman agar Laci Keranjang (Sidebar) dan Badge Notif
+                    // langsung menarik data terbaru dari database secara akurat!
+                    window.location.reload(); 
                 }
 
             } catch (error) {
