@@ -14,7 +14,7 @@ use App\Http\Controllers\MenuReportController;
 use App\Http\Controllers\OwnerController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Admin\UserManagementController;
-use App\Http\Controllers\Admin\MenuController; // TAMBAHAN IMPORT UNTUK MENU
+use App\Http\Controllers\Admin\MenuController;
 use App\Models\Menu;
 use Illuminate\Support\Facades\Route;
 
@@ -59,7 +59,6 @@ Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
         Route::patch('/mitra/{id}/approve', [AdminController::class, 'approve'])->name('mitra.approve');
         Route::patch('/mitra/{id}/reject', [AdminController::class, 'reject'])->name('mitra.reject');
         
-        // TAMBAHAN: Rute Manajemen Menu (Satu Baris, Langsung Rapih)
         Route::resource('menus', MenuController::class);
         
         Route::resource('products', ProductController::class);
@@ -70,7 +69,7 @@ Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
         Route::get('/reports/export', [ReportController::class, 'exportPdf'])->name('reports.export');
         Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
         Route::delete('/messages/{id}', [MessageController::class, 'destroy'])->name('messages.destroy');
-    }); // <-- FIX: Penutup Grup Admin yang sebelumnya hilang / rusak
+    });
 
     // C. GRUP ROLE: OWNER (Monitoring Khusus)
     Route::middleware(['role:owner'])->prefix('owner')->name('owner.')->group(function () {
@@ -87,9 +86,6 @@ Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
         Route::post('/cart/add/{id}', [ShopController::class, 'addToCart'])->name('cart.add');
         Route::post('/cart/decrease/{id}', [ShopController::class, 'decreaseCart'])->name('cart.decrease');
         
-        // =========================================================
-        // FIX: Rute Hapus Tong Sampah (Anti Refresh & Mengirim JSON)
-        // =========================================================
         Route::delete('/cart/remove/{id}', function($id) {
             \App\Models\Cart::where('id', $id)->where('user_id', Auth::id())->delete();
             $carts = \App\Models\Cart::with('product')->where('user_id', Auth::id())->get();
@@ -102,7 +98,6 @@ Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
                 'total_qty' => $carts->sum('quantity')
             ]);
         })->name('cart.remove');
-        // =========================================================
 
         Route::post('/checkout', [CheckoutController::class, 'process'])->name('checkout.process');
         Route::get('/checkout/{id}', [CheckoutController::class, 'show'])->name('checkout.show');
@@ -115,6 +110,10 @@ Route::middleware(['auth', 'verified', 'is_active'])->group(function () {
     // E. PROFILE & NOTIFICATION (Semua Role)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    
+    // FITUR BARU: ROUTE GANTI PASSWORD
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
+    
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     
     Route::get('/notification/read/{id}', [NotificationController::class, 'read'])->name('notification.read');
