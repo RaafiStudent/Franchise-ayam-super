@@ -117,6 +117,15 @@
                         Riwayat Pesanan
                     </a>
                 @endif
+
+                {{-- FITUR BARU: MENU UNIVERSAL UNTUK SEMUA ROLE --}}
+                <p class="px-3 text-[10px] font-black text-red-200 uppercase tracking-widest mb-3 mt-8">Akun & Bantuan</p>
+                <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 {{ request()->routeIs('profile.*') ? 'bg-white text-red-800 shadow-sm font-bold' : 'text-red-100 hover:bg-red-800/50 hover:text-white font-medium group' }}">
+                    <i class="fas fa-user-cog w-5 text-center {{ request()->routeIs('profile.*') ? 'text-red-700' : 'text-red-300 group-hover:text-white' }} transition-colors"></i>
+                    Edit Profil
+                </a>
+                {{-- AKHIR FITUR BARU --}}
+
             </nav>
 
             <div class="p-5 bg-red-900/50 border-t border-red-900/50">
@@ -200,7 +209,6 @@
 
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        {{-- FIX: onclick="sessionStorage.clear()" agar pop-up guide me-reset dan muncul lagi saat user login berikutnya --}}
                         <button type="submit" onclick="sessionStorage.clear()" class="group flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 hover:text-red-600 transition-all">
                             Keluar
                             <i class="fas fa-sign-out-alt text-slate-400 group-hover:text-red-600 transition-colors"></i>
@@ -396,22 +404,17 @@
     @endif
 
     {{-- ======================================================== --}}
-    {{-- MODAL PANDUAN PENGGUNA (USER ONBOARDING) PREMIUM         --}}
+    {{-- MODAL PANDUAN PENGGUNA (MUNCUL SEKALI SETIAP KALI LOGIN) --}}
     {{-- ======================================================== --}}
-    @if(Auth::check())
+    @if(Auth::check() && !session()->has('welcome_guide_shown'))
+    @php session()->put('welcome_guide_shown', true); @endphp
     <div x-data="{
             showGuide: false,
             init() {
-                // Menggunakan sessionStorage, pop-up tidak akan muncul saat pindah menu.
-                // TAPI karena tombol Logout akan menghapus memori ini, pop-up akan MUNCUL KEMBALI setiap user Login!
-                const isSeen = sessionStorage.getItem('guide_seen_{{ Auth::id() }}');
-                if(!isSeen) {
-                    setTimeout(() => { this.showGuide = true; }, 400); 
-                }
+                setTimeout(() => { this.showGuide = true; }, 400); 
             },
             closeGuide() {
                 this.showGuide = false;
-                sessionStorage.setItem('guide_seen_{{ Auth::id() }}', 'true');
             }
         }"
         x-show="showGuide"
@@ -446,7 +449,7 @@
                     </div>
                     <div>
                         <h3 class="text-xl font-extrabold text-slate-800 tracking-tight">Selamat Datang, {{ explode(' ', Auth::user()->name)[0] }}! 👋</h3>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Panduan Lengkap Dashboard {{ ucfirst(Auth::user()->role) }}</p>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Panduan Cepat Dashboard {{ ucfirst(Auth::user()->role) }}</p>
                     </div>
                 </div>
                 <button @click="closeGuide()" class="w-8 h-8 rounded-full bg-slate-200 text-slate-500 hover:bg-red-100 hover:text-red-600 flex items-center justify-center transition-colors">
