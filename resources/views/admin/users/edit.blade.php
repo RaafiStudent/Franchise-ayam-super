@@ -10,7 +10,8 @@
         </div>
     </x-slot>
 
-    <div class="py-10 pb-24" x-data="{ role: '{{ $user->role }}' }">
+    {{-- TAMBAHAN: Menambahkan showConfirmModal ke dalam x-data --}}
+    <div class="py-10 pb-24" x-data="{ role: '{{ $user->role }}', showConfirmModal: false }">
         <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
             
             {{-- ALERT ERROR --}}
@@ -23,7 +24,8 @@
                 </div>
             @endif
 
-            <form action="{{ route('admin.users.update', $user->id) }}" method="POST" enctype="multipart/form-data">
+            {{-- TAMBAHAN: Menambahkan id="formUpdateUser" dan @submit.prevent untuk menahan submit langsung --}}
+            <form id="formUpdateUser" action="{{ route('admin.users.update', $user->id) }}" method="POST" enctype="multipart/form-data" @submit.prevent="showConfirmModal = true">
                 @csrf
                 @method('PUT')
 
@@ -170,25 +172,33 @@
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div>
+                                {{-- TAMBAHAN: x-data showPw1 dan Icon Mata --}}
+                                <div x-data="{ showPw1: false }">
                                     <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Password Baru</label>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                             <i class="fas fa-lock text-slate-300"></i>
                                         </div>
-                                        <input type="password" name="password" 
-                                               class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border-transparent focus:border-red-500 focus:ring-4 focus:ring-red-500/10 rounded-2xl text-sm font-bold text-slate-700 transition-all placeholder-slate-300" placeholder="Minimal 8 karakter">
+                                        <input :type="showPw1 ? 'text' : 'password'" name="password" 
+                                               class="w-full pl-11 pr-12 py-3.5 bg-slate-50 border-transparent focus:border-red-500 focus:ring-4 focus:ring-red-500/10 rounded-2xl text-sm font-bold text-slate-700 transition-all placeholder-slate-300" placeholder="Minimal 8 karakter">
+                                        <button type="button" @click="showPw1 = !showPw1" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-600 transition-colors focus:outline-none">
+                                            <i class="fas" :class="showPw1 ? 'fa-eye-slash' : 'fa-eye'"></i>
+                                        </button>
                                     </div>
                                 </div>
 
-                                <div>
+                                {{-- TAMBAHAN: x-data showPw2 dan Icon Mata --}}
+                                <div x-data="{ showPw2: false }">
                                     <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Konfirmasi Password Baru</label>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                             <i class="fas fa-shield-alt text-slate-300"></i>
                                         </div>
-                                        <input type="password" name="password_confirmation" 
-                                               class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border-transparent focus:border-red-500 focus:ring-4 focus:ring-red-500/10 rounded-2xl text-sm font-bold text-slate-700 transition-all placeholder-slate-300" placeholder="Ulangi password di atas">
+                                        <input :type="showPw2 ? 'text' : 'password'" name="password_confirmation" 
+                                               class="w-full pl-11 pr-12 py-3.5 bg-slate-50 border-transparent focus:border-red-500 focus:ring-4 focus:ring-red-500/10 rounded-2xl text-sm font-bold text-slate-700 transition-all placeholder-slate-300" placeholder="Ulangi password di atas">
+                                        <button type="button" @click="showPw2 = !showPw2" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-600 transition-colors focus:outline-none">
+                                            <i class="fas" :class="showPw2 ? 'fa-eye-slash' : 'fa-eye'"></i>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -207,6 +217,46 @@
                     </div>
                 </div>
             </form>
+            
+            {{-- TAMBAHAN: MODAL KONFIRMASI GANTI DATA / PASSWORD --}}
+            <div x-show="showConfirmModal" x-cloak class="fixed inset-0 z-[150] flex items-center justify-center p-4">
+                <div x-show="showConfirmModal" 
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition ease-in duration-200"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
+                     @click="showConfirmModal = false">
+                </div>
+
+                <div x-show="showConfirmModal"
+                     x-transition:enter="transition ease-out duration-300 transform"
+                     x-transition:enter-start="opacity-0 translate-y-8 scale-95"
+                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                     x-transition:leave="transition ease-in duration-200 transform"
+                     x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                     x-transition:leave-end="opacity-0 translate-y-8 scale-95"
+                     class="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden p-8 text-center"
+                >
+                    <div class="w-20 h-20 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h3 class="text-xl font-black text-slate-800 mb-2">Simpan Perubahan?</h3>
+                    <p class="text-sm text-slate-500 mb-8 font-medium">Pastikan data yang Anda ubah sudah benar, terutama jika Anda mengubah status keaktifan atau mereset password pengguna.</p>
+                    
+                    <div class="flex items-center gap-4">
+                        <button @click="showConfirmModal = false" type="button" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3.5 rounded-xl transition-colors">
+                            Batal
+                        </button>
+                        <button onclick="document.getElementById('formUpdateUser').submit()" type="button" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-red-200 transition-all active:scale-95">
+                            Ya, Simpan!
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
         </div>
     </div>
 
