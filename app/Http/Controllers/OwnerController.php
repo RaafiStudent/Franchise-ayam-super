@@ -16,7 +16,6 @@ class OwnerController extends Controller
      */
     public function index()
     {
-        // Penamaan variabel di bawah ini disesuaikan agar cocok dengan file Blade
         $totalOmsetAllTime = Order::where('payment_status', 'paid')->sum('total_price');
         
         $omsetYear = Order::where('payment_status', 'paid')
@@ -80,6 +79,18 @@ class OwnerController extends Controller
                     ->whereYear('created_at', Carbon::now()->year)
                     ->sum('total_price');
             }
+        // FITUR BARU: ALL TIME (Grafik Tahunan)
+        } elseif ($filter == 'all_time') {
+            $firstOrder = Order::orderBy('created_at', 'asc')->first();
+            $startYear = $firstOrder ? Carbon::parse($firstOrder->created_at)->year : Carbon::now()->year;
+            $currentYear = Carbon::now()->year;
+
+            for ($y = $startYear; $y <= $currentYear; $y++) {
+                $label[] = (string)$y;
+                $dataPendapatan[] = Order::where('payment_status', 'paid')
+                    ->whereYear('created_at', $y)
+                    ->sum('total_price');
+            }
         }
 
         // --- DATA RINGKASAN & TABEL ---
@@ -88,6 +99,7 @@ class OwnerController extends Controller
         if($filter == 'week') $queryBase->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
         if($filter == 'month') $queryBase->whereMonth('created_at', Carbon::now()->month);
         if($filter == 'year') $queryBase->whereYear('created_at', Carbon::now()->year);
+        // Jika all_time, tidak perlu filter queryBase, ambil semua.
 
         $totalOmset = $queryBase->sum('total_price');
         $totalTransaksi = $queryBase->count();
@@ -115,13 +127,10 @@ class OwnerController extends Controller
      */
     public function menuReport() 
     {
-        // Ambil semua menu diurutkan dari Suka terbanyak. 
-        // Jika Sukanya SAMA, maka yang Gak Suka-nya PALING SEDIKIT akan ditaruh di atas.
         $menus = \App\Models\Menu::orderBy('loves', 'desc')
                                  ->orderBy('hates', 'asc')
                                  ->get();
 
-        // Data untuk Kartu Statistik (Dinamis)
         $bestMenu = \App\Models\Menu::orderBy('loves', 'desc')
                                     ->orderBy('hates', 'asc')
                                     ->first();
@@ -131,16 +140,15 @@ class OwnerController extends Controller
 
         return view('owner.reports.menus', compact('menus', 'bestMenu', 'totalVariants', 'totalParticipation'));
     }
+    
     /**
      * 4. Log Aktivitas Sistem
      */
     public function viewLogs(Request $request)
     {
-        // 1. Tangkap input pencarian dan jumlah data per halaman
         $search = $request->input('search');
         $perPage = $request->input('per_page', 10);
 
-        // 2. Tarik data dari ActivityLog dengan fitur filter dinamis
         $logs = \App\Models\ActivityLog::with('user')
             ->when($search, function ($query, $search) {
                 return $query->where(function($q) use ($search) {
