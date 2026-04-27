@@ -8,11 +8,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 class LoginRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Menentukan apakah pengguna diizinkan untuk membuat request ini.
      */
     public function authorize(): bool
     {
@@ -20,9 +22,9 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Aturan validasi yang diterapkan pada request saat login.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, \Illuminate\Contracts\Validation\Rule|array|string>
      */
     public function rules(): array
     {
@@ -33,7 +35,21 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Attempt to authenticate the request's credentials.
+     * KAMUS BAHASA INDONESIA: Pesan error khusus jika form kosong atau salah ketik.
+     */
+    public function messages(): array
+    {
+        return [
+            'email.required' => 'Alamat email tidak boleh kosong.',
+            'email.email' => 'Format email tidak valid (harus menggunakan @).',
+            'password.required' => 'Password tidak boleh kosong.',
+            'password.min' => 'Password minimal harus 8 karakter.',
+            'password.confirmed' => 'Konfirmasi password tidak cocok.'
+        ];
+    }
+
+    /**
+     * Mencoba memproses autentikasi login pengguna.
      *
      * @throws \Illuminate\Validation\ValidationException
      */
@@ -41,19 +57,35 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
-            RateLimiter::hit($this->throttleKey());
+        // 1. KITA CEK EMAILNYA DULU
+        $user = User::where('email', $this->email)->first();
 
+        if (! $user) {
+            RateLimiter::hit($this->throttleKey());
+            
+            // JIKA EMAIL TIDAK ADA DI DATABASE -> ERROR DI BAWAH EMAIL
             throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
+                'email' => 'Alamat email ini belum terdaftar di sistem kami.',
             ]);
         }
 
+        // 2. JIKA EMAIL BENAR, KITA CEK PASSWORDNYA
+        if (! Hash::check($this->password, $user->password)) {
+            RateLimiter::hit($this->throttleKey());
+            
+            // JIKA PASSWORD SALAH -> ERROR DI BAWAH PASSWORD
+            throw ValidationException::withMessages([
+                'password' => 'Password yang Anda masukkan salah. Silakan coba lagi.',
+            ]);
+        }
+
+        // 3. JIKA EMAIL DAN PASSWORD BENAR -> LOGIN SUKSES
+        Auth::login($user, $this->boolean('remember'));
         RateLimiter::clear($this->throttleKey());
     }
 
     /**
-     * Ensure the login request is not rate limited.
+     * Memastikan request login tidak melebihi batas (Anti-Spam / Bruteforce).
      *
      * @throws \Illuminate\Validation\ValidationException
      */
@@ -68,18 +100,15 @@ class LoginRequest extends FormRequest
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
         throw ValidationException::withMessages([
-            'email' => trans('auth.throttle', [
-                'seconds' => $seconds,
-                'minutes' => ceil($seconds / 60),
-            ]),
+            'email' => 'Terlalu banyak percobaan login. Silakan tunggu ' . $seconds . ' detik.',
         ]);
     }
 
     /**
-     * Get the rate limiting throttle key for the request.
+     * Mendapatkan kunci batasan (throttle key) untuk request ini.
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
+        return Str::transliterate(Str::lower($this->input('email')).'|'.$this->ip());
     }
 }
