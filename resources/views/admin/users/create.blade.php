@@ -136,7 +136,7 @@
                             </div>
                         </div>
 
-                        {{-- BAGIAN 3: KEAMANAN PASSWORD --}}
+                        {{-- BAGIAN 3: KEAMANAN PASSWORD DENGAN IKON MATA --}}
                         <div>
                             <h3 class="text-sm font-black text-red-600 uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
                                 <span class="w-8 h-px bg-red-200"></span>
@@ -144,27 +144,33 @@
                             </h3>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div>
+                                <div x-data="{ showPw1: false }">
                                     <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Password</label>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                             <i class="fas fa-lock text-slate-300"></i>
                                         </div>
-                                        <input type="password" name="password" required
-                                               class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border-transparent focus:border-red-500 focus:ring-4 focus:ring-red-500/10 rounded-2xl text-sm font-bold text-slate-700 transition-all placeholder-slate-400" 
+                                        <input :type="showPw1 ? 'text' : 'password'" name="password" required
+                                               class="w-full pl-11 pr-12 py-3.5 bg-slate-50 border-transparent focus:border-red-500 focus:ring-4 focus:ring-red-500/10 rounded-2xl text-sm font-bold text-slate-700 transition-all placeholder-slate-400" 
                                                placeholder="Minimal 8 karakter">
+                                        <button type="button" @click="showPw1 = !showPw1" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-600 transition-colors focus:outline-none">
+                                            <i class="fas" :class="showPw1 ? 'fa-eye-slash' : 'fa-eye'"></i>
+                                        </button>
                                     </div>
                                 </div>
 
-                                <div>
+                                <div x-data="{ showPw2: false }">
                                     <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Konfirmasi Password</label>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                             <i class="fas fa-shield-alt text-slate-300"></i>
                                         </div>
-                                        <input type="password" name="password_confirmation" required
-                                               class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border-transparent focus:border-red-500 focus:ring-4 focus:ring-red-500/10 rounded-2xl text-sm font-bold text-slate-700 transition-all placeholder-slate-400" 
+                                        <input :type="showPw2 ? 'text' : 'password'" name="password_confirmation" required
+                                               class="w-full pl-11 pr-12 py-3.5 bg-slate-50 border-transparent focus:border-red-500 focus:ring-4 focus:ring-red-500/10 rounded-2xl text-sm font-bold text-slate-700 transition-all placeholder-slate-400" 
                                                placeholder="Ulangi password di atas">
+                                        <button type="button" @click="showPw2 = !showPw2" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-600 transition-colors focus:outline-none">
+                                            <i class="fas" :class="showPw2 ? 'fa-eye-slash' : 'fa-eye'"></i>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
