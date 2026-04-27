@@ -111,20 +111,26 @@ class OwnerController extends Controller
     }
 
     /**
-     * 3. Laporan Menu Terpopuler
+     * 3. Laporan Menu Terpopuler (Logika Sorting Pintar)
      */
     public function menuReport() 
-{
-    // Ambil semua menu diurutkan dari yang paling banyak disukai
-    $menus = \App\Models\Menu::orderBy('loves', 'desc')->get();
+    {
+        // Ambil semua menu diurutkan dari Suka terbanyak. 
+        // Jika Sukanya SAMA, maka yang Gak Suka-nya PALING SEDIKIT akan ditaruh di atas.
+        $menus = \App\Models\Menu::orderBy('loves', 'desc')
+                                 ->orderBy('hates', 'asc')
+                                 ->get();
 
-    // Data untuk Kartu Statistik (Dinamis)
-    $bestMenu = \App\Models\Menu::orderBy('loves', 'desc')->first();
-    $totalVariants = \App\Models\Menu::count();
-    $totalParticipation = \App\Models\Menu::sum('loves') + \App\Models\Menu::sum('hates');
+        // Data untuk Kartu Statistik (Dinamis)
+        $bestMenu = \App\Models\Menu::orderBy('loves', 'desc')
+                                    ->orderBy('hates', 'asc')
+                                    ->first();
+                                    
+        $totalVariants = \App\Models\Menu::count();
+        $totalParticipation = \App\Models\Menu::sum('loves') + \App\Models\Menu::sum('hates');
 
-    return view('owner.reports.menus', compact('menus', 'bestMenu', 'totalVariants', 'totalParticipation'));
-}
+        return view('owner.reports.menus', compact('menus', 'bestMenu', 'totalVariants', 'totalParticipation'));
+    }
     /**
      * 4. Log Aktivitas Sistem
      */
