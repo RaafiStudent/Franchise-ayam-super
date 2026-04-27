@@ -11,7 +11,6 @@
             <div class="flex items-center gap-3">
                 
                 {{-- Form Filter --}}
-                {{-- SINKRON: Mengarah ke rute admin dengan pilihan filter yang sama dengan Owner --}}
                 <form action="{{ route('admin.reports.index') }}" method="GET" class="flex items-center gap-2">
                     <label class="text-sm text-gray-600 font-bold hidden md:block">Periode:</label>
                     <select name="filter" onchange="this.form.submit()" class="border-gray-300 focus:border-red-500 focus:ring-red-500 rounded-md shadow-sm text-sm">
@@ -19,6 +18,8 @@
                         <option value="week" {{ $filter == 'week' ? 'selected' : '' }}>Mingguan (7 Hari)</option>
                         <option value="month" {{ $filter == 'month' ? 'selected' : '' }}>Bulanan (30 Hari)</option>
                         <option value="year" {{ $filter == 'year' ? 'selected' : '' }}>Tahunan (Per Bulan)</option>
+                        {{-- FITUR BARU: ALL TIME --}}
+                        <option value="all_time" {{ $filter == 'all_time' ? 'selected' : '' }}>Keseluruhan (All-Time)</option>
                     </select>
                 </form>
 
