@@ -26,14 +26,26 @@
                 <x-input-error :messages="$errors->get('no_hp')" class="mt-2" />
             </div>
 
-            <div>
+            {{-- FITUR IKON MATA PADA PASSWORD --}}
+            <div x-data="{ showPw1: false }">
                 <x-input-label for="password" :value="__('Password')" class="text-red-800 font-bold"/>
-                <x-text-input id="password" class="block mt-1 w-full border-2 focus:border-yellow-500 focus:ring-yellow-500 rounded-lg" type="password" name="password" required />
+                <div class="relative">
+                    <input id="password" :type="showPw1 ? 'text' : 'password'" name="password" required class="block mt-1 w-full border-2 focus:border-yellow-500 focus:ring-yellow-500 rounded-lg pr-12 border-gray-300" />
+                    <button type="button" @click="showPw1 = !showPw1" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-600 focus:outline-none mt-0.5">
+                        <i class="fas" :class="showPw1 ? 'fa-eye-slash' : 'fa-eye'"></i>
+                    </button>
+                </div>
             </div>
 
-            <div>
+            {{-- FITUR IKON MATA PADA KONFIRMASI PASSWORD --}}
+            <div x-data="{ showPw2: false }">
                 <x-input-label for="password_confirmation" :value="__('Konfirmasi Password')" class="text-red-800 font-bold"/>
-                <x-text-input id="password_confirmation" class="block mt-1 w-full border-2 focus:border-yellow-500 focus:ring-yellow-500 rounded-lg" type="password" name="password_confirmation" required />
+                <div class="relative">
+                    <input id="password_confirmation" :type="showPw2 ? 'text' : 'password'" name="password_confirmation" required class="block mt-1 w-full border-2 focus:border-yellow-500 focus:ring-yellow-500 rounded-lg pr-12 border-gray-300" />
+                    <button type="button" @click="showPw2 = !showPw2" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-600 focus:outline-none mt-0.5">
+                        <i class="fas" :class="showPw2 ? 'fa-eye-slash' : 'fa-eye'"></i>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -77,7 +89,6 @@
     </form>
     
     <script>
-        // ... (Script Wilayah Indonesia tetap sama) ...
         document.addEventListener("DOMContentLoaded", function() {
             const provinsiSelect = document.getElementById('provinsi_select');
             const kotaSelect = document.getElementById('kota_select');
