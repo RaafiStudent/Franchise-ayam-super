@@ -72,6 +72,20 @@ class ReportController extends Controller
                     ->sum('total_price');
             }
             $querySummary->whereYear('created_at', Carbon::now()->year);
+            
+        // FITUR BARU: ALL TIME (Grafik Tahunan)
+        } elseif ($filter == 'all_time') {
+            $firstOrder = Order::orderBy('created_at', 'asc')->first();
+            $startYear = $firstOrder ? Carbon::parse($firstOrder->created_at)->year : Carbon::now()->year;
+            $currentYear = Carbon::now()->year;
+
+            for ($y = $startYear; $y <= $currentYear; $y++) {
+                $label[] = (string)$y;
+                $dataPendapatan[] = Order::where('payment_status', 'paid')
+                    ->whereYear('created_at', $y)
+                    ->sum('total_price');
+            }
+            // Jika all_time, querySummary tidak perlu di filter where date, ambil semua.
         }
 
         // --- HITUNG DATA RINGKASAN BOX (IKUT FILTER) ---
@@ -111,8 +125,11 @@ class ReportController extends Controller
             $orders = $query->whereMonth('created_at', Carbon::now()->month)
                             ->whereYear('created_at', Carbon::now()->year)
                             ->get();
-        } else {
+        } elseif ($filter == 'year') {
             $orders = $query->whereYear('created_at', Carbon::now()->year)->get();
+        } else {
+            // FITUR BARU ALL TIME: Ambil Semua Order
+            $orders = $query->get();
         }
 
         $totalOmset = $orders->sum('total_price');
