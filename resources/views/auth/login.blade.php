@@ -8,7 +8,6 @@
     {{-- NOTIFIKASI ERROR (Untuk Akun Banned / Diblokir) --}}
     @if (session('error'))
         <div x-data="{ show: true }" x-show="show" class="mb-6 bg-red-50 border-l-4 border-red-600 p-4 rounded-r shadow-md relative overflow-hidden">
-            {{-- Aksen background pudar agar lebih elegan --}}
             <div class="absolute top-0 right-0 -mt-4 -mr-4 text-red-100 opacity-50">
                 <i class="fas fa-ban text-6xl"></i>
             </div>
@@ -23,7 +22,6 @@
                 </div>
             </div>
 
-            {{-- Tombol Silang (Tutup Notifikasi) --}}
             <button @click="show = false" class="absolute top-3 right-3 text-red-400 hover:text-red-700 transition">
                 <i class="fas fa-times"></i>
             </button>
@@ -39,14 +37,15 @@
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
-        <div class="mt-4">
+        {{-- FITUR IKON MATA PADA PASSWORD --}}
+        <div class="mt-4" x-data="{ showPw: false }">
             <x-input-label for="password" :value="__('Password')" class="text-red-900 font-bold"/>
-
-            <x-text-input id="password" class="block mt-1 w-full border-2 border-gray-200 focus:border-yellow-500 focus:ring-yellow-500 rounded-lg"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
-
+            <div class="relative">
+                <input id="password" :type="showPw ? 'text' : 'password'" name="password" required autocomplete="current-password" class="block mt-1 w-full border-2 border-gray-200 focus:border-yellow-500 focus:ring-yellow-500 rounded-lg pr-12" />
+                <button type="button" @click="showPw = !showPw" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-600 transition-colors focus:outline-none mt-0.5">
+                    <i class="fas" :class="showPw ? 'fa-eye-slash' : 'fa-eye'"></i>
+                </button>
+            </div>
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
 
