@@ -13,7 +13,7 @@
     <div class="py-10 pb-24" x-data="{ role: '{{ $user->role }}', showConfirmModal: false }">
         <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
             
-            {{-- ALERT ERROR PINTAR: Sekarang dia akan memberitahu APANYA yang salah --}}
+            {{-- ALERT ERROR PINTAR --}}
             @if ($errors->any())
                 <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-5 rounded-xl shadow-sm animate-bounce-in">
                     <div class="flex items-center gap-3 mb-3">
@@ -32,7 +32,6 @@
                 @csrf
                 @method('PUT')
 
-                {{-- Trik Rahasia: Input tersembunyi agar role tetap terkirim meski select-nya disabled --}}
                 <input type="hidden" name="role" value="{{ $user->role }}">
 
                 <div class="bg-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-slate-100 overflow-hidden relative">
@@ -182,7 +181,8 @@
                                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                             <i class="fas fa-lock text-slate-300"></i>
                                         </div>
-                                        <input :type="showPw1 ? 'text' : 'password'" name="password" 
+                                        {{-- FIX: Tambahan autocomplete="new-password" agar tidak diisi browser otomatis --}}
+                                        <input :type="showPw1 ? 'text' : 'password'" name="password" autocomplete="new-password"
                                                class="w-full pl-11 pr-12 py-3.5 bg-slate-50 border-transparent focus:border-red-500 focus:ring-4 focus:ring-red-500/10 rounded-2xl text-sm font-bold text-slate-700 transition-all placeholder-slate-300" placeholder="Minimal 8 karakter">
                                         <button type="button" @click="showPw1 = !showPw1" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-600 transition-colors focus:outline-none">
                                             <i class="fas" :class="showPw1 ? 'fa-eye-slash' : 'fa-eye'"></i>
@@ -196,7 +196,8 @@
                                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                             <i class="fas fa-shield-alt text-slate-300"></i>
                                         </div>
-                                        <input :type="showPw2 ? 'text' : 'password'" name="password_confirmation" 
+                                        {{-- FIX: Tambahan autocomplete="new-password" agar tidak diisi browser otomatis --}}
+                                        <input :type="showPw2 ? 'text' : 'password'" name="password_confirmation" autocomplete="new-password"
                                                class="w-full pl-11 pr-12 py-3.5 bg-slate-50 border-transparent focus:border-red-500 focus:ring-4 focus:ring-red-500/10 rounded-2xl text-sm font-bold text-slate-700 transition-all placeholder-slate-300" placeholder="Ulangi password di atas">
                                         <button type="button" @click="showPw2 = !showPw2" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-600 transition-colors focus:outline-none">
                                             <i class="fas" :class="showPw2 ? 'fa-eye-slash' : 'fa-eye'"></i>
@@ -220,7 +221,7 @@
                 </div>
             </form>
             
-            {{-- MODAL KONFIRMASI --}}
+            {{-- MODAL KONFIRMASI PINTAR --}}
             <div x-show="showConfirmModal" x-cloak class="fixed inset-0 z-[150] flex items-center justify-center p-4">
                 <div x-show="showConfirmModal" 
                      x-transition:enter="transition ease-out duration-300"
