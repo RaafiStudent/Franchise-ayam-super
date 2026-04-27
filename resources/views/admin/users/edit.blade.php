@@ -10,7 +10,6 @@
         </div>
     </x-slot>
 
-    {{-- TAMBAHAN: Menambahkan showConfirmModal ke dalam x-data --}}
     <div class="py-10 pb-24" x-data="{ role: '{{ $user->role }}', showConfirmModal: false }">
         <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
             
@@ -24,7 +23,6 @@
                 </div>
             @endif
 
-            {{-- TAMBAHAN: Menambahkan id="formUpdateUser" dan @submit.prevent untuk menahan submit langsung --}}
             <form id="formUpdateUser" action="{{ route('admin.users.update', $user->id) }}" method="POST" enctype="multipart/form-data" @submit.prevent="showConfirmModal = true">
                 @csrf
                 @method('PUT')
@@ -172,7 +170,6 @@
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                {{-- TAMBAHAN: x-data showPw1 dan Icon Mata --}}
                                 <div x-data="{ showPw1: false }">
                                     <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Password Baru</label>
                                     <div class="relative">
@@ -187,7 +184,6 @@
                                     </div>
                                 </div>
 
-                                {{-- TAMBAHAN: x-data showPw2 dan Icon Mata --}}
                                 <div x-data="{ showPw2: false }">
                                     <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Konfirmasi Password Baru</label>
                                     <div class="relative">
@@ -218,7 +214,7 @@
                 </div>
             </form>
             
-            {{-- TAMBAHAN: MODAL KONFIRMASI GANTI DATA / PASSWORD --}}
+            {{-- MODAL KONFIRMASI PINTAR (PERSONALIZED) --}}
             <div x-show="showConfirmModal" x-cloak class="fixed inset-0 z-[150] flex items-center justify-center p-4">
                 <div x-show="showConfirmModal" 
                      x-transition:enter="transition ease-out duration-300"
@@ -238,13 +234,17 @@
                      x-transition:leave="transition ease-in duration-200 transform"
                      x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                      x-transition:leave-end="opacity-0 translate-y-8 scale-95"
-                     class="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden p-8 text-center"
+                     class="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden p-8 text-center"
                 >
-                    <div class="w-20 h-20 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6">
+                    <div class="w-20 h-20 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6 shadow-inner">
                         <i class="fas fa-exclamation-triangle"></i>
                     </div>
-                    <h3 class="text-xl font-black text-slate-800 mb-2">Simpan Perubahan?</h3>
-                    <p class="text-sm text-slate-500 mb-8 font-medium">Pastikan data yang Anda ubah sudah benar, terutama jika Anda mengubah status keaktifan atau mereset password pengguna.</p>
+                    
+                    {{-- Judul dan Deskripsi Pintar Menyebut Nama dan Role --}}
+                    <h3 class="text-xl font-black text-slate-800 mb-2">Simpan Perubahan Data?</h3>
+                    <p class="text-sm text-slate-500 mb-8 font-medium leading-relaxed">
+                        Anda akan menyimpan pembaruan untuk pengguna <span class="font-bold text-red-600">{{ $user->name }}</span> yang berstatus sebagai <span class="font-bold text-slate-700 uppercase">{{ $user->role }}</span>. Pastikan semua data, status keaktifan, atau password baru (jika ada) sudah benar.
+                    </p>
                     
                     <div class="flex items-center gap-4">
                         <button @click="showConfirmModal = false" type="button" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3.5 rounded-xl transition-colors">
