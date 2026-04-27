@@ -120,25 +120,23 @@ class UserManagementController extends Controller
             'status' => 'required|in:active,pending,banned',
         ];
 
-        // 2. Validasi Khusus Mitra (Hanya dijalankan jika yang diedit adalah Mitra)
+        // 2. Validasi Khusus Mitra
         if ($user->role === 'mitra') {
             $rules['no_hp'] = 'required|string|max:20';
             $rules['provinsi'] = 'required|string|max:100';
             $rules['kota'] = 'required|string|max:100';
             $rules['alamat_lengkap'] = 'required|string';
             
-            // KTP opsional saat update, hanya divalidasi jika ada file baru yang diunggah
             if ($request->hasFile('ktp_image')) {
                 $rules['ktp_image'] = 'image|mimes:jpeg,png,jpg|max:2048';
             }
         }
 
-        // 3. LOGIKA PINTAR PASSWORD: Hanya divalidasi JIKA Admin mengetik sesuatu di kotak password
+        // 3. LOGIKA PINTAR PASSWORD
         if ($request->filled('password')) {
             $rules['password'] = 'required|string|min:8|confirmed';
         }
 
-        // 4. Custom Pesan Error Bahasa Indonesia (Jas Jis Joss)
         $messages = [
             'required' => 'Kolom :attribute wajib diisi.',
             'email.unique' => 'Email ini sudah digunakan oleh pengguna lain.',
@@ -148,26 +146,38 @@ class UserManagementController extends Controller
 
         $validated = $request->validate($rules, $messages);
 
+        // ======================================================================
+        // 🔥 SABUK PENGAMAN ANTI-HANCUR (BERDASARKAN ANALISIS JENIUSMU) 🔥
+        // ======================================================================
+        
+        // A. Cegah Admin mengubah status Admin menjadi Blokir/Menunggu
+        if ($user->role === 'admin' && $validated['status'] !== 'active') {
+            return back()->withErrors(['status' => 'FATAL: Status Administrator harus selalu Aktif! Anda tidak boleh memblokir Admin.']);
+        }
+
+        // B. Cegah pengguna menonaktifkan dirinya sendiri (Double Protection)
+        if (auth()->id() === $user->id && $validated['status'] !== 'active') {
+            return back()->withErrors(['status' => 'Anda tidak bisa memblokir atau menonaktifkan akun Anda sendiri!']);
+        }
+        // ======================================================================
+
         // 5. Update Data Pengguna
         $user->name = $validated['name'];
         $user->email = $validated['email'];
         $user->status = $validated['status'];
 
-        // Update data khusus Mitra
         if ($user->role === 'mitra') {
             $user->no_hp = $validated['no_hp'];
             $user->provinsi = $validated['provinsi'];
             $user->kota = $validated['kota'];
             $user->alamat_lengkap = $validated['alamat_lengkap'];
 
-            // Proses upload KTP baru jika ada
             if ($request->hasFile('ktp_image')) {
                 $path = $request->file('ktp_image')->store('ktp_images', 'public');
                 $user->ktp_image = $path;
             }
         }
 
-        // Enkripsi dan update password JIKA dimasukkan
         if ($request->filled('password')) {
             $user->password = \Illuminate\Support\Facades\Hash::make($validated['password']);
         }
@@ -176,7 +186,6 @@ class UserManagementController extends Controller
 
         return redirect()->route('admin.users.index')->with('success', 'Data pengguna ' . $user->name . ' berhasil diperbarui!');
     }
-
     public function destroy(User $user)
     {
         if (auth()->id() === $user->id) { return back()->with('error', 'Anda tidak bisa menghapus akun Anda sendiri!'); }
