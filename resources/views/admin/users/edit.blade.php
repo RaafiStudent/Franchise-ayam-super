@@ -13,13 +13,18 @@
     <div class="py-10 pb-24" x-data="{ role: '{{ $user->role }}', showConfirmModal: false }">
         <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
             
-            {{-- ALERT ERROR --}}
+            {{-- ALERT ERROR PINTAR: Sekarang dia akan memberitahu APANYA yang salah --}}
             @if ($errors->any())
-                <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-xl shadow-sm animate-bounce-in">
-                    <div class="flex items-center gap-3">
-                        <i class="fas fa-exclamation-circle text-red-600"></i>
-                        <h3 class="text-sm font-bold text-red-800">Ada kesalahan input, mohon cek kembali!</h3>
+                <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-5 rounded-xl shadow-sm animate-bounce-in">
+                    <div class="flex items-center gap-3 mb-3">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-lg"></i>
+                        <h3 class="text-sm font-black text-red-800 uppercase tracking-widest">Gagal Menyimpan! Detail Kesalahan:</h3>
                     </div>
+                    <ul class="list-disc ml-9 text-xs text-red-700 font-bold space-y-1.5">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
                 </div>
             @endif
 
@@ -27,8 +32,10 @@
                 @csrf
                 @method('PUT')
 
+                {{-- Trik Rahasia: Input tersembunyi agar role tetap terkirim meski select-nya disabled --}}
+                <input type="hidden" name="role" value="{{ $user->role }}">
+
                 <div class="bg-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-slate-100 overflow-hidden relative">
-                    {{-- Aksen Merah Shopee Gradient --}}
                     <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-red-600 via-red-500 to-orange-400"></div>
 
                     <div class="p-8 md:p-12">
@@ -94,7 +101,7 @@
                             </div>
                         </div>
 
-                        {{-- BAGIAN 2: DATA MITRA (HANYA MUNCUL JIKA ROLE MITRA) --}}
+                        {{-- BAGIAN 2: DATA MITRA --}}
                         <div x-show="role === 'mitra'" x-transition class="mb-12 bg-slate-50 rounded-[2rem] p-8 border border-slate-100 relative">
                             <h3 class="text-sm font-black text-red-600 uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
                                 <span class="w-8 h-px bg-red-200"></span>
@@ -115,7 +122,6 @@
                                 </div>
 
                                 <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {{-- Preview KTP --}}
                                     <div class="bg-white p-4 rounded-2xl border border-slate-200 flex flex-col items-center justify-center">
                                         <p class="text-[9px] font-black text-slate-400 uppercase mb-3">Foto KTP Saat Ini</p>
                                         @if($user->ktp_image)
@@ -214,7 +220,7 @@
                 </div>
             </form>
             
-            {{-- MODAL KONFIRMASI PINTAR (PERSONALIZED) --}}
+            {{-- MODAL KONFIRMASI --}}
             <div x-show="showConfirmModal" x-cloak class="fixed inset-0 z-[150] flex items-center justify-center p-4">
                 <div x-show="showConfirmModal" 
                      x-transition:enter="transition ease-out duration-300"
@@ -240,7 +246,6 @@
                         <i class="fas fa-exclamation-triangle"></i>
                     </div>
                     
-                    {{-- Judul dan Deskripsi Pintar Menyebut Nama dan Role --}}
                     <h3 class="text-xl font-black text-slate-800 mb-2">Simpan Perubahan Data?</h3>
                     <p class="text-sm text-slate-500 mb-8 font-medium leading-relaxed">
                         Anda akan menyimpan pembaruan untuk pengguna <span class="font-bold text-red-600">{{ $user->name }}</span> yang berstatus sebagai <span class="font-bold text-slate-700 uppercase">{{ $user->role }}</span>. Pastikan semua data, status keaktifan, atau password baru (jika ada) sudah benar.
