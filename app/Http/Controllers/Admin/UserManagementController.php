@@ -109,70 +109,72 @@ class UserManagementController extends Controller
 
     public function edit(User $user) { return view('admin.users.edit', compact('user')); }
     
-    public function update(Request $request, User $user)
+    public function update(Request $request, $id)
     {
-        $messages = [
-            'name.required' => 'Nama lengkap wajib diisi.',
-            'email.required' => 'Alamat email wajib diisi.',
-            'email.unique' => 'Email ini sudah dipakai oleh pengguna lain.',
-            'password.confirmed' => 'Konfirmasi kata sandi baru tidak cocok.',
-            'password.min' => 'Kata sandi minimal 8 karakter.',
-            'ktp_image.image' => 'File KTP harus berupa gambar.',
-            'ktp_image.max' => 'Ukuran foto maksimal 2MB.',
-        ];
+        $user = \App\Models\User::findOrFail($id);
 
-        // PERHATIKAN: Role sudah DIBUANG dari validasi update agar tidak error
+        // 1. Validasi Dasar (Berlaku untuk Semua Role)
         $rules = [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email,'.$user->id],
-            'status' => ['required', 'in:active,pending,banned'],
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'status' => 'required|in:active,pending,banned',
         ];
 
-        // Validasi tambahan jika yang diedit adalah Mitra (mengambil role dari database)
+        // 2. Validasi Khusus Mitra (Hanya dijalankan jika yang diedit adalah Mitra)
         if ($user->role === 'mitra') {
-            $rules['no_hp'] = ['nullable', 'string', 'max:20'];
-            $rules['alamat_lengkap'] = ['nullable', 'string'];
-            $rules['provinsi'] = ['nullable', 'string', 'max:100'];
-            $rules['kota'] = ['nullable', 'string', 'max:100'];
-            $rules['ktp_image'] = ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'];
-        }
-
-        $request->validate($rules, $messages);
-
-        $details = "Memperbarui data profil pengguna";
-        
-        // PERHATIKAN: Role sudah DIBUANG dari data yang disimpan
-        $data = [
-            'name' => $request->name,
-            'email' => $request->email,
-            'status' => $request->status,
-        ];
-
-        // Proses penyimpanan data khusus Mitra saat Update
-        if ($user->role === 'mitra') {
-            $data['no_hp'] = $request->no_hp;
-            $data['alamat_lengkap'] = $request->alamat_lengkap;
-            $data['provinsi'] = $request->provinsi;
-            $data['kota'] = $request->kota;
-
+            $rules['no_hp'] = 'required|string|max:20';
+            $rules['provinsi'] = 'required|string|max:100';
+            $rules['kota'] = 'required|string|max:100';
+            $rules['alamat_lengkap'] = 'required|string';
+            
+            // KTP opsional saat update, hanya divalidasi jika ada file baru yang diunggah
             if ($request->hasFile('ktp_image')) {
-                if ($user->ktp_image && Storage::disk('public')->exists($user->ktp_image)) {
-                    Storage::disk('public')->delete($user->ktp_image);
-                }
-                $data['ktp_image'] = $request->file('ktp_image')->store('mitra-ktp', 'public');
+                $rules['ktp_image'] = 'image|mimes:jpeg,png,jpg|max:2048';
             }
         }
 
-        // Proses jika password diganti
+        // 3. LOGIKA PINTAR PASSWORD: Hanya divalidasi JIKA Admin mengetik sesuatu di kotak password
         if ($request->filled('password')) {
-            $request->validate(['password' => ['confirmed', Rules\Password::defaults()]], $messages);
-            $data['password'] = Hash::make($request->password);
-            $details = "Memperbarui profil dan melakukan RESET KATA SANDI";
+            $rules['password'] = 'required|string|min:8|confirmed';
         }
 
-        $user->update($data);
-        $this->logActivity('UPDATE_USER', $user->name, $details);
-        return redirect()->route('admin.users.index')->with('success', 'Mantap! Data pengguna berhasil diperbarui.');
+        // 4. Custom Pesan Error Bahasa Indonesia (Jas Jis Joss)
+        $messages = [
+            'required' => 'Kolom :attribute wajib diisi.',
+            'email.unique' => 'Email ini sudah digunakan oleh pengguna lain.',
+            'password.confirmed' => 'Konfirmasi kata sandi baru tidak cocok.',
+            'password.min' => 'Password minimal harus 8 karakter.'
+        ];
+
+        $validated = $request->validate($rules, $messages);
+
+        // 5. Update Data Pengguna
+        $user->name = $validated['name'];
+        $user->email = $validated['email'];
+        $user->status = $validated['status'];
+
+        // Update data khusus Mitra
+        if ($user->role === 'mitra') {
+            $user->no_hp = $validated['no_hp'];
+            $user->provinsi = $validated['provinsi'];
+            $user->kota = $validated['kota'];
+            $user->alamat_lengkap = $validated['alamat_lengkap'];
+
+            // Proses upload KTP baru jika ada
+            if ($request->hasFile('ktp_image')) {
+                $path = $request->file('ktp_image')->store('ktp_images', 'public');
+                $user->ktp_image = $path;
+            }
+        }
+
+        // Enkripsi dan update password JIKA dimasukkan
+        if ($request->filled('password')) {
+            $user->password = \Illuminate\Support\Facades\Hash::make($validated['password']);
+        }
+
+        $user->save();
+
+        return redirect()->route('admin.users.index')->with('success', 'Data pengguna ' . $user->name . ' berhasil diperbarui!');
     }
 
     public function destroy(User $user)
