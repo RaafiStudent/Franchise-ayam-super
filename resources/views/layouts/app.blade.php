@@ -118,14 +118,11 @@
                     </a>
                 @endif
 
-                {{-- FITUR BARU: MENU UNIVERSAL UNTUK SEMUA ROLE --}}
                 <p class="px-3 text-[10px] font-black text-red-200 uppercase tracking-widest mb-3 mt-8">Akun & Bantuan</p>
                 <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 {{ request()->routeIs('profile.*') ? 'bg-white text-red-800 shadow-sm font-bold' : 'text-red-100 hover:bg-red-800/50 hover:text-white font-medium group' }}">
                     <i class="fas fa-user-cog w-5 text-center {{ request()->routeIs('profile.*') ? 'text-red-700' : 'text-red-300 group-hover:text-white' }} transition-colors"></i>
                     Edit Profil
                 </a>
-                {{-- AKHIR FITUR BARU --}}
-
             </nav>
 
             <div class="p-5 bg-red-900/50 border-t border-red-900/50">
@@ -166,6 +163,9 @@
                         </button>
                     @endif
 
+                    {{-- ======================================================== --}}
+                    {{-- DESAIN NOTIFIKASI BARU YANG DIPERBESAR DAN DIPERTEGAS    --}}
+                    {{-- ======================================================== --}}
                     <div class="relative" x-data="{ openNotif: false }" @click.outside="openNotif = false">
                         <button @click="openNotif = !openNotif" class="w-10 h-10 rounded-full bg-white text-slate-500 hover:bg-slate-100 hover:text-slate-700 flex items-center justify-center transition-all border border-slate-200 relative shadow-sm">
                             <i class="fas fa-bell"></i>
@@ -174,36 +174,46 @@
                             @endif
                         </button>
 
-                        <div x-show="openNotif" x-cloak x-transition style="display: none;" class="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 overflow-hidden">
-                            <div class="bg-slate-50/80 px-5 py-4 border-b border-slate-100 flex justify-between items-center">
-                                <h3 class="text-sm font-bold text-slate-800">Notifikasi</h3>
-                                <span class="bg-red-100 text-red-600 text-[10px] font-black px-2 py-0.5 rounded-lg uppercase">
+                        <div x-show="openNotif" x-cloak x-transition style="display: none;" class="absolute right-0 mt-3 w-[420px] bg-white rounded-3xl shadow-2xl border border-slate-200 z-50 overflow-hidden">
+                            
+                            {{-- Header Notifikasi --}}
+                            <div class="bg-slate-50 px-7 py-5 border-b border-slate-200 flex justify-between items-center">
+                                <h3 class="text-base font-black text-slate-900 uppercase tracking-widest">Notifikasi Sistem</h3>
+                                <span class="bg-red-100 text-red-700 text-xs font-black px-3 py-1 rounded-lg uppercase shadow-sm">
                                     {{ auth()->user()->unreadNotifications->count() }} Baru
                                 </span>
                             </div>
-                            <div class="max-h-80 overflow-y-auto">
+                            
+                            {{-- Body Notifikasi --}}
+                            <div class="max-h-96 overflow-y-auto custom-scrollbar">
                                 @forelse(auth()->user()->unreadNotifications as $notification)
-                                    <a href="{{ route('notification.read', $notification->id) }}" class="flex items-start gap-4 px-5 py-4 border-b border-slate-50 hover:bg-slate-50 transition-colors">
-                                        <div class="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shrink-0 mt-0.5">
-                                            <i class="fas fa-info-circle text-sm"></i>
+                                    <a href="{{ route('notification.read', $notification->id) }}" class="flex items-start gap-5 px-7 py-5 border-b border-slate-50 hover:bg-red-50/50 transition-colors group">
+                                        <div class="w-12 h-12 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-110 transition-transform shadow-sm">
+                                            <i class="fas fa-info-circle text-xl"></i>
                                         </div>
                                         <div class="flex-1 min-w-0">
-                                            <p class="text-xs font-bold text-slate-800 leading-tight mb-1">{{ $notification->data['title'] ?? 'Info Sistem' }}</p>
-                                            <p class="text-[10px] text-slate-500 leading-snug truncate">{{ $notification->data['message'] ?? 'Tidak ada pesan' }}</p>
-                                            <p class="text-[9px] text-slate-400 mt-2 font-semibold tracking-wider uppercase">{{ $notification->created_at->diffForHumans() }}</p>
+                                            {{-- Judul Hitam Tebal --}}
+                                            <p class="text-sm font-black text-slate-900 leading-tight mb-1.5">{{ $notification->data['title'] ?? 'Informasi Sistem' }}</p>
+                                            {{-- Pesan Hitam Tebal --}}
+                                            <p class="text-xs font-bold text-slate-700 leading-relaxed">{{ $notification->data['message'] ?? 'Tidak ada deskripsi pesan yang dilampirkan.' }}</p>
+                                            {{-- Waktu --}}
+                                            <p class="text-[10px] text-slate-400 mt-2.5 font-bold tracking-widest uppercase"><i class="far fa-clock mr-1"></i> {{ $notification->created_at->diffForHumans() }}</p>
                                         </div>
                                     </a>
                                 @empty
-                                    <div class="py-10 text-center">
-                                        <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-3 text-slate-300">
-                                            <i class="fas fa-bell-slash text-xl"></i>
+                                    {{-- Tampilan Jika Kosong --}}
+                                    <div class="py-14 text-center px-8">
+                                        <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-5 text-slate-300 shadow-inner">
+                                            <i class="fas fa-bell-slash text-3xl"></i>
                                         </div>
-                                        <p class="text-xs font-bold text-slate-400">Tidak ada notifikasi baru</p>
+                                        <p class="text-base font-black text-slate-900 mb-2 uppercase tracking-wide">Tidak Ada Notifikasi</p>
+                                        <p class="text-sm font-bold text-slate-500 leading-relaxed">Saat ini belum ada pembaruan atau pesan masuk untuk Anda.</p>
                                     </div>
                                 @endforelse
                             </div>
                         </div>
                     </div>
+                    {{-- ======================================================== --}}
                     
                     <div class="h-8 w-px bg-slate-200 hidden sm:block"></div>
 
@@ -403,9 +413,6 @@
         </script>
     @endif
 
-    {{-- ======================================================== --}}
-    {{-- MODAL PANDUAN PENGGUNA (MUNCUL SEKALI SETIAP KALI LOGIN) --}}
-    {{-- ======================================================== --}}
     @if(Auth::check() && !session()->has('welcome_guide_shown'))
     @php session()->put('welcome_guide_shown', true); @endphp
     <div x-data="{
@@ -463,8 +470,6 @@
                 </p>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    
-                    {{-- PANDUAN KHUSUS ADMIN (FULL 8 MENU) --}}
                     @if(Auth::user()->role == 'admin')
                         <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 hover:border-red-200 transition-colors group">
                             <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-1.5">
@@ -524,7 +529,6 @@
                         </div>
                     @endif
 
-                    {{-- PANDUAN KHUSUS OWNER --}}
                     @if(Auth::user()->role == 'owner')
                         <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-yellow-200 transition-colors group">
                             <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-2">
@@ -556,7 +560,6 @@
                         </div>
                     @endif
 
-                    {{-- PANDUAN KHUSUS MITRA --}}
                     @if(Auth::user()->role == 'mitra')
                         <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-blue-200 transition-colors group">
                             <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-2">
