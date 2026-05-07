@@ -149,9 +149,23 @@
 
                                     {{-- Kolom Aksi --}}
                                     <td class="py-4 px-6 text-center">
-                                        <a href="{{ route('orders.show', $order->id) }}" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-50 text-slate-400 hover:bg-slate-800 hover:text-white transition-all shadow-sm group-hover:shadow" title="Lihat Detail">
-                                            <i class="fas fa-eye text-xs"></i>
-                                        </a>
+                                        <div class="flex items-center justify-center gap-2">
+                                            {{-- Tombol Mata (Selalu Muncul) --}}
+                                            <a href="{{ route('orders.show', $order->id) }}" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-50 text-slate-400 hover:bg-slate-800 hover:text-white transition-all shadow-sm group-hover:shadow" title="Lihat Detail">
+                                                <i class="fas fa-eye text-xs"></i>
+                                            </a>
+
+                                            {{-- Tombol Centang ACC (Muncul HANYA jika PAID dan SHIPPED) --}}
+                                            @if($order->payment_status == 'paid' && $order->order_status == 'shipped')
+                                                <form action="{{ route('orders.complete', $order->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Apakah Anda yakin barang sudah diterima dengan baik?');">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-50 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all shadow-sm group-hover:shadow" title="Pesanan Diterima">
+                                                        <i class="fas fa-check-double text-xs"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
                                     </td>
                                 </tr>
                                 @empty

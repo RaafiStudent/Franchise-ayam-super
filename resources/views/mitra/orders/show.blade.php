@@ -73,7 +73,7 @@
                             <div class="flex-1">
                                 <h4 class="text-amber-900 font-extrabold text-sm uppercase tracking-tight">Pesanan Dalam Perjalanan 🚚</h4>
                                 <p class="text-amber-800/80 text-xs font-medium leading-relaxed mt-0.5">
-                                    Paket Anda sedang dikirim oleh <strong>{{ $order->courier_name }}</strong> (Resi: {{ $order->resi_number }}).
+                                    Paket Anda sedang dikirim oleh <strong>{{ $order->courier_name }}</strong> (Plat Nomer: {{ $order->resi_number }}).
                                     Jika barang sudah sampai, mohon klik <strong>Tombol Centang Hijau</strong> di halaman Riwayat Pesanan.
                                 </p>
                             </div>
