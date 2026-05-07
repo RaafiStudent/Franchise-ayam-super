@@ -1,9 +1,15 @@
 <x-guest-layout>
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
-    <h2 class="text-2xl font-black text-center text-red-700 mb-6 uppercase tracking-wide">
-        Login Mitra
-    </h2>
+    {{-- JUDUL LOGIN YANG BARU: Gaul, Asik, Sopan --}}
+    <div class="text-center mb-6">
+        <h2 class="text-2xl font-black text-red-700 uppercase tracking-wide">
+            Halo, Selamat Datang! 👋
+        </h2>
+        <p class="text-sm text-gray-500 mt-1 font-medium">
+            Portal SCM khusus Admin, Mitra & Owner. Yuk, masuk!
+        </p>
+    </div>
 
     {{-- NOTIFIKASI ERROR (Untuk Akun Banned / Diblokir) --}}
     @if (session('error'))
