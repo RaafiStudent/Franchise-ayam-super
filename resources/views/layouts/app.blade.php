@@ -29,21 +29,43 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
-<body class="font-sans antialiased text-slate-900 bg-slate-50 overflow-hidden selection:bg-red-500 selection:text-white relative">
+{{-- SUNTIKAN RESPONSIVE 1: Tambahkan x-data openSidebar di body --}}
+<body class="font-sans antialiased text-slate-900 bg-slate-50 overflow-hidden selection:bg-red-500 selection:text-white relative" x-data="{ openSidebar: false }">
     
     <div class="flex h-screen w-full">
-        {{-- SIDEBAR KIRI (MENU NAVIGASI) --}}
-        <aside class="w-64 bg-[#a51a1a] text-white flex-shrink-0 hidden md:flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.05)] z-20">
-            <div class="h-[88px] flex items-center px-6 border-b border-red-900/30">
+        
+        {{-- SUNTIKAN RESPONSIVE 2: Header Khusus HP --}}
+        <div class="md:hidden bg-[#a51a1a] text-white w-full h-16 flex items-center justify-between px-5 fixed top-0 z-[60] shadow-md">
+            <div class="font-black text-xl tracking-tight text-white flex items-center gap-2">
+                <i class="fas fa-drumstick-bite text-yellow-400"></i>
+                Ayam <span class="text-yellow-400">Super</span>
+            </div>
+            <button @click="openSidebar = true" class="text-white text-2xl focus:outline-none">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        {{-- SUNTIKAN RESPONSIVE 3: Overlay gelap saat menu HP terbuka --}}
+        <div x-show="openSidebar" x-cloak @click="openSidebar = false" class="fixed inset-0 bg-black/50 z-[50] md:hidden transition-opacity"></div>
+
+        {{-- SUNTIKAN RESPONSIVE 4: Sidebar dirombak agar bisa slide di HP --}}
+        <aside :class="openSidebar ? 'translate-x-0' : '-translate-x-full'" class="fixed md:relative transform md:translate-x-0 transition-transform duration-300 w-64 bg-[#a51a1a] text-white h-full flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.05)] z-[55]">
+            
+            {{-- Tombol Close (Silang) khusus HP --}}
+            <button @click="openSidebar = false" class="md:hidden absolute top-4 right-4 text-white/80 hover:text-white text-2xl">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <div class="h-[88px] flex items-center px-6 border-b border-red-900/30 shrink-0">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
                         <i class="fas fa-drumstick-bite text-red-600 text-xl transform -rotate-12"></i>
                     </div>
-                    <span class="font-black text-xl tracking-tight text-white">Ayam <span class="text-yellow-400">Super</span></span>
+                    <span class="font-black text-xl tracking-tight text-white hidden sm:block">Ayam <span class="text-yellow-400">Super</span></span>
                 </div>
             </div>
 
-            <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-1.5">
+            <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-1.5 custom-scrollbar">
                 @if(Auth::user()->role == 'admin')
                     <p class="px-3 text-[10px] font-black text-red-200 uppercase tracking-widest mb-3 mt-2">Menu Utama Admin</p>
                     <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 {{ request()->routeIs('admin.dashboard') ? 'bg-white text-red-800 shadow-sm font-bold' : 'text-red-100 hover:bg-red-800/50 hover:text-white font-medium group' }}">
@@ -125,7 +147,7 @@
                 </a>
             </nav>
 
-            <div class="p-5 bg-red-900/50 border-t border-red-900/50">
+            <div class="p-5 bg-red-900/50 border-t border-red-900/50 shrink-0">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full bg-yellow-400 text-yellow-900 flex items-center justify-center font-bold shadow-sm">
                         {{ substr(Auth::user()->name ?? 'A', 0, 1) }}
@@ -138,19 +160,16 @@
             </div>
         </aside>
 
-        {{-- AREA UTAMA --}}
-        <div class="flex-1 flex flex-col overflow-hidden bg-slate-50 relative">
-            <header class="h-[88px] glass-nav border-b border-slate-200/60 flex items-center justify-between px-8 z-10 sticky top-0">
+        {{-- SUNTIKAN RESPONSIVE 5: Area Utama diberi margin atas (mt-16) khusus di HP agar tidak tertutup header merah --}}
+        <div class="flex-1 flex flex-col overflow-hidden bg-slate-50 relative mt-16 md:mt-0">
+            <header class="h-[88px] glass-nav border-b border-slate-200/60 flex items-center justify-between px-4 md:px-8 z-10 sticky top-0 hidden md:flex">
                 <div class="flex items-center gap-4">
-                    <button class="md:hidden text-slate-500 hover:text-slate-800 transition-colors">
-                        <i class="fas fa-bars text-xl"></i>
-                    </button>
                     <h1 class="text-xl font-bold text-slate-800 tracking-tight hidden sm:block">
                         {{ $header ?? 'Panel Kendali' }}
                     </h1>
                 </div>
 
-                <div class="flex items-center gap-5">
+                <div class="flex items-center gap-3 md:gap-5">
                     @if(Auth::user()->role == 'mitra')
                         <button onclick="toggleOffcanvasCart()" class="w-10 h-10 rounded-full bg-white text-slate-500 hover:bg-slate-100 hover:text-red-600 flex items-center justify-center transition-all border border-slate-200 relative shadow-sm group">
                             <i class="fas fa-shopping-cart group-hover:scale-110 transition-transform"></i>
@@ -163,9 +182,6 @@
                         </button>
                     @endif
 
-                    {{-- ======================================================== --}}
-                    {{-- DESAIN NOTIFIKASI BARU YANG DIPERBESAR DAN DIPERTEGAS    --}}
-                    {{-- ======================================================== --}}
                     <div class="relative" x-data="{ openNotif: false }" @click.outside="openNotif = false">
                         <button @click="openNotif = !openNotif" class="w-10 h-10 rounded-full bg-white text-slate-500 hover:bg-slate-100 hover:text-slate-700 flex items-center justify-center transition-all border border-slate-200 relative shadow-sm">
                             <i class="fas fa-bell"></i>
@@ -174,53 +190,45 @@
                             @endif
                         </button>
 
-                        <div x-show="openNotif" x-cloak x-transition style="display: none;" class="absolute right-0 mt-3 w-[420px] bg-white rounded-3xl shadow-2xl border border-slate-200 z-50 overflow-hidden">
-                            
-                            {{-- Header Notifikasi --}}
-                            <div class="bg-slate-50 px-7 py-5 border-b border-slate-200 flex justify-between items-center">
-                                <h3 class="text-base font-black text-slate-900 uppercase tracking-widest">Notifikasi Sistem</h3>
+                        <div x-show="openNotif" x-cloak x-transition style="display: none;" class="absolute right-0 mt-3 w-[300px] md:w-[420px] bg-white rounded-3xl shadow-2xl border border-slate-200 z-50 overflow-hidden">
+                            <div class="bg-slate-50 px-4 md:px-7 py-5 border-b border-slate-200 flex justify-between items-center">
+                                <h3 class="text-sm md:text-base font-black text-slate-900 uppercase tracking-widest">Notifikasi Sistem</h3>
                                 <span class="bg-red-100 text-red-700 text-xs font-black px-3 py-1 rounded-lg uppercase shadow-sm">
                                     {{ auth()->user()->unreadNotifications->count() }} Baru
                                 </span>
                             </div>
                             
-                            {{-- Body Notifikasi --}}
                             <div class="max-h-96 overflow-y-auto custom-scrollbar">
                                 @forelse(auth()->user()->unreadNotifications as $notification)
-                                    <a href="{{ route('notification.read', $notification->id) }}" class="flex items-start gap-5 px-7 py-5 border-b border-slate-50 hover:bg-red-50/50 transition-colors group">
-                                        <div class="w-12 h-12 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-110 transition-transform shadow-sm">
-                                            <i class="fas fa-info-circle text-xl"></i>
+                                    <a href="{{ route('notification.read', $notification->id) }}" class="flex items-start gap-4 md:gap-5 px-4 md:px-7 py-5 border-b border-slate-50 hover:bg-red-50/50 transition-colors group">
+                                        <div class="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-110 transition-transform shadow-sm">
+                                            <i class="fas fa-info-circle text-lg md:text-xl"></i>
                                         </div>
                                         <div class="flex-1 min-w-0">
-                                            {{-- Judul Hitam Tebal --}}
                                             <p class="text-sm font-black text-slate-900 leading-tight mb-1.5">{{ $notification->data['title'] ?? 'Informasi Sistem' }}</p>
-                                            {{-- Pesan Hitam Tebal --}}
                                             <p class="text-xs font-bold text-slate-700 leading-relaxed">{{ $notification->data['message'] ?? 'Tidak ada deskripsi pesan yang dilampirkan.' }}</p>
-                                            {{-- Waktu --}}
                                             <p class="text-[10px] text-slate-400 mt-2.5 font-bold tracking-widest uppercase"><i class="far fa-clock mr-1"></i> {{ $notification->created_at->diffForHumans() }}</p>
                                         </div>
                                     </a>
                                 @empty
-                                    {{-- Tampilan Jika Kosong --}}
-                                    <div class="py-14 text-center px-8">
-                                        <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-5 text-slate-300 shadow-inner">
-                                            <i class="fas fa-bell-slash text-3xl"></i>
+                                    <div class="py-14 text-center px-4 md:px-8">
+                                        <div class="w-16 h-16 md:w-20 md:h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-5 text-slate-300 shadow-inner">
+                                            <i class="fas fa-bell-slash text-2xl md:text-3xl"></i>
                                         </div>
-                                        <p class="text-base font-black text-slate-900 mb-2 uppercase tracking-wide">Tidak Ada Notifikasi</p>
-                                        <p class="text-sm font-bold text-slate-500 leading-relaxed">Saat ini belum ada pembaruan atau pesan masuk untuk Anda.</p>
+                                        <p class="text-sm md:text-base font-black text-slate-900 mb-2 uppercase tracking-wide">Tidak Ada Notifikasi</p>
+                                        <p class="text-xs md:text-sm font-bold text-slate-500 leading-relaxed">Saat ini belum ada pembaruan atau pesan masuk untuk Anda.</p>
                                     </div>
                                 @endforelse
                             </div>
                         </div>
                     </div>
-                    {{-- ======================================================== --}}
                     
                     <div class="h-8 w-px bg-slate-200 hidden sm:block"></div>
 
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button type="submit" onclick="sessionStorage.clear()" class="group flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 hover:text-red-600 transition-all">
-                            Keluar
+                        <button type="submit" onclick="sessionStorage.clear()" class="group flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 hover:text-red-600 transition-all">
+                            <span class="hidden sm:inline">Keluar</span>
                             <i class="fas fa-sign-out-alt text-slate-400 group-hover:text-red-600 transition-colors"></i>
                         </button>
                     </form>
@@ -233,8 +241,8 @@
         </div>
     </div>
 
+    {{-- Laci Keranjang & Welcome Guide Tetap Sama --}}
     @if(Auth::check() && Auth::user()->role == 'mitra')
-        {{-- LACI KERANJANG (SIDEBAR GLOBAL) --}}
         @php
             $cartSidebar = \App\Models\Cart::with('product')->where('user_id', Auth::id())->get();
             $totalSidebar = 0;
@@ -259,7 +267,7 @@
                 @if($cartSidebar->count() > 0)
                     @foreach($cartSidebar as $item)
                         <div id="sidebar-item-{{ $item->product_id }}" class="flex gap-4 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-4 relative hover:border-slate-200 transition-colors">
-                            <div class="w-20 h-20 rounded-xl bg-slate-50 overflow-hidden shrink-0 flex items-center justify-center text-slate-400">
+                            <div class="w-16 h-16 md:w-20 md:h-20 rounded-xl bg-slate-50 overflow-hidden shrink-0 flex items-center justify-center text-slate-400">
                                 <img src="{{ asset('storage/' . $item->product->image) }}" class="w-full h-full object-cover">
                             </div>
                             <div class="flex-1 flex flex-col justify-center">
@@ -294,7 +302,7 @@
             <div id="cart-sidebar-footer" class="p-6 bg-white border-t border-slate-100 shadow-[0_-10px_20px_rgba(0,0,0,0.02)] absolute bottom-0 left-0 w-full">
                 <div class="flex items-center justify-between mb-5">
                     <span class="text-sm font-semibold text-slate-500">Estimasi Total</span>
-                    <span class="estimasi-total-text text-2xl font-black text-slate-900 tracking-tight">Rp {{ number_format($totalSidebar, 0, ',', '.') }}</span>
+                    <span class="estimasi-total-text text-xl md:text-2xl font-black text-slate-900 tracking-tight">Rp {{ number_format($totalSidebar, 0, ',', '.') }}</span>
                 </div>
                 
                 <form action="{{ route('checkout.process') }}" method="POST">
@@ -448,15 +456,15 @@
              x-transition:leave-end="opacity-0 translate-y-8 scale-95"
              class="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh]"
         >
-            <div class="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50 relative overflow-hidden shrink-0">
+            <div class="px-5 md:px-8 py-5 md:py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50 relative overflow-hidden shrink-0">
                 <div class="absolute top-0 left-0 w-full h-1 {{ Auth::user()->role == 'owner' ? 'bg-yellow-400' : (Auth::user()->role == 'admin' ? 'bg-red-600' : 'bg-blue-600') }}"></div>
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl text-white shadow-md {{ Auth::user()->role == 'owner' ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' : (Auth::user()->role == 'admin' ? 'bg-gradient-to-br from-red-500 to-red-700' : 'bg-gradient-to-br from-blue-500 to-blue-700') }}">
+                <div class="flex items-center gap-3 md:gap-4">
+                    <div class="w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center text-lg md:text-xl text-white shadow-md {{ Auth::user()->role == 'owner' ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' : (Auth::user()->role == 'admin' ? 'bg-gradient-to-br from-red-500 to-red-700' : 'bg-gradient-to-br from-blue-500 to-blue-700') }}">
                         <i class="fas fa-hands-helping"></i>
                     </div>
                     <div>
-                        <h3 class="text-xl font-extrabold text-slate-800 tracking-tight">Selamat Datang, {{ explode(' ', Auth::user()->name)[0] }}! 👋</h3>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Panduan Cepat Dashboard {{ ucfirst(Auth::user()->role) }}</p>
+                        <h3 class="text-lg md:text-xl font-extrabold text-slate-800 tracking-tight">Selamat Datang, {{ explode(' ', Auth::user()->name)[0] }}! 👋</h3>
+                        <p class="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Panduan Cepat Dashboard {{ ucfirst(Auth::user()->role) }}</p>
                     </div>
                 </div>
                 <button @click="closeGuide()" class="w-8 h-8 rounded-full bg-slate-200 text-slate-500 hover:bg-red-100 hover:text-red-600 flex items-center justify-center transition-colors">
@@ -464,12 +472,12 @@
                 </button>
             </div>
 
-            <div class="p-8 overflow-y-auto custom-scrollbar bg-white">
-                <p class="text-sm font-medium text-slate-500 mb-6 leading-relaxed">
+            <div class="p-5 md:p-8 overflow-y-auto custom-scrollbar bg-white">
+                <p class="text-xs md:text-sm font-medium text-slate-500 mb-6 leading-relaxed">
                     Agar Anda dapat menggunakan sistem ini dengan maksimal, berikut adalah penjelasan singkat mengenai <span class="font-bold text-slate-800">seluruh fungsi menu</span> yang ada di sebelah kiri layar Anda:
                 </p>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                     @if(Auth::user()->role == 'admin')
                         <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 hover:border-red-200 transition-colors group">
                             <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-1.5">
@@ -530,66 +538,66 @@
                     @endif
 
                     @if(Auth::user()->role == 'owner')
-                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-yellow-200 transition-colors group">
+                        <div class="bg-slate-50 p-4 md:p-5 rounded-2xl border border-slate-100 hover:border-yellow-200 transition-colors group">
                             <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-2">
                                 <div class="w-8 h-8 rounded-lg bg-yellow-100 text-yellow-600 flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fas fa-chart-line"></i></div>
                                 Monitoring Utama
                             </h4>
-                            <p class="text-xs text-slate-500 leading-relaxed">Memantau kesehatan bisnis secara keseluruhan melalui grafik penjualan bulanan dan total omset real-time.</p>
+                            <p class="text-[11px] md:text-xs text-slate-500 leading-relaxed">Memantau kesehatan bisnis secara keseluruhan melalui grafik penjualan bulanan dan total omset real-time.</p>
                         </div>
-                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-yellow-200 transition-colors group">
+                        <div class="bg-slate-50 p-4 md:p-5 rounded-2xl border border-slate-100 hover:border-yellow-200 transition-colors group">
                             <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-2">
                                 <div class="w-8 h-8 rounded-lg bg-yellow-100 text-yellow-600 flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fas fa-file-invoice-dollar"></i></div>
                                 Laporan Keuangan
                             </h4>
-                            <p class="text-xs text-slate-500 leading-relaxed">Melihat daftar detail transaksi yang masuk, mengecek status pembayaran, dan mengunduh laporan PDF bulanan.</p>
+                            <p class="text-[11px] md:text-xs text-slate-500 leading-relaxed">Melihat daftar detail transaksi yang masuk, mengecek status pembayaran, dan mengunduh laporan PDF bulanan.</p>
                         </div>
-                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-yellow-200 transition-colors group">
+                        <div class="bg-slate-50 p-4 md:p-5 rounded-2xl border border-slate-100 hover:border-yellow-200 transition-colors group">
                             <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-2">
                                 <div class="w-8 h-8 rounded-lg bg-yellow-100 text-yellow-600 flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fas fa-utensils"></i></div>
                                 Laporan Menu (Rating)
                             </h4>
-                            <p class="text-xs text-slate-500 leading-relaxed">Menganalisis performa setiap menu hidangan berdasarkan respon Suka/Tidak Suka dari pelanggan di halaman depan.</p>
+                            <p class="text-[11px] md:text-xs text-slate-500 leading-relaxed">Menganalisis performa setiap menu hidangan berdasarkan respon Suka/Tidak Suka dari pelanggan di halaman depan.</p>
                         </div>
-                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-yellow-200 transition-colors group">
+                        <div class="bg-slate-50 p-4 md:p-5 rounded-2xl border border-slate-100 hover:border-yellow-200 transition-colors group">
                             <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-2">
                                 <div class="w-8 h-8 rounded-lg bg-yellow-100 text-yellow-600 flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fas fa-shield-alt"></i></div>
                                 Audit Log Keamanan
                             </h4>
-                            <p class="text-xs text-slate-500 leading-relaxed">Melacak seluruh tindakan yang dilakukan oleh Admin (siapa mengubah, menambah, atau menghapus data apa).</p>
+                            <p class="text-[11px] md:text-xs text-slate-500 leading-relaxed">Melacak seluruh tindakan yang dilakukan oleh Admin (siapa mengubah, menambah, atau menghapus data apa).</p>
                         </div>
                     @endif
 
                     @if(Auth::user()->role == 'mitra')
-                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-blue-200 transition-colors group">
+                        <div class="bg-slate-50 p-4 md:p-5 rounded-2xl border border-slate-100 hover:border-blue-200 transition-colors group">
                             <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-2">
                                 <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fas fa-store"></i></div>
                                 Belanja Stok Bahan
                             </h4>
-                            <p class="text-xs text-slate-500 leading-relaxed">Katalog online untuk Anda membeli stok ayam marinasi, tepung bumbu, kemasan box, dan keperluan outlet lainnya.</p>
+                            <p class="text-[11px] md:text-xs text-slate-500 leading-relaxed">Katalog online untuk Anda membeli stok ayam marinasi, tepung bumbu, kemasan box, dan keperluan outlet lainnya.</p>
                         </div>
-                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-blue-200 transition-colors group">
+                        <div class="bg-slate-50 p-4 md:p-5 rounded-2xl border border-slate-100 hover:border-blue-200 transition-colors group">
                             <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-2">
                                 <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fas fa-shopping-basket"></i></div>
                                 Fitur Keranjang
                             </h4>
-                            <p class="text-xs text-slate-500 leading-relaxed">Klik ikon keranjang di pojok kanan atas layar setiap saat untuk melihat rincian belanja dan melanjutkan pembayaran.</p>
+                            <p class="text-[11px] md:text-xs text-slate-500 leading-relaxed">Klik ikon keranjang di pojok kanan atas layar setiap saat untuk melihat rincian belanja dan melanjutkan pembayaran.</p>
                         </div>
-                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-blue-200 transition-colors group md:col-span-2">
+                        <div class="bg-slate-50 p-4 md:p-5 rounded-2xl border border-slate-100 hover:border-blue-200 transition-colors group md:col-span-2">
                             <h4 class="font-bold text-slate-800 flex items-center gap-3 mb-2">
                                 <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fas fa-clipboard-list"></i></div>
                                 Riwayat & Lacak Pesanan
                             </h4>
-                            <p class="text-xs text-slate-500 leading-relaxed">Memantau status pengiriman belanjaan Anda dari pusat secara real-time. Anda juga dapat melihat nomor resi kurir dan mengunduh struk pembayaran (Invoice) di dalam menu ini.</p>
+                            <p class="text-[11px] md:text-xs text-slate-500 leading-relaxed">Memantau status pengiriman belanjaan Anda dari pusat secara real-time. Anda juga dapat melihat nomor resi kurir dan mengunduh struk pembayaran (Invoice) di dalam menu ini.</p>
                         </div>
                     @endif
 
                 </div>
             </div>
 
-            <div class="px-8 py-5 border-t border-slate-100 bg-slate-50 flex items-center justify-between shrink-0">
+            <div class="px-5 md:px-8 py-4 md:py-5 border-t border-slate-100 bg-slate-50 flex flex-col sm:flex-row items-center justify-between shrink-0 gap-3">
                 <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest"><i class="fas fa-info-circle mr-1"></i> Sistem Manajemen v1.0</span>
-                <button @click="closeGuide()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs uppercase tracking-widest py-3 px-7 rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-2">
+                <button @click="closeGuide()" class="w-full sm:w-auto bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs uppercase tracking-widest py-3 px-7 rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-2">
                     Siap, Saya Mengerti! <i class="fas fa-arrow-right"></i>
                 </button>
             </div>
