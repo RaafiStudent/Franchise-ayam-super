@@ -139,12 +139,22 @@
                         Riwayat Pesanan
                     </a>
                 @endif
-
+                
                 <p class="px-3 text-[10px] font-black text-red-200 uppercase tracking-widest mb-3 mt-8">Akun & Bantuan</p>
                 <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 {{ request()->routeIs('profile.*') ? 'bg-white text-red-800 shadow-sm font-bold' : 'text-red-100 hover:bg-red-800/50 hover:text-white font-medium group' }}">
                     <i class="fas fa-user-cog w-5 text-center {{ request()->routeIs('profile.*') ? 'text-red-700' : 'text-red-300 group-hover:text-white' }} transition-colors"></i>
                     Edit Profil
                 </a>
+
+                {{-- SUNTIKAN TOMBOL LOGOUT KHUSUS HP DI SIDEBAR (PASTE DI SINI BOSS!) --}}
+                <form method="POST" action="{{ route('logout') }}" class="mt-2 md:hidden">
+                    @csrf
+                    <button type="submit" onclick="sessionStorage.clear()" class="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 text-red-100 hover:bg-red-800/50 hover:text-white font-bold group">
+                        <i class="fas fa-sign-out-alt w-5 text-center text-red-300 group-hover:text-white transition-colors"></i>
+                        Keluar / Logout
+                    </button>
+                </form>
+
             </nav>
 
             <div class="p-5 bg-red-900/50 border-t border-red-900/50 shrink-0">
@@ -159,7 +169,6 @@
                 </div>
             </div>
         </aside>
-
         {{-- SUNTIKAN RESPONSIVE 5: Area Utama diberi margin atas (mt-16) khusus di HP agar tidak tertutup header merah --}}
         <div class="flex-1 flex flex-col overflow-hidden bg-slate-50 relative mt-16 md:mt-0">
             <header class="h-[88px] glass-nav border-b border-slate-200/60 flex items-center justify-between px-4 md:px-8 z-10 sticky top-0 hidden md:flex">
