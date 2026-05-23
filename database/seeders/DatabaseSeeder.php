@@ -44,7 +44,7 @@ class DatabaseSeeder extends Seeder
 
         // 4. Panggil Seeder Lainnya agar data muncul otomatis
         $this->call([
-            ProductSeeder::class,      // Memunculkan Stok Bahan Baku
+           // ProductSeeder::class,      // Memunculkan Stok Bahan Baku
             MenuSeeder::class,         // Memunculkan Menu di Depan & Dashboard Owner
             TransactionSeeder::class,  // Membuat Riwayat Penjualan (Omset)
         ]);
