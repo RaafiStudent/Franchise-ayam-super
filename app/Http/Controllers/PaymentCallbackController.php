@@ -30,10 +30,22 @@ class PaymentCallbackController extends Controller
             $parts = explode('-', $orderIdRaw); 
             $orderId = $parts[1];
 
-            $order = Order::findOrFail($orderId);
+            // PERUBAHAN 1: Tambahkan ->with('items.product') untuk memanggil data produk yang dibeli
+            $order = Order::with('items.product')->findOrFail($orderId);
 
-            // FIX: Menggunakan path relatif agar notifikasi bisa dibuka di localhost maupun ngrok
-            $sendSuccessNotification = function($order) {
+            // PERUBAHAN 2: Fungsi ini sekarang menangani Notifikasi DAN Pengurangan Stok
+            $handleSuccessPayment = function($order) {
+                
+                // --- LOGIKA PENGURANGAN STOK ---
+                foreach($order->items as $item) {
+                    // Pastikan produk masih ada di database
+                    if($item->product) {
+                        // Mengurangi stok berdasarkan jumlah yang dibeli
+                        $item->product->decrement('stock', $item->quantity);
+                    }
+                }
+                // -------------------------------
+
                 // Notifikasi ke Owner
                 $owners = User::where('role', 'owner')->get();
                 if($owners->count() > 0) {
@@ -60,13 +72,16 @@ class PaymentCallbackController extends Controller
                     } else {
                         $isAlreadyPaid = $order->payment_status == 'paid';
                         $order->update(['payment_status' => 'paid', 'order_status' => 'processing']);
-                        if (!$isAlreadyPaid) { $sendSuccessNotification($order); }
+                        // PERUBAHAN 3: Panggil fungsi pemotongan stok & notifikasi
+                        if (!$isAlreadyPaid) { $handleSuccessPayment($order); }
                     }
                 }
             } else if ($transaction == 'settlement') {
                 $isAlreadyPaid = $order->payment_status == 'paid';
                 $order->update(['payment_status' => 'paid', 'order_status' => 'processing']);
-                if (!$isAlreadyPaid) { $sendSuccessNotification($order); }
+                // PERUBAHAN 4: Panggil fungsi pemotongan stok & notifikasi
+                if (!$isAlreadyPaid) { $handleSuccessPayment($order); }
+                
             } else if ($transaction == 'pending') {
                 $order->update(['payment_status' => 'pending']);
             } else if ($transaction == 'deny' || $transaction == 'expire' || $transaction == 'cancel') {
