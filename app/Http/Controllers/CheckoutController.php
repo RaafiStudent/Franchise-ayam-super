@@ -25,6 +25,16 @@ class CheckoutController extends Controller
             return redirect()->back()->with('error', 'Keranjang masih kosong!');
         }
 
+        // --- PROTEKSI STOK: Cek apakah barang masih mencukupi sebelum checkout ---
+        foreach($carts as $cart) {
+            if ($cart->quantity > $cart->product->stock) {
+                return redirect()->back()->with('error', 
+                    'Maaf, stok untuk produk "' . $cart->product->name . 
+                    '" tidak mencukupi. Sisa stok saat ini: ' . $cart->product->stock . ' pcs.'
+                );
+            }
+        }
+
         $totalPrice = 0;
         foreach($carts as $cart) {
             $totalPrice += $cart->product->price * $cart->quantity;
@@ -64,6 +74,7 @@ class CheckoutController extends Controller
             Config::$isSanitized = config('midtrans.is_sanitized');
             Config::$is3ds = config('midtrans.is_3ds');
 
+            // Pastikan URL callback sesuai dengan environment Anda
             Config::$overrideNotifUrl = 'https://sandie-retractible-semimagnetically.ngrok-free.dev/midtrans-callback';
 
             $params = [
@@ -86,12 +97,11 @@ class CheckoutController extends Controller
 
             DB::commit();
 
-            // FIX: Menggunakan path relatif agar tidak memicu ngrok warning
             $admins = User::where('role', 'admin')->get();
             if($admins->count() > 0) {
                 $title = "Pesanan Baru Masuk! 🛒";
                 $message = "Mitra {$user->name} baru saja membuat pesanan (#ORDER-{$order->id}). Segera cek!";
-                $url = '/admin/orders'; // Path relatif
+                $url = '/admin/orders';
                 
                 Notification::send($admins, new SystemNotification($title, $message, $url));
             }
@@ -105,10 +115,9 @@ class CheckoutController extends Controller
     }
 
     public function show($id)
-{
-    // Tambahkan 'user' di dalam with() agar alamatnya bisa kita ambil
-    $order = Order::with(['user', 'items.product'])->where('user_id', Auth::id())->findOrFail($id);
-    
-    return view('mitra.orders.show', compact('order'));
-}
+    {
+        $order = Order::with(['user', 'items.product'])->where('user_id', Auth::id())->findOrFail($id);
+        
+        return view('mitra.orders.show', compact('order'));
+    }
 }
