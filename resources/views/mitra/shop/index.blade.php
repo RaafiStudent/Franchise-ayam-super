@@ -92,8 +92,8 @@
         </div>
     </div>
 
-    {{-- STICKY FOOTER (Hanya muncul di halaman Shop) --}}
-    <div id="cart-footer" class="{{ $cartItems->count() > 0 ? '' : 'hidden' }} fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] p-4 z-50">
+    {{-- STICKY FOOTER (SEKARANG SUDAH AMAN DI LAPTOP DAN TETAP PERFECT DI HP) --}}
+    <div id="cart-footer" class="{{ $cartItems->count() > 0 ? '' : 'hidden' }} fixed bottom-0 left-0 md:left-64 w-full md:w-[calc(100%-16rem)] bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] p-4 z-50">
         <div class="max-w-7xl mx-auto flex items-center justify-between">
             <div class="flex items-center gap-4">
                 <div class="bg-red-100 p-3 rounded-full text-red-600 relative">

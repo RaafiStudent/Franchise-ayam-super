@@ -17,7 +17,6 @@ use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Models\Menu;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
 
 // ==========================
 // 1. HALAMAN PUBLIK
@@ -35,11 +34,12 @@ Route::post('/contact-send', [MessageController::class, 'store'])->name('contact
 Route::post('/menu/{id}/love', [HomeController::class, 'toggleLove'])->name('menu.love');
 Route::post('/menu/{id}/dislike', [HomeController::class, 'toggleDislike'])->name('menu.dislike');
 
+
 // ==========================
 // 2. AREA WAJIB LOGIN (Terproteksi Middleware)
 // ==========================
 Route::middleware(['auth', 'is_active'])->group(function () {
-
+    
     // A. REDIRECT DASHBOARD UTAMA Berdasarkan Role
     Route::get('/dashboard', function () {
         $role = auth()->user()->role;
@@ -60,15 +60,13 @@ Route::middleware(['auth', 'is_active'])->group(function () {
         Route::patch('/mitra/{id}/reject', [AdminController::class, 'reject'])->name('mitra.reject');
         
         Route::resource('menus', MenuController::class);
-        Route::resource('products', ProductController::class);
         
+        Route::resource('products', ProductController::class);
         Route::get('/orders', [AdminController::class, 'manageOrders'])->name('orders.index');
         Route::patch('/orders/{id}/ship', [AdminController::class, 'shipOrder'])->name('orders.ship');
-        
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('/reports/menus', [MenuReportController::class, 'index'])->name('reports.menus');
         Route::get('/reports/export', [ReportController::class, 'exportPdf'])->name('reports.export');
-        
         Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
         Route::delete('/messages/{id}', [MessageController::class, 'destroy'])->name('messages.destroy');
     });
@@ -85,40 +83,45 @@ Route::middleware(['auth', 'is_active'])->group(function () {
     // D. GRUP ROLE: MITRA (Shopping & Orders)
     Route::middleware(['role:mitra'])->group(function () {
         Route::get('/shop', [ShopController::class, 'index'])->name('mitra.shop');
-        
         Route::post('/cart/add/{id}', [ShopController::class, 'addToCart'])->name('cart.add');
         Route::post('/cart/decrease/{id}', [ShopController::class, 'decreaseCart'])->name('cart.decrease');
-        // KODE BARU: Menerima Angka Ketikan Manual
-        Route::post('/cart/update/{id}', [ShopController::class, 'updateCart'])->name('cart.update');
         
         Route::delete('/cart/remove/{id}', function($id) {
             \App\Models\Cart::where('id', $id)->where('user_id', Auth::id())->delete();
             $carts = \App\Models\Cart::with('product')->where('user_id', Auth::id())->get();
             $totalPrice = 0;
-            foreach($carts as $cart) {
-                if($cart->product) {
-                    $totalPrice += $cart->product->price * $cart->quantity;
-                }
-            }
+            foreach($carts as $cart) { $totalPrice += $cart->product->price * $cart->quantity; }
+            
             return response()->json([
                 'status' => 'success',
                 'total_price' => number_format($totalPrice, 0, ',', '.'),
                 'total_qty' => $carts->sum('quantity')
             ]);
         })->name('cart.remove');
-        
+
         Route::post('/checkout', [CheckoutController::class, 'process'])->name('checkout.process');
         Route::get('/checkout/{id}', [CheckoutController::class, 'show'])->name('checkout.show');
         Route::get('/my-orders', [OrderController::class, 'index'])->name('orders.index');
         Route::get('/my-orders/{id}', [OrderController::class, 'show'])->name('orders.show');
-        Route::patch('/my-orders/{id}/complete', [OrderController::class, 'markAsCompleted'])->name('orders.complete');
         Route::get('/my-orders/{id}/invoice', [OrderController::class, 'downloadInvoice'])->name('orders.invoice');
+        Route::patch('/my-orders/{id}/complete', [OrderController::class, 'markAsCompleted'])->name('orders.complete');
     });
 
-    // E. EDIT PROFIL & LAINNYA
+    // E. PROFILE & NOTIFICATION (Semua Role)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    
+    // FITUR BARU: ROUTE GANTI PASSWORD
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
-    Route::get('/notification/{id}', [NotificationController::class, 'read'])->name('notification.read');
+    
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    
+    Route::get('/notification/read/{id}', [NotificationController::class, 'read'])->name('notification.read');
 });
+
+// ==========================
+// 3. CALLBACK PEMBAYARAN
+// ==========================
+Route::post('midtrans-callback', [PaymentCallbackController::class, 'receive']);
 
 require __DIR__.'/auth.php';
