@@ -50,7 +50,8 @@
                                 <div>
                                     <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Foto Menu Produk</label>
                                     <div class="relative group">
-                                        <input type="file" name="image" id="image_input" required onchange="previewImage()"
+                                        {{-- SAYA TAMBAHKAN accept="image/*" DI SINI --}}
+                                        <input type="file" name="image" id="image_input" accept="image/*" required onchange="previewImage()"
                                                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
                                         <div id="image_placeholder" class="w-full h-64 bg-slate-50 border-2 border-dashed border-slate-200 rounded-[2rem] flex flex-col items-center justify-center group-hover:bg-slate-100 transition-all overflow-hidden">
                                             <img id="image_preview" src="#" class="w-full h-full object-cover hidden">
@@ -61,6 +62,16 @@
                                         </div>
                                     </div>
                                     <p class="text-[9px] text-slate-400 mt-3 italic">*Gunakan rasio 4:3 dengan format JPG/PNG (Maks 2MB)</p>
+                                    
+                                    {{-- INI DIA SUNTIKAN NOTIFIKASI ERROR GAMBARNYA BOSS! --}}
+                                    @error('image')
+                                        <div class="mt-3 bg-red-50 border-l-4 border-red-500 p-3 rounded-md">
+                                            <p class="text-red-600 text-xs font-bold animate-pulse">
+                                                <i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}
+                                            </p>
+                                        </div>
+                                    @enderror
+
                                 </div>
                             </div>
                         </div>
@@ -84,6 +95,11 @@
             const placeholder = document.getElementById('placeholder_content');
             const file = input.files[0];
             const reader = new FileReader();
+
+            // Peringatan instant jika ukuran file lebih dari 2MB
+            if (file && file.size > 2 * 1024 * 1024) {
+                alert("Peringatan: Ukuran gambar melebihi 2MB! Sistem mungkin akan menolaknya.");
+            }
 
             reader.onloadend = function () {
                 preview.src = reader.result;
