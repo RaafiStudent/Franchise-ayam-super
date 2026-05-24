@@ -47,13 +47,24 @@
                             <div class="space-y-6 text-center">
                                 <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 text-left">Update Foto Menu</label>
                                 <div class="relative group">
-                                    <input type="file" name="image" id="image_edit" onchange="previewEdit()"
+                                    {{-- TAMBAHAN accept="image/*" AGAR HANYA BISA MILIH GAMBAR --}}
+                                    <input type="file" name="image" id="image_edit" accept="image/*" onchange="previewEdit()"
                                            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
                                     <div class="w-full h-64 bg-slate-50 border-2 border-dashed border-slate-200 rounded-[2rem] overflow-hidden">
                                         <img id="edit_preview" src="{{ asset('storage/' . $menu->image) }}" class="w-full h-full object-cover">
                                     </div>
                                 </div>
                                 <p class="text-[9px] text-blue-600 font-bold italic">Kosongkan jika tidak ingin mengganti foto lama</p>
+                                
+                                {{-- SUNTIKAN NOTIFIKASI ERROR GAMBAR --}}
+                                @error('image')
+                                    <div class="mt-3 bg-red-50 border-l-4 border-red-500 p-3 rounded-md text-left">
+                                        <p class="text-red-600 text-xs font-bold animate-pulse">
+                                            <i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}
+                                        </p>
+                                    </div>
+                                @enderror
+
                             </div>
                         </div>
 
@@ -73,6 +84,12 @@
             const input = document.getElementById('image_edit');
             const preview = document.getElementById('edit_preview');
             const file = input.files[0];
+
+            // SUNTIKAN PERINGATAN INSTANT JIKA FILE > 2MB
+            if (file && file.size > 2 * 1024 * 1024) {
+                alert("Peringatan: Ukuran gambar melebihi 2MB! Sistem akan menolaknya saat disimpan.");
+            }
+
             const reader = new FileReader();
             reader.onloadend = function () { preview.src = reader.result; }
             if (file) { reader.readAsDataURL(file); }
