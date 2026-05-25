@@ -94,7 +94,18 @@
                                         <label for="image-upload" class="cursor-pointer inline-flex items-center gap-2 bg-white px-5 py-2.5 rounded-xl shadow-sm border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all active:scale-95">
                                             <i class="fas fa-cloud-upload-alt text-red-500"></i> Ganti Foto Baru
                                         </label>
-                                        <input id="image-upload" type="file" name="image" class="hidden" onchange="previewFile()">
+                                        {{-- TAMBAHAN accept="image/*" --}}
+                                        <input id="image-upload" type="file" name="image" accept="image/*" class="hidden" onchange="previewFile()">
+                                        
+                                        {{-- INI SUNTIKAN KOTAK MERAH ERROR GAMBAR --}}
+                                        @error('image')
+                                            <div class="mt-4 bg-red-50 border-l-4 border-red-500 p-3 rounded-lg text-left">
+                                                <p class="text-red-600 text-[11px] font-bold animate-pulse">
+                                                    <i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}
+                                                </p>
+                                            </div>
+                                        @enderror
+
                                         <p class="text-[10px] text-slate-400 mt-4 leading-relaxed">*Ukuran maksimal 2MB dengan format JPG atau PNG.</p>
                                     </div>
                                 </div>
@@ -118,11 +129,17 @@
         </div>
     </div>
 
-    {{-- Script untuk Preview Foto Instan --}}
+    {{-- Script untuk Preview Foto Instan + Alert Size --}}
     <script>
         function previewFile() {
             const preview = document.getElementById('previewImage');
             const file = document.getElementById('image-upload').files[0];
+            
+            // Peringatan pop-up langsung jika file lebih dari 2MB
+            if (file && file.size > 2 * 1024 * 1024) {
+                alert("Peringatan: Ukuran gambar melebihi 2MB! Sistem akan menolaknya saat Anda klik Simpan.");
+            }
+
             const reader = new FileReader();
 
             reader.onloadend = function () {
