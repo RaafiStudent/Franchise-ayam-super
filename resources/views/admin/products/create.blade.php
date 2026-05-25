@@ -90,7 +90,19 @@
                                         <label for="image-upload" class="cursor-pointer inline-flex items-center gap-2 bg-white px-6 py-3 rounded-2xl shadow-sm border border-slate-200 text-xs font-bold text-slate-600 hover:text-red-600 hover:border-red-200 transition-all active:scale-95">
                                             <i class="fas fa-image text-red-500"></i> Pilih File Foto
                                         </label>
-                                        <input id="image-upload" type="file" name="image" class="hidden" onchange="previewFile()" required>
+                                        
+                                        {{-- TAMBAHAN accept="image/*" --}}
+                                        <input id="image-upload" type="file" name="image" accept="image/*" class="hidden" onchange="previewFile()" required>
+                                        
+                                        {{-- INI SUNTIKAN KOTAK MERAH ERROR GAMBAR --}}
+                                        @error('image')
+                                            <div class="mt-4 bg-red-50 border-l-4 border-red-500 p-3 rounded-lg text-left">
+                                                <p class="text-red-600 text-[11px] font-bold animate-pulse">
+                                                    <i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}
+                                                </p>
+                                            </div>
+                                        @enderror
+
                                         <p class="text-[10px] text-slate-400 mt-5 leading-relaxed font-medium">
                                             Gunakan foto produk dengan latar belakang bersih.<br>
                                             Maksimal ukuran file: <span class="font-bold text-slate-500">2MB</span>
@@ -117,12 +129,18 @@
         </div>
     </div>
 
-    {{-- Script Pintar Preview Foto --}}
+    {{-- Script Pintar Preview Foto + Notifikasi Ukuran Gambar --}}
     <script>
         function previewFile() {
             const preview = document.getElementById('previewImage');
             const placeholder = document.getElementById('placeholderIcon');
             const file = document.getElementById('image-upload').files[0];
+            
+            // Peringatan pop-up langsung jika file lebih dari 2MB
+            if (file && file.size > 2 * 1024 * 1024) {
+                alert("Peringatan: Ukuran gambar melebihi 2MB! Sistem akan menolaknya saat Anda klik Simpan.");
+            }
+
             const reader = new FileReader();
 
             reader.onloadend = function () {
