@@ -27,10 +27,13 @@ class ShopController extends Controller
     public function addToCart(Request $request, $productId)
     {
         $userId = Auth::id();
+        $product = Product::find($productId);
         $cart = Cart::where('user_id', $userId)->where('product_id', $productId)->first();
 
         if ($cart) {
-            $cart->increment('quantity');
+            if ($cart->quantity < $product->stock) { // Proteksi Stok
+                $cart->increment('quantity');
+            }
         } else {
             Cart::create([
                 'user_id' => $userId,
@@ -55,6 +58,38 @@ class ShopController extends Controller
             }
         }
 
+        return $this->getCartSummary($userId);
+    }
+
+    // SUNTIKAN: FUNGSI UPDATE DARI KETIKAN
+    public function updateCart(Request $request, $productId)
+    {
+        $userId = Auth::id();
+        $quantity = (int) $request->query('quantity', 0); // Ambil dari URL Parameters
+        
+        $product = Product::find($productId);
+        if ($product && $quantity > $product->stock) { // Cegah overbook
+            $quantity = $product->stock;
+        }
+
+        $cart = Cart::where('user_id', $userId)->where('product_id', $productId)->first();
+        
+        if ($quantity <= 0) {
+            if ($cart) {
+                $cart->delete();
+            }
+        } else {
+            if ($cart) {
+                $cart->update(['quantity' => $quantity]);
+            } else {
+                Cart::create([
+                    'user_id' => $userId,
+                    'product_id' => $productId,
+                    'quantity' => $quantity
+                ]);
+            }
+        }
+        
         return $this->getCartSummary($userId);
     }
 

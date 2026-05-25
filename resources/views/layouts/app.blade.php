@@ -322,6 +322,7 @@
             </div>
         </div>
 
+        {{-- SUNTIKAN SCRIPT SMART CART REAL-TIME --}}
         <script>
             function toggleOffcanvasCart() {
                 const offcanvas = document.getElementById('cartOffcanvas');
@@ -335,47 +336,26 @@
                 }
             }
 
-            async function instantCartAction(event, action, productId, cartId = null) {
-                event.preventDefault(); 
+            let typingTimer;
+            function handleTyping(inputElement, productId) {
+                inputElement.value = inputElement.value.replace(/[^0-9]/g, '');
+                clearTimeout(typingTimer);
+                
+                typingTimer = setTimeout(() => {
+                    let qty = parseInt(inputElement.value) || 0;
+                    instantCartAction(null, 'update', productId, null, qty);
+                }, 500); 
+            }
+
+            async function instantCartAction(event, action, productId, cartId = null, manualQty = null) {
+                if (event && event.preventDefault) event.preventDefault(); 
 
                 let url = '';
-                let method = '';
-                if(action === 'add') { url = '/cart/add/' + productId; method = 'POST'; }
-                else if(action === 'decrease') { url = '/cart/decrease/' + productId; method = 'POST'; }
-                else if(action === 'remove') { url = '/cart/remove/' + cartId; method = 'DELETE'; }
-
-                let gridContainer = document.querySelector(`.product-action-container[data-id="${productId}"]`);
-                let sidebarItem = document.getElementById('sidebar-item-' + productId);
-
-                let qtyDisplayGrid = gridContainer ? gridContainer.querySelector('.qty-text') : null;
-                let qtyDisplaySidebar = sidebarItem ? sidebarItem.querySelector('.sidebar-qty-text') : null;
-
-                let currentQty = qtyDisplayGrid ? parseInt(qtyDisplayGrid.innerText) : (qtyDisplaySidebar ? parseInt(qtyDisplaySidebar.innerText) : 0);
-
-                if(action === 'add') currentQty++;
-                else if(action === 'decrease' && currentQty > 0) currentQty--;
-                else if(action === 'remove') currentQty = 0;
-
-                if(gridContainer) {
-                    let btnAdd = gridContainer.querySelector('.btn-add');
-                    let btnCounter = gridContainer.querySelector('.btn-counter');
-                    if(currentQty > 0) {
-                        btnAdd.classList.add('hidden');
-                        btnCounter.classList.remove('hidden'); btnCounter.classList.add('flex');
-                        qtyDisplayGrid.innerText = currentQty;
-                    } else {
-                        btnAdd.classList.remove('hidden');
-                        btnCounter.classList.add('hidden'); btnCounter.classList.remove('flex');
-                    }
-                }
-
-                if(sidebarItem) {
-                    if(currentQty > 0) {
-                        qtyDisplaySidebar.innerText = currentQty;
-                    } else {
-                        sidebarItem.remove(); 
-                    }
-                }
+                let method = 'POST';
+                if (action === 'add') { url = '/cart/add/' + productId; }
+                else if (action === 'decrease') { url = '/cart/decrease/' + productId; }
+                else if (action === 'remove') { url = '/cart/remove/' + cartId; method = 'DELETE'; }
+                else if (action === 'update') { url = '/cart/update/' + productId + '?quantity=' + manualQty; }
 
                 try {
                     let response = await fetch(url, {
@@ -397,6 +377,43 @@
                         if(headerBadge) headerBadge.innerText = data.total_qty;
                         if(stickyBadge) stickyBadge.innerText = data.total_qty;
 
+                        let serverQty = data.cart_items[productId] || 0;
+                        
+                        let gridContainer = document.querySelector(`.product-action-container[data-id="${productId}"]`);
+                        if (gridContainer) {
+                            let btnAdd = gridContainer.querySelector('.btn-add');
+                            let btnCounter = gridContainer.querySelector('.btn-counter');
+                            let qtyDisplayGrid = gridContainer.querySelector('.qty-text');
+                            
+                            if (serverQty > 0) {
+                                if (btnAdd) btnAdd.classList.add('hidden');
+                                if (btnCounter) { btnCounter.classList.remove('hidden'); btnCounter.classList.add('flex'); }
+                                if (qtyDisplayGrid) {
+                                    qtyDisplayGrid.value = serverQty;
+                                }
+                            } else {
+                                if (btnAdd) btnAdd.classList.remove('hidden');
+                                if (btnCounter) { btnCounter.classList.add('hidden'); btnCounter.classList.remove('flex'); }
+                            }
+                        }
+
+                        let sidebarItem = document.getElementById('sidebar-item-' + productId);
+                        if (sidebarItem) {
+                            if (serverQty > 0) {
+                                let qtySidebar = sidebarItem.querySelector('.sidebar-qty-text');
+                                if (qtySidebar) qtySidebar.innerText = serverQty;
+                            } else {
+                                sidebarItem.remove(); 
+                            }
+                        } else if (serverQty > 0 && action === 'add') {
+                            let pageResponse = await fetch(window.location.href);
+                            let pageHtml = await pageResponse.text();
+                            let doc = new DOMParser().parseFromString(pageHtml, 'text/html');
+                            let oldCartItems = document.getElementById('cart-items-container');
+                            let newCartItems = doc.getElementById('cart-items-container');
+                            if (oldCartItems && newCartItems) oldCartItems.innerHTML = newCartItems.innerHTML;
+                        }
+
                         let container = document.getElementById('cart-items-container');
                         let stickyFooter = document.getElementById('cart-footer');
                         let btnSidebar = document.getElementById('btn-lanjutkan-sidebar');
@@ -411,15 +428,6 @@
                             if(stickyFooter) stickyFooter.classList.remove('hidden');
                             if(btnUtama) { btnUtama.disabled = false; btnUtama.classList.remove('opacity-50', 'cursor-not-allowed'); }
                             if(btnSidebar) { btnSidebar.disabled = false; btnSidebar.classList.remove('opacity-50', 'cursor-not-allowed'); }
-                        }
-
-                        if(action === 'add' && currentQty === 1 && !sidebarItem) {
-                            let pageResponse = await fetch(window.location.href);
-                            let pageHtml = await pageResponse.text();
-                            let doc = new DOMParser().parseFromString(pageHtml, 'text/html');
-                            let oldCartItems = document.getElementById('cart-items-container');
-                            let newCartItems = doc.getElementById('cart-items-container');
-                            if (oldCartItems && newCartItems) oldCartItems.innerHTML = newCartItems.innerHTML;
                         }
                     }
                 } catch (error) {

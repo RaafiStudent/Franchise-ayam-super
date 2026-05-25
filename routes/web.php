@@ -86,6 +86,9 @@ Route::middleware(['auth', 'is_active'])->group(function () {
         Route::post('/cart/add/{id}', [ShopController::class, 'addToCart'])->name('cart.add');
         Route::post('/cart/decrease/{id}', [ShopController::class, 'decreaseCart'])->name('cart.decrease');
         
+        // SUNTIKAN RUTE SMART CART KETIKAN ANGKA MANUAL
+        Route::post('/cart/update/{id}', [ShopController::class, 'updateCart'])->name('cart.update');
+        
         Route::delete('/cart/remove/{id}', function($id) {
             \App\Models\Cart::where('id', $id)->where('user_id', Auth::id())->delete();
             $carts = \App\Models\Cart::with('product')->where('user_id', Auth::id())->get();

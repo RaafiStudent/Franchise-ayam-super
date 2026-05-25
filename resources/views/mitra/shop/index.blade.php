@@ -76,7 +76,13 @@
                                         -
                                     </button>
                                     
-                                    <span class="qty-text text-sm font-bold text-red-900 w-6 text-center">{{ $qty }}</span>
+                                    {{-- SUNTIKAN: FITUR KETIK ANGKA ANTI HURUF --}}
+                                    <input type="text" 
+                                           inputmode="numeric" 
+                                           pattern="[0-9]*" 
+                                           oninput="handleTyping(this, {{ $product->id }})"
+                                           value="{{ $qty }}" 
+                                           class="qty-text text-sm font-bold text-red-900 w-10 text-center bg-transparent border-none p-0 focus:ring-0 [-moz-appearance:_textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none m-0">
                                     
                                     <button type="button" onclick="instantCartAction(event, 'add', {{ $product->id }})" 
                                             class="w-8 h-8 flex items-center justify-center text-red-600 font-bold hover:bg-red-200 rounded-full transition">
@@ -92,7 +98,7 @@
         </div>
     </div>
 
-    {{-- STICKY FOOTER (SEKARANG SUDAH AMAN DI LAPTOP DAN TETAP PERFECT DI HP) --}}
+    {{-- STICKY FOOTER TETAP AMAN --}}
     <div id="cart-footer" class="{{ $cartItems->count() > 0 ? '' : 'hidden' }} fixed bottom-0 left-0 md:left-64 w-full md:w-[calc(100%-16rem)] bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] p-4 z-50">
         <div class="max-w-7xl mx-auto flex items-center justify-between">
             <div class="flex items-center gap-4">
