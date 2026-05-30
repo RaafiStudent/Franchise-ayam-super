@@ -11,16 +11,23 @@ class ShopController extends Controller
 {
     public function index()
     {
-        // Pastikan kolom is_available ada di database, atau gunakan 'stock' > 0
         $products = Product::where('stock', '>', 0)->get();
         $cartItems = Cart::with('product')->where('user_id', Auth::id())->get();
 
         $totalPrice = 0;
         foreach($cartItems as $item) {
-            $totalPrice += $item->product->price * $item->quantity;
+            // PELINDUNG 1: Cek apakah produk aslinya masih ada di database?
+            if ($item->product) {
+                $totalPrice += $item->product->price * $item->quantity;
+            } else {
+                // BUMM! Jika produk sudah dihapus Admin, hapus otomatis dari keranjang Mitra!
+                $item->delete();
+            }
         }
 
-        // PERBAIKAN ALAMAT VIEW: mitra/shop/index.blade.php
+        // Ambil ulang data keranjang (berjaga-jaga jika barusan ada 'produk hantu' yang dihapus)
+        $cartItems = Cart::with('product')->where('user_id', Auth::id())->get();
+
         return view('mitra.shop.index', compact('products', 'cartItems', 'totalPrice'));
     }
 
@@ -30,16 +37,19 @@ class ShopController extends Controller
         $product = Product::find($productId);
         $cart = Cart::where('user_id', $userId)->where('product_id', $productId)->first();
 
-        if ($cart) {
-            if ($cart->quantity < $product->stock) { // Proteksi Stok
-                $cart->increment('quantity');
+        // Pastikan produk tidak null sebelum ditambah ke keranjang
+        if ($product) {
+            if ($cart) {
+                if ($cart->quantity < $product->stock) {
+                    $cart->increment('quantity');
+                }
+            } else {
+                Cart::create([
+                    'user_id' => $userId,
+                    'product_id' => $productId,
+                    'quantity' => 1
+                ]);
             }
-        } else {
-            Cart::create([
-                'user_id' => $userId,
-                'product_id' => $productId,
-                'quantity' => 1
-            ]);
         }
 
         return $this->getCartSummary($userId);
@@ -61,14 +71,19 @@ class ShopController extends Controller
         return $this->getCartSummary($userId);
     }
 
-    // SUNTIKAN: FUNGSI UPDATE DARI KETIKAN
     public function updateCart(Request $request, $productId)
     {
         $userId = Auth::id();
-        $quantity = (int) $request->query('quantity', 0); // Ambil dari URL Parameters
+        $quantity = (int) $request->query('quantity', 0); 
         
         $product = Product::find($productId);
-        if ($product && $quantity > $product->stock) { // Cegah overbook
+        
+        // Pastikan produknya masih ada
+        if (!$product) {
+            return $this->getCartSummary($userId);
+        }
+
+        if ($quantity > $product->stock) { 
             $quantity = $product->stock;
         }
 
@@ -100,9 +115,17 @@ class ShopController extends Controller
         $totalQty = 0;
 
         foreach($carts as $c) {
-            $totalPrice += $c->product->price * $c->quantity;
-            $totalQty += $c->quantity;
+            // PELINDUNG 2: Saat menghitung via AJAX, pastikan produk tidak null
+            if ($c->product) {
+                $totalPrice += $c->product->price * $c->quantity;
+                $totalQty += $c->quantity;
+            } else {
+                $c->delete(); // Hapus 'produk hantu'
+            }
         }
+
+        // Ambil ulang jika barusan ada yang dihapus otomatis
+        $carts = Cart::with('product')->where('user_id', $userId)->get();
 
         return response()->json([
             'status' => 'success',
